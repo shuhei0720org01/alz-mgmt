@@ -430,7 +430,8 @@ hub_virtual_networks = {
       name                  = "$${primary_bastion_host_name}"
       zones                 = []
       bastion_public_ip = {
-        name = "$${primary_bastion_host_public_ip_name}"
+        name  = "$${primary_bastion_host_public_ip_name}"
+        zones = []
       }
     }
   }
@@ -521,7 +522,8 @@ hub_virtual_networks = {
       name                  = "$${secondary_bastion_host_name}"
       zones                 = []
       bastion_public_ip = {
-        name = "$${secondary_bastion_host_public_ip_name}"
+        name  = "$${secondary_bastion_host_public_ip_name}"
+        zones = []
       }
     }
   }
