@@ -1798,7 +1798,7 @@ graph TD
     LIB --> ARCH[architecture_definitions/<br/>管理グループ階層定義]
     LIB --> ARCHE[archetype_definitions/<br/>ポリシーアーキタイプ]
     
-    META -.依存.-> ALZLIB[platform/alz@2025.09.3<br/>標準ALZライブラリ]
+    META -.依存.-> ALZLIB["platform/alz 2025.09.3<br/>標準ALZライブラリ"]
     
     ARCHE --> ROOT[root_custom.yaml<br/>Rootポリシー]
     ARCHE --> PLATFORM[platform_custom.yaml<br/>Platformポリシー]
@@ -2912,7 +2912,7 @@ module "hub_and_spoke_vnet" {
 
 ```mermaid
 graph TD
-    STD[標準ALZライブラリ<br/>platform/alz@2025.09.3] --> BASE[base_archetype: management]
+    STD["標準ALZライブラリ<br/>platform/alz 2025.09.3"] --> BASE[base_archetype: management]
     CUSTOM[lib/management_custom.yaml] --> OVERRIDE[Override定義]
     
     BASE --> MERGE[マージ処理]
