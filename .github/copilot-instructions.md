@@ -52,7 +52,13 @@
   - DCR詳細3種類（change_tracking、defender_sql、vm_insights）
   - Managed Identity（System/User-assigned、使用フロー、ポリシー連携）
   - 実践例3つ、デバッグ技術、エラー対処、コスト最適化
-- ⏸️ Chapter 10〜17: 未着手（8章残り）
+- ✅ Chapter 10 (10_Hub-and-Spoke.md): 完全装飾完了（PR #42）
+  - Hub-and-Spokeアーキテクチャ、Virtual WANとの比較
+  - tfvars設定（connectivity_type、DDoS Protection、hub_virtual_networks）
+  - Hub VNet構成要素6つ（VNet、Firewall、VPN GW、ER GW、Bastion、DNS）
+  - マルチリージョン構成（primary/secondary）
+  - ルーティング設定（UDR）、コスト削減版、デバッグ技術、エラー対処4つ
+- ⏸️ Chapter 11〜17: 未着手（7章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
