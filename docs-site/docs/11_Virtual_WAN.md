@@ -80,7 +80,7 @@ Virtual Hub作成 → VNet接続
 
 **📊 Virtual WANのグローバル接続図**
 
-```
+```text title="Virtual WANのグローバルメッシュ接続"
                   インターネット
                        ↕
             ┌─────────────────────┐
@@ -113,7 +113,7 @@ Virtual Hub作成 → VNet接続
 
 **🔄 通信例：東京のアプリ → ロンドンのDB**
 
-```
+```text title="グローバル通信の流れ"
 Tokyo Spoke VNet (アプリ)
   ↓
 Tokyo vHub
@@ -205,12 +205,12 @@ Virtual WAN：
 
 ### connectivity_type
 
-```hcl
+```hcl title="Virtual WANの選択"
 connectivity_type = "virtual_wan"
 ```
 
 **Chapter 10との違い**：
-```hcl
+```hcl title="connectivity_typeの選択肢"
 # Hub-and-Spoke
 connectivity_type = "hub_and_spoke_vnet"
 
@@ -222,7 +222,7 @@ connectivity_type = "virtual_wan"
 
 ### virtual_wan_settings
 
-```hcl
+```hcl title="Virtual WANの基本設定"
 virtual_wan_settings = {
   enabled_resources = {
     resource_group = true
@@ -252,7 +252,7 @@ Virtual WANはグローバルリソース
 
 #### virtual_wan
 
-```hcl
+```hcl title="Virtual WANリソースの名前"
 virtual_wan = {
   name = "vwan-alz"
 }
@@ -276,7 +276,7 @@ Virtual WAN（最上位）
 
 ### virtual_hubs
 
-```hcl
+```hcl title="Virtual Hubの完全設定"
 virtual_hubs = {
   primary = {
     location = "japaneast"
@@ -310,7 +310,7 @@ virtual_hubs = {
 
 ### hub.address_prefix
 
-```hcl
+```hcl title="Virtual Hubのアドレス空間"
 address_prefix = "10.0.0.0/23"
 ```
 
@@ -336,7 +336,7 @@ Microsoftが管理
 
 ### hub_routing_preference
 
-```hcl
+```hcl title="ルーティング優先順位の設定"
 hub_routing_preference = "ExpressRoute"
 ```
 
@@ -364,7 +364,7 @@ ASPath：
 
 ### virtual_router_auto_scale_min_capacity
 
-```hcl
+```hcl title="スケールユニットの設定"
 virtual_router_auto_scale_min_capacity = 2
 ```
 
@@ -393,7 +393,7 @@ virtual_router_auto_scale_min_capacity = 2
 
 ### firewall
 
-```hcl
+```hcl title="Virtual WAN用Firewallの設定"
 firewall = {
   name                         = "fw-vhub-jpe"
   threat_intelligence_mode     = "Alert"
@@ -424,7 +424,7 @@ Virtual WAN：
 
 #### threat_intelligence_mode
 
-```hcl
+```hcl title="脅威インテリジェンスの設定"
 threat_intelligence_mode = "Alert"
 ```
 
@@ -450,7 +450,7 @@ Deny：
 ```
 
 **おすすめ**：
-```hcl
+```hcl title="環境別の脅威インテリジェンス設定"
 # 開発環境
 threat_intelligence_mode = "Alert"  # ←影響確認
 
@@ -460,7 +460,7 @@ threat_intelligence_mode = "Deny"   # ←本気でブロック
 
 #### sku_tier
 
-```hcl
+```hcl title="Firewall SKUの選択"
 sku_tier = "Standard"
 ```
 
@@ -489,7 +489,7 @@ Chapter 10と同じやつ。
 
 ### firewall_policy
 
-```hcl
+```hcl title="Firewallポリシーと継承設定"
 firewall_policy = {
   name     = "fwp-vhub-jpe"
   base_policy = {
@@ -511,7 +511,7 @@ firewall_policy = {
 ```
 
 **使い方**：
-```hcl
+```hcl title="親子ポリシーの設定例"
 # 親ポリシー
 base_policy = {
   parent_firewall_policy_id = null  # ←親なし
@@ -529,7 +529,7 @@ base_policy = {
 
 ### virtual_network_gateway_vpn
 
-```hcl
+```hcl title="Virtual WAN用VPN Gatewayの設定"
 virtual_network_gateway_vpn = {
   name       = "vpngw-vhub-jpe"
   scale_unit = 1
@@ -569,7 +569,7 @@ Virtual WAN：
 
 #### scale_unit
 
-```hcl
+```hcl title="VPN Gatewayのスケールユニット"
 scale_unit = 1
 ```
 
@@ -597,7 +597,7 @@ Virtual WAN：
 
 #### vpn_sites
 
-```hcl
+```hcl title="VPN接続先の情報設定"
 vpn_sites = {
   site1 = {
     name          = "vpnsite-onprem-tokyo"
@@ -636,7 +636,7 @@ Azure Virtual WAN Hub
 
 ### virtual_network_connections
 
-```hcl
+```hcl title="VNet接続の設定"
 virtual_network_connections = {
   spoke1 = {
     name                      = "conn-spoke1"
@@ -671,7 +671,7 @@ Virtual WAN：
 
 #### internet_security_enabled
 
-```hcl
+```hcl title="Firewall経由設定"
 internet_security_enabled = true
 ```
 
@@ -697,7 +697,7 @@ Spoke VM → インターネット
 
 #### routing
 
-```hcl
+```hcl title="ルーティングの設定"
 routing = {
   associated_route_table_key = "defaultRouteTable"
   propagated_route_table = {
@@ -769,7 +769,7 @@ Virtual Hubを作ると自動で作られる
 
 ### カスタムルートテーブル
 
-```hcl
+```hcl title="環境分離用ルートテーブル"
 route_tables = {
   production = {
     name   = "rt-production"
@@ -802,7 +802,7 @@ rt-developmentに紐付け
 
 ### Routing Intent
 
-```hcl
+```hcl title="Routing Intentの設定"
 routing_intents = {
   default = {
     name = "routing-intent-default"
@@ -851,7 +851,7 @@ internet_security_enabled = true と似てる
 
 ## Part 7: Sidecar VNet
 
-```hcl
+```hcl title="Sidecar VNetとBastionの設定"
 enabled_resources = {
   sidecar_virtual_network = true
 }
@@ -916,7 +916,7 @@ Sidecar VNet
 
 ### 最小構成
 
-```hcl
+```hcl title="Virtual WANのコスト削減版"
 connectivity_type = "virtual_wan"
 
 virtual_wan_settings = {
@@ -1012,7 +1012,7 @@ Virtual Hub：約5.5万円/月（2ユニット）
 
 ### Virtual WANの確認
 
-```bash
+```bash title="Virtual WAN情報の取得"
 # Virtual WAN一覧
 az network vwan list --output table
 
@@ -1024,7 +1024,7 @@ az network vwan show \
 
 ### Virtual Hubの確認
 
-```bash
+```bash title="Virtual Hub情報とルーティング確認"
 # Virtual Hub一覧
 az network vhub list --output table
 
@@ -1041,7 +1041,7 @@ az network vhub route-table list \
 
 ### VNet接続の確認
 
-```bash
+```bash title="VNet接続と実効ルートの確認"
 # 接続一覧
 az network vhub connection list \
   --resource-group rg-vwan \
@@ -1077,7 +1077,7 @@ Error: address space overlaps
 **原因**：Virtual HubとVNetのアドレス空間が重複
 
 **対処法**：
-```hcl
+```hcl title="アドレス空間を分ける"
 # NG
 hub.address_prefix: 10.0.0.0/23
 spoke VNet: 10.0.0.0/24  # ←重複
@@ -1096,7 +1096,7 @@ Error: insufficient scale units
 **原因**：VNet接続数に対してスケールユニットが少ない
 
 **対処法**：
-```hcl
+```hcl title="VNet数に応じたスケールユニット"
 # 目安
 1〜5 VNet：2ユニット
 6〜10 VNet：3ユニット
@@ -1113,7 +1113,7 @@ Error: routing intent already exists
 **原因**：Routing Intentは1つのHubに1つだけ
 
 **対処法**：
-```hcl
+```hcl title="Routing Intentは1個だけ設定"
 # NG（2個作ろうとしています）
 routing_intents = {
   intent1 = { ... }
@@ -1135,7 +1135,7 @@ Error: bastion requires sidecar virtual network
 **原因**：Bastionを有効化したけどSidecar VNetがない
 
 **対処法**：
-```hcl
+```hcl title="Bastion使用時はSidecar VNetも有効化"
 enabled_resources = {
   bastion                 = true
   sidecar_virtual_network = true  # ←これも有効化
