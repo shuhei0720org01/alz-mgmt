@@ -76,7 +76,7 @@ Hub-and-Spokeネットワークの仕組みを理解しよう。
 
 **📊 Hub-and-Spoke構成図（このプロジェクト）**
 
-```text
+```
                     インターネット
                          ↕
                    Azure Firewall
@@ -107,11 +107,11 @@ Hub-and-Spokeネットワークの仕組みを理解しよう。
     └──────────┘  └──────────┘  └──────────┘
         Web          API         Database
        Server      Server        Server
-```text
+```
 
 **🎯 通信の流れ（例）**
 
-```text
+```
 Spoke 1 (Webサーバー) → インターネット へアクセスしたい
   ↓
 1. User Defined Route (UDR) で Hub へ
@@ -123,7 +123,7 @@ Spoke 1 (Webサーバー) → インターネット へアクセスしたい
 4. 戻りも Firewall 経由
   ↓
 5. Spoke 1 へ到着
-```text
+```
 
 **🔐 このアーキテクチャの特徴**
 
@@ -141,17 +141,17 @@ Spoke 1 (Webサーバー) → インターネット へアクセスしたい
 
 ### 1. セキュリティ集約
 
-```text
+```
 全トラフィックがHubを経由
   ↓
 Firewallで一元管理
   ↓
 「Spokeごとにファイアウォール買う」不要
-```text
+```
 
 ### 2. コスト削減
 
-```text
+```
 VPN Gateway：1台約4万円/月
   ↓
 Hubに1台だけ置く
@@ -159,19 +159,19 @@ Hubに1台だけ置く
 全Spokeで共有
   ↓
 Spokeごとに買わなくていい
-```text
+```
 
 ### 3. 管理が楽
 
-```text
+```
 DNSサーバー：Hubに1台
 Firewallルール：Hubで一元管理
 VPN接続：Hubだけ設定
-```text
+```
 
 ### 4. 柔軟性
 
-```text
+```
 新しいアプリ追加
   ↓
 新しいSpoke VNet作る
@@ -179,7 +179,7 @@ VPN接続：Hubだけ設定
 Hubにピアリング
   ↓
 すぐ使える
-```text
+```
 
 ---
 
@@ -189,7 +189,7 @@ Hubにピアリング
 
 ```hcl
 connectivity_type = "hub_and_spoke_vnet"
-```text
+```
 
 **何？**：ネットワークの種類
 
@@ -210,7 +210,7 @@ hub_and_spoke_networks_settings = {
     location            = "japaneast"
   }
 }
-```text
+```
 
 #### ddos_protection_plan
 
@@ -218,10 +218,10 @@ hub_and_spoke_networks_settings = {
 DDoS攻撃（大量アクセスでサーバーダウンさせる攻撃）から守る仕組み。
 
 **料金**：
-```text
+```
 Standard：約40万円/月（高い！）
 Basic：無料（自動で有効）
-```text
+```
 
 **注意**：
 ```hcl
@@ -229,7 +229,7 @@ Basic：無料（自動で有効）
 enabled_resources = {
   ddos_protection_plan = false  # ←コスト削減
 }
-```text
+```
 
 Chapter 3で見た設定ですね。
 
@@ -263,7 +263,7 @@ hub_virtual_networks = {
     ...
   }
 }
-```text
+```
 
 **primary**ってキーは何でもいい。複数のHubを作る時に識別するため。
 
@@ -278,28 +278,28 @@ hub_virtual_network = {
   name          = "vnet-jpe-hub"
   address_space = ["10.0.0.0/16"]
 }
-```text
+```
 
 **何？**：中央のVNet
 
 **address_space**：
-```text
+```
 10.0.0.0/16
   ↓
 10.0.0.0 〜 10.0.255.255
   ↓
 約65,000個のIPアドレス
-```text
+```
 
 **サブネット分割**：
-```text
+```
 10.0.0.0/26   → Firewall（64個）
 10.0.0.64/26  → Firewall Management（64個）
 10.0.1.0/26   → Gateway（64個）
 10.0.2.0/27   → Bastion（32個）
 10.0.3.0/24   → アプリ用（256個）
 ...
-```text
+```
 
 ### 2. Azure Firewall
 
@@ -322,7 +322,7 @@ firewall = {
     }
   }
 }
-```text
+```
 
 #### Azure Firewallって何？
 
@@ -334,11 +334,11 @@ firewall = {
 - DNS Proxy
 
 **料金**：
-```text
+```
 Basic：約8万円/月（最小構成）
 Standard：約17万円/月
 Premium：約25万円/月
-```text
+```
 
 **めっちゃ高い！**
 
@@ -347,19 +347,19 @@ Premium：約25万円/月
 ##### AzureFirewallSubnet（データプレーン）
 ```hcl
 subnet_address_prefix = "10.0.0.0/26"
-```text
+```
 
 **何をしているのでしょうか？**：実際のトラフィック処理
 
-```text
+```
 Spoke VNet → Hub Firewall → インターネット
 オンプレ → Hub Firewall → Spoke VNet
-```text
+```
 
 ##### AzureFirewallManagementSubnet（管理プレーン）
 ```hcl
 management_subnet_address_prefix = "10.0.0.64/26"
-```text
+```
 
 **何をしているのでしょうか？**：Firewallの管理・設定
 
@@ -371,24 +371,24 @@ management_subnet_address_prefix = "10.0.0.64/26"
 
 ```hcl
 management_ip_enabled = true
-```text
+```
 
 **何？**：管理用Public IPを有効化
 
 **true**：
-```text
+```
 Public IP 2個必要
 - データプレーン用
 - 管理プレーン用
 → コスト高い
-```text
+```
 
 **false**：
-```text
+```
 Public IP 1個だけ
 → コスト削減
 → でも管理機能が制限される
-```text
+```
 
 **おすすめ**：
 ```hcl
@@ -397,7 +397,7 @@ management_ip_enabled = true  # ←安定性重視
 
 # 開発環境
 management_ip_enabled = false  # ←コスト重視
-```text
+```
 
 #### firewall_policy
 
@@ -405,7 +405,7 @@ management_ip_enabled = false  # ←コスト重視
 firewall_policy = {
   name = "fwp-jpe-hub"
 }
-```text
+```
 
 **何？**：Firewallのルール集
 
@@ -416,7 +416,7 @@ firewall_policy = {
 - NATルール（ポート転送）
 
 **例**：
-```text
+```
 ネットワークルール：
 
 - Spoke VNetから80/443ポートを許可
@@ -429,7 +429,7 @@ firewall_policy = {
 NATルール：
 
 - Public IP:8080 → VM:80にポート転送
-```text
+```
 
 ### 3. VPN Gateway
 
@@ -454,12 +454,12 @@ virtual_network_gateways = {
     }
   }
 }
-```text
+```
 
 #### VPN Gatewayって何？
 
 **オンプレとAzureを繋ぐゲートウェイ**：
-```text
+```
 オンプレのオフィス
   ↓ VPN接続（暗号化）
 Azure VPN Gateway
@@ -467,7 +467,7 @@ Azure VPN Gateway
 Hub VNet
   ↓ ピアリング
 Spoke VNet
-```text
+```
 
 #### Active-Active構成
 
@@ -476,37 +476,37 @@ ip_configurations = {
   default = { ... }  # ←1個目のPublic IP
   second = { ... }   # ←2個目のPublic IP
 }
-```text
+```
 
 **何？**：冗長化構成
 
-```text
+```
 2つのPublic IP
   ↓
 2つのVPNトンネル
   ↓
 片方が落ちても大丈夫
-```text
+```
 
 **料金**：
-```text
+```
 VpnGw1：約4万円/月
 VpnGw2：約9万円/月
 VpnGw3：約20万円/月
-```text
+```
 
 **スループット**：
-```text
+```
 VpnGw1：650 Mbps
 VpnGw2：1 Gbps
 VpnGw3：1.25 Gbps
-```text
+```
 
 #### GatewaySubnet
 
 ```hcl
 subnet_address_prefix = "10.0.1.0/26"
-```text
+```
 
 **サブネット名は固定**：`GatewaySubnet`
 
@@ -525,21 +525,21 @@ express_route = {
     }
   }
 }
-```text
+```
 
 #### ExpressRouteって何？
 
 **専用線接続**：
-```text
+```
 オンプレ
   ↓ 物理専用線（通信キャリア経由）
 Azure ExpressRoute Gateway
   ↓
 Hub VNet
-```text
+```
 
 **VPNとの違い**：
-```text
+```
 VPN：
 
 - インターネット経由
@@ -553,7 +553,7 @@ ExpressRoute：
 - より高セキュリティ
 - 超高い（数十万円/月〜）
 - 速い（最大100Gbps）
-```text
+```
 
 **普通はVPNでOK**。
 
@@ -569,12 +569,12 @@ bastion = {
     zones = []  # ←Japan regionは空リスト
   }
 }
-```text
+```
 
 #### Azure Bastionって何？
 
 **安全なRDP/SSH接続**：
-```text
+```
 従来：
 PC → Public IP → VM
   ↓
@@ -592,7 +592,7 @@ PC → Azureポータル → Bastion → VM（Private IPだけ）
 - VMにPublic IP不要
 - セキュア
 - NSGで保護
-```text
+```
 
 #### zones = []
 
@@ -600,7 +600,7 @@ Chapter 3で見た重要な設定：
 
 ```hcl
 zones = []  # ←Japan regionはAvailability Zones非対応
-```text
+```
 
 **Japan East/Westの場合は必須**：
 ```hcl
@@ -609,19 +609,19 @@ zones = []
 
 # NG（エラーになる）
 zones = ["1", "2", "3"]
-```text
+```
 
 **料金**：
-```text
+```
 Basic：約2.7万円/月
 Standard：約21万円/月
-```text
+```
 
 #### AzureBastionSubnet
 
 ```hcl
 subnet_address_prefix = "10.0.2.0/27"
-```text
+```
 
 **サブネット名は固定**：`AzureBastionSubnet`
 
@@ -633,12 +633,12 @@ subnet_address_prefix = "10.0.2.0/27"
 enabled_resources = {
   private_dns_zones = true
 }
-```text
+```
 
 **何？**：プライベートDNS
 
 **使い道**：
-```text
+```
 Azure PaaS（Storage、SQL）をプライベート接続
   ↓
 Private Endpoint作成
@@ -646,15 +646,15 @@ Private Endpoint作成
 Private DNS Zoneで名前解決
   ↓
 storage.blob.core.windows.net → 10.0.3.4（Private IP）
-```text
+```
 
 **自動作成されるゾーン**：
-```text
+```
 privatelink.blob.core.windows.net
 privatelink.database.windows.net
 privatelink.azurewebsites.net
 ...
-```text
+```
 
 約50個のゾーンが自動作成される。
 
@@ -675,12 +675,12 @@ hub_virtual_networks = {
     ...
   }
 }
-```text
+```
 
 **何をしているのでしょうか？**：2つのHubを作ります
 
 **構成**：
-```text
+```
 Japan East Hub
   ├── Firewall
   ├── VPN Gateway
@@ -692,7 +692,7 @@ Japan West Hub
   └── Bastion
 
 2つのHubをVNetピアリングで接続
-```text
+```
 
 **メリット**：
 
@@ -718,7 +718,7 @@ hub_virtual_networks = {
   primary = { ... }
   secondary = { ... }
 }
-```text
+```
 
 ---
 
@@ -731,40 +731,40 @@ hub_virtual_network = {
   route_table_name_firewall     = "rt-fw-jpe"
   route_table_name_user_subnets = "rt-user-jpe"
 }
-```text
+```
 
 **何？**：カスタムルート
 
 #### route_table_name_firewall
 
-```text
+```
 Firewallサブネット用のルートテーブル
-```text
+```
 
 **ルール例**：
-```text
+```
 送信先：0.0.0.0/0（インターネット）
 次ホップ：Internet
   ↓
 Firewallから直接インターネットに出る
-```text
+```
 
 #### route_table_name_user_subnets
 
-```text
+```
 アプリ用サブネット（Spoke）用のルートテーブル
-```text
+```
 
 **ルール例**：
-```text
+```
 送信先：0.0.0.0/0（インターネット）
 次ホップ：10.0.0.4（Firewallの内部IP）
   ↓
 全トラフィックをFirewall経由にする
-```text
+```
 
 **効果**：
-```text
+```
 Spoke VM → インターネット
   ↓
 1. VMから出る（送信先：8.8.8.8）
@@ -772,7 +772,7 @@ Spoke VM → インターネット
 3. Firewallで検査
 4. Firewallから出る
 5. インターネットに到達
-```text
+```
 
 ---
 
@@ -806,10 +806,10 @@ hub_and_spoke_networks_settings = {
     ddos_protection_plan = false  # ←無効化
   }
 }
-```text
+```
 
 **コスト**：
-```text
+```
 通常構成：
 Firewall：17万円/月
 VPN Gateway：4万円/月
@@ -823,7 +823,7 @@ VNet：無料
 Private DNS：無料
 -----------------
 合計：約0円/月（ほぼ無料）
-```text
+```
 
 **デメリット**：
 
@@ -851,7 +851,7 @@ az network vnet list --output table
 az network vnet show \
   --resource-group rg-jpe-connectivity \
   --name vnet-jpe-hub
-```text
+```
 
 ### Firewallの確認
 
@@ -863,7 +863,7 @@ az network firewall list --output table
 az monitor log-analytics query \
   --workspace <workspace-id> \
   --analytics-query "AzureDiagnostics | where Category == 'AzureFirewallApplicationRule' | take 10"
-```text
+```
 
 ### ルートテーブルの確認
 
@@ -875,18 +875,18 @@ az network route-table list --output table
 az network route-table show \
   --resource-group rg-jpe-connectivity \
   --name rt-user-jpe
-```text
+```
 
 ### Bastionの接続
 
 Azureポータル：
-```text
+```
 VM → Connect → Bastion
   ↓
 ユーザー名とパスワード入力
   ↓
 ブラウザでRDP/SSH接続
-```text
+```
 
 ---
 
@@ -894,9 +894,9 @@ VM → Connect → Bastion
 
 ### エラー1: サブネット名が違う
 
-```text
+```
 Error: subnet name must be 'AzureFirewallSubnet'
-```text
+```
 
 **原因**：Firewallのサブネット名が間違ってる
 
@@ -905,24 +905,24 @@ Error: subnet name must be 'AzureFirewallSubnet'
 
 ### エラー2: zonesエラー（Japan region）
 
-```text
+```
 Error: availability zones are not supported in this region
-```text
+```
 
 **原因**：Japan East/Westで`zones`を指定してる
 
 **対処法**：
 ```hcl
 zones = []  # ←空リスト
-```text
+```
 
 Chapter 3で詳しく解説したやつ。
 
 ### エラー3: アドレス空間の重複
 
-```text
+```
 Error: address space overlaps with existing VNet
-```text
+```
 
 **原因**：VNetのアドレス空間が他と重複
 
@@ -935,13 +935,13 @@ secondary: 10.0.0.0/16  # ←重複
 # OK
 primary:   10.0.0.0/16
 secondary: 10.1.0.0/16  # ←分ける
-```text
+```
 
 ### エラー4: Firewallがタイムアウト
 
-```text
+```
 Error: timeout waiting for firewall to be ready
-```text
+```
 
 **原因**：Firewallの作成に時間がかかる（30分〜1時間）
 
@@ -951,7 +951,7 @@ Error: timeout waiting for firewall to be ready
 terraform apply
 
 # または待つ
-```text
+```
 
 ---
 
