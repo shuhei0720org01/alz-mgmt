@@ -31,7 +31,7 @@ mainブランチにマージ
 
 **📊 CI/CDパイプライン全体図**
 
-```
+```text title="GitHub Actionsの開発フロー"
 【開発の流れ】
 
 1. コード変更
@@ -91,7 +91,7 @@ mainブランチにマージ
 
 **🔄 詳細なワークフロー図**
 
-```
+```text title="GitHub ActionsとAzureの連携"
 ┌─────────────┐
 │  開発者PC   │
 │             │
@@ -212,7 +212,7 @@ GitHub Actions：
 
 **ファイル**：`.github/workflows/ci.yaml`
 
-```yaml
+```yaml title="CIワークフローの定義"
 name: 01 Azure Landing Zones Continuous Integration
 on:
   pull_request:
@@ -251,7 +251,7 @@ jobs:
 
 **ファイル**：`.github/workflows/cd.yaml`
 
-```yaml
+```yaml title="CDワークフローの定義"
 name: 02 Azure Landing Zones Continuous Delivery
 on:
   push:
@@ -301,7 +301,7 @@ jobs:
 
 #### CI: pull_request
 
-```yaml
+```yaml title="PR作成時のトリガー"
 on:
   pull_request:
     branches:
@@ -320,7 +320,7 @@ CI実行
 
 #### CD: push
 
-```yaml
+```yaml title="mainブランチpush時のトリガー"
 on:
   push:
     branches:
@@ -339,7 +339,7 @@ CD実行
 
 #### workflow_dispatch
 
-```yaml
+```yaml title="手動実行の設定"
 on:
   workflow_dispatch:
     inputs:
@@ -376,7 +376,7 @@ terraform_actionを選択
 
 ### permissions
 
-```yaml
+```yaml title="GitHubトークンの権限設定"
 permissions:
   id-token: write
   contents: read
@@ -415,7 +415,7 @@ plan結果を表示
 
 ### jobs
 
-```yaml
+```yaml title="再利用可能ワークフローの呼び出し"
 jobs:
   validate_and_plan:
     uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
@@ -453,7 +453,7 @@ DRY（Don't Repeat Yourself）
 
 実際のファイルは`alz-mgmt-templates`リポジトリにありますが、典型的な内容は以下の通りです：
 
-```yaml
+```yaml title="CIテンプレートワークフロー"
 name: CI Template
 on:
   workflow_call:
@@ -507,7 +507,7 @@ jobs:
 
 #### 1. Checkout
 
-```yaml
+```yaml title="リポジトリのクローン"
 - name: Checkout
   uses: actions/checkout@v4
 ```
@@ -524,7 +524,7 @@ git clone
 
 #### 2. Setup Terraform
 
-```yaml
+```yaml title="Terraformのインストール"
 - name: Setup Terraform
   uses: hashicorp/setup-terraform@v3
   with:
@@ -543,7 +543,7 @@ terraform コマンドが使える
 
 #### 3. Azure Login (OIDC)
 
-```yaml
+```yaml title="AzureへのOIDC認証"
 - name: Azure Login (OIDC)
   uses: azure/login@v2
   with:
@@ -579,7 +579,7 @@ OIDC：
 
 #### 4. Terraform Init
 
-```yaml
+```yaml title="Terraformの初期化"
 - name: Terraform Init
   run: terraform init
   working-directory: ${{ inputs.root_module_folder_relative_path }}
@@ -596,13 +596,13 @@ terraform init
 ```
 
 **Backend設定**：
-```hcl
+```hcl title="terraform.tfのbackend設定"
 # terraform.tf
 backend "azurerm" {}
 ```
 
 **環境変数で設定**：
-```bash
+```bash title="Backend用の環境変数"
 export ARM_STORAGE_ACCOUNT_NAME="stterraform12345"
 export ARM_CONTAINER_NAME="tfstate"
 export ARM_KEY="alz-mgmt.tfstate"
@@ -613,7 +613,7 @@ GitHub ActionsのSecretsに保存しておく。
 
 #### 5. Terraform Validate
 
-```yaml
+```yaml title="構文チェック"
 - name: Terraform Validate
   run: terraform validate
 ```
@@ -637,7 +637,7 @@ Error: Missing required argument
 
 #### 6. Terraform Plan
 
-```yaml
+```yaml title="変更内容の確認"
 - name: Terraform Plan
   run: terraform plan -out=tfplan
 ```
@@ -666,7 +666,7 @@ planとapplyで差異がない
 
 #### 7. Comment PR
 
-```yaml
+```yaml title="Plan結果をPRにコメント"
 - name: Comment PR
   uses: actions/github-script@v7
   with:
@@ -701,7 +701,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 
 ### cd-template.yaml（想定される内容）
 
-```yaml
+```yaml title="CDテンプレートワークフロー"
 name: CD Template
 on:
   workflow_call:
@@ -755,7 +755,7 @@ jobs:
 
 #### 1. environment: production
 
-```yaml
+```yaml title="環境設定と承認フロー"
 environment: production
 ```
 
@@ -792,7 +792,7 @@ mainにマージされても即座にapplyされない
 
 #### 2. -auto-approve
 
-```yaml
+```yaml title="自動承認でApply実行"
 run: terraform apply -auto-approve
 ```
 
@@ -823,7 +823,7 @@ Environment承認済み
 
 #### 3. terraform_action分岐
 
-```yaml
+```yaml title="Apply/Destroyの切り替え"
 - name: Terraform Apply
   if: ${{ inputs.terraform_action == 'apply' }}
   run: terraform apply -auto-approve
@@ -889,13 +889,13 @@ Environment secrets：
 
 ### 1. Azure ADアプリ作成
 
-```bash
+```bash title="GitHub Actions用アプリの作成"
 az ad app create --display-name "GitHub Actions OIDC"
 ```
 
 ### 2. Service Principal作成
 
-```bash
+```bash title="Service Principalの作成"
 APP_ID="..."  # ↑で取得したApp ID
 
 az ad sp create --id $APP_ID
@@ -903,14 +903,14 @@ az ad sp create --id $APP_ID
 
 ### 3. Federated Credential設定
 
-```bash
+```bash title="OIDC用Federated Credentialの作成"
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters @federated-credential.json
 ```
 
 **federated-credential.json**：
-```json
+```json title="Federated Credentialの設定ファイル"
 {
   "name": "github-actions-oidc",
   "issuer": "https://token.actions.githubusercontent.com",
@@ -930,7 +930,7 @@ repo:<owner>/<repo>:ref:refs/heads/<branch>
 
 ### 4. 権限付与
 
-```bash
+```bash title="SubscriptionへのOwner権限付与"
 SUBSCRIPTION_ID="..."
 
 az role assignment create \
@@ -953,13 +953,13 @@ az role assignment create \
 
 ### 1. ブランチ作成
 
-```bash
+```bash title="新しいfeatureブランチ作成"
 git checkout -b feature/add-resource-group
 ```
 
 ### 2. コード変更
 
-```hcl
+```hcl title="main.tfにリソースグループ追加"
 # main.tf
 resource "azurerm_resource_group" "test" {
   name     = "rg-test"
@@ -969,7 +969,7 @@ resource "azurerm_resource_group" "test" {
 
 ### 3. Commit & Push
 
-```bash
+```bash title="変更をコミットしてPush"
 git add main.tf
 git commit -m "Add test resource group"
 git push origin feature/add-resource-group
@@ -1051,7 +1051,7 @@ Environment承認待ち（設定している場合）
 
 ### 9. Azure確認
 
-```bash
+```bash title="作成されたリソースグループを確認"
 az group show --name rg-test
 ```
 
@@ -1086,7 +1086,7 @@ Error: Failed to get existing workspaces: storage account not found
 
 ### Terraform Debug
 
-```yaml
+```yaml title="デバッグログの有効化"
 - name: Terraform Plan
   run: terraform plan -out=tfplan
   env:
@@ -1121,7 +1121,7 @@ Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
 ```
 
 **原因**：
-```yaml
+```yaml title="permissionsの追加が必要"
 permissions:
   id-token: write  # ←これがない
 ```
@@ -1162,7 +1162,7 @@ Lockが残ってる
 ```
 
 **対処法**：
-```bash
+```bash title="ロックの強制解除"
 # Azure Portal → Storage Account → tfstate コンテナ → .terraform.lock.info
 # 削除
 
@@ -1179,7 +1179,7 @@ Error: insufficient privileges to complete the operation
 **原因**：Service Principalの権限が足りない
 
 **対処法**：
-```bash
+```bash title="権限の確認と追加"
 # 権限確認
 az role assignment list --assignee <CLIENT_ID>
 
@@ -1238,7 +1238,7 @@ apply実行
 
 ### 3. Concurrency制御
 
-```yaml
+```yaml title="同時実行の制御"
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: false
@@ -1267,7 +1267,7 @@ concurrency設定：
 
 ### 4. Terraform Version固定
 
-```yaml
+```yaml title="安定したバージョンの使用"
 terraform_cli_version: '1.12.0'  # ←バージョン固定
 ```
 
