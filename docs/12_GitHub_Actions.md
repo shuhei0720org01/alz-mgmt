@@ -8,7 +8,7 @@ GitHub Actionsで自動デプロイを理解しよう。
 GitHub上で動くCI/CD（継続的インテグレーション/デリバリー）サービス。
 
 **CI/CDって何？**
-```text
+```
 CI（Continuous Integration）：
 コードをプッシュ
   ↓
@@ -22,7 +22,7 @@ mainブランチにマージ
 自動でデプロイ
   ↓
 本番環境に反映
-```text
+```
 
 **例えるなら**：
 
@@ -31,7 +31,7 @@ mainブランチにマージ
 
 **📊 CI/CDパイプライン全体図**
 
-```text
+```
 【開発の流れ】
 
 1. コード変更
@@ -87,11 +87,11 @@ mainブランチにマージ
    ↓
 
 7. 本番環境に反映 ✅
-```text
+```
 
 **🔄 詳細なワークフロー図**
 
-```text
+```
 ┌─────────────┐
 │  開発者PC   │
 │             │
@@ -129,7 +129,7 @@ mainブランチにマージ
     └───────────────┘
             ↓
     結果をPRにコメント
-```text
+```
 
 ---
 
@@ -137,7 +137,7 @@ mainブランチにマージ
 
 ### 1. ヒューマンエラー防止
 
-```text
+```
 手動デプロイ：
 terraform plan → 確認 → terraform apply
   ↓
@@ -146,20 +146,20 @@ terraform plan → 確認 → terraform apply
 承認なしでデプロイ
   ↓
 事故る
-```text
+```
 
-```text
+```
 GitHub Actions：
 PRを作る → 自動でplan → レビュー → マージで自動apply
   ↓
 手順が自動化
   ↓
 間違いが減る
-```text
+```
 
 ### 2. 履歴が残る
 
-```text
+```
 手動デプロイ：
 誰がいつデプロイしたかわからない
 
@@ -171,11 +171,11 @@ GitHub Actions：
 - どうなったか
   ↓
 完全にトレース可能
-```text
+```
 
 ### 3. 承認フロー
 
-```text
+```
 GitHub Actions：
 PRでplan結果を確認
   ↓
@@ -184,11 +184,11 @@ PRでplan結果を確認
 マージ後にapply
   ↓
 勝手にデプロイされない
-```text
+```
 
 ### 4. 並行実行の防止
 
-```text
+```
 手動デプロイ：
 2人が同時にapply実行
   ↓
@@ -200,7 +200,7 @@ GitHub Actions：
 同時実行を制御
   ↓
 安全
-```text
+```
 
 ---
 
@@ -237,15 +237,15 @@ jobs:
     with:
       root_module_folder_relative_path: '.'
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```text
+```
 
 **何してる？**：
-```text
+```
 1. PRが作られる
 2. 自動でterraform plan実行
 3. PR上にplan結果を表示
 4. レビュアーが確認
-```text
+```
 
 ### 2. CD（Continuous Delivery）
 
@@ -284,14 +284,14 @@ jobs:
       terraform_action: ${{ inputs.terraform_action }}
       root_module_folder_relative_path: '.'
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```text
+```
 
 **何してる？**：
-```text
+```
 1. mainブランチにpush（マージ）される
 2. 自動でterraform apply実行
 3. Azureに反映
-```text
+```
 
 ---
 
@@ -306,17 +306,17 @@ on:
   pull_request:
     branches:
       - main
-```text
+```
 
 **何？**：PRが作られたら実行
 
-```text
+```
 feature/add-vnet ブランチ
   ↓ PR作成
 main ブランチ
   ↓ トリガー
 CI実行
-```text
+```
 
 #### CD: push
 
@@ -325,17 +325,17 @@ on:
   push:
     branches:
       - main
-```text
+```
 
 **何？**：mainブランチにpushされたら実行
 
-```text
+```
 PR承認
   ↓ マージ
 main ブランチ
   ↓ トリガー
 CD実行
-```text
+```
 
 #### workflow_dispatch
 
@@ -351,12 +351,12 @@ on:
         options:
           - 'apply'
           - 'destroy'
-```text
+```
 
 **何？**：手動実行
 
 **使い道**：
-```text
+```
 GitHub UI → Actions → ワークフロー選択 → Run workflow
   ↓
 terraform_actionを選択
@@ -364,15 +364,15 @@ terraform_actionを選択
   - destroy：リソース削除
   ↓
 手動で実行
-```text
+```
 
 **便利**：
-```text
+```
 緊急時：
 
 - destroy実行（全削除）
 - 特定バージョンのTerraformでapply
-```text
+```
 
 ### permissions
 
@@ -381,37 +381,37 @@ permissions:
   id-token: write
   contents: read
   pull-requests: write
-```text
+```
 
 **何？**：GitHubトークンの権限
 
 #### id-token: write
 
-```text
+```
 OIDC（OpenID Connect）でAzureにログイン
   ↓
 パスワード不要
   ↓
 セキュア
-```text
+```
 
 後で詳しく解説するね。
 
 #### contents: read
 
-```text
+```
 リポジトリのコードを読む
   ↓
 Terraformファイルを取得
-```text
+```
 
 #### pull-requests: write
 
-```text
+```
 PRにコメント投稿
   ↓
 plan結果を表示
-```text
+```
 
 ### jobs
 
@@ -422,28 +422,28 @@ jobs:
     with:
       root_module_folder_relative_path: '.'
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```text
+```
 
 **何してる？**：再利用可能なワークフローを呼び出し
 
 **構造**：
-```text
+```
 alz-mgmt（このリポジトリ）
   ├── .github/workflows/ci.yaml（トリガー定義だけ）
   └── 実際の処理は別リポジトリ
         ↓
 alz-mgmt-templates
   └── .github/workflows/ci-template.yaml（実際の処理）
-```text
+```
 
 **メリット**：
-```text
+```
 複数のプロジェクトで同じワークフロー使える
   ↓
 1箇所修正すれば全プロジェクトに反映
   ↓
 DRY（Don't Repeat Yourself）
-```text
+```
 
 ---
 
@@ -501,7 +501,7 @@ jobs:
         with:
           script: |
             // plan結果をPRにコメント
-```text
+```
 
 ### ステップ解説
 
@@ -510,17 +510,17 @@ jobs:
 ```yaml
 - name: Checkout
   uses: actions/checkout@v4
-```text
+```
 
 **何？**：リポジトリのコードをクローン
 
-```text
+```
 GitHub Actions Runner（実行環境）
   ↓
 git clone
   ↓
 コードを取得
-```text
+```
 
 #### 2. Setup Terraform
 
@@ -529,17 +529,17 @@ git clone
   uses: hashicorp/setup-terraform@v3
   with:
     terraform_version: ${{ inputs.terraform_cli_version }}
-```text
+```
 
 **何？**：Terraformをインストール
 
-```text
+```
 指定されたバージョンのTerraformをダウンロード
   ↓
 PATHに追加
   ↓
 terraform コマンドが使える
-```text
+```
 
 #### 3. Azure Login (OIDC)
 
@@ -550,12 +550,12 @@ terraform コマンドが使える
     client-id: ${{ secrets.AZURE_CLIENT_ID }}
     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-```text
+```
 
 **何？**：Azureにログイン（OIDC）
 
 **OIDC（OpenID Connect）**：
-```text
+```
 従来：
 
 - Service Principalのパスワードをシークレットに保存
@@ -567,15 +567,15 @@ OIDC：
 - パスワード不要
 - 一時的なトークンで認証
 - より安全
-```text
+```
 
 **仕組み**：
-```text
+```
 1. GitHub Actions → Azure ADに「私はGitHubです」と証明
 2. Azure AD → GitHubを信頼（事前設定）
 3. Azure AD → 一時トークン発行
 4. GitHub Actions → トークンでAzureにアクセス
-```text
+```
 
 #### 4. Terraform Init
 
@@ -583,23 +583,23 @@ OIDC：
 - name: Terraform Init
   run: terraform init
   working-directory: ${{ inputs.root_module_folder_relative_path }}
-```text
+```
 
 **何？**：Terraformの初期化
 
-```text
+```
 terraform init
   ↓
 - Providerダウンロード
 - Backend設定読み込み
 - Stateファイル取得
-```text
+```
 
 **Backend設定**：
 ```hcl
 # terraform.tf
 backend "azurerm" {}
-```text
+```
 
 **環境変数で設定**：
 ```bash
@@ -607,7 +607,7 @@ export ARM_STORAGE_ACCOUNT_NAME="stterraform12345"
 export ARM_CONTAINER_NAME="tfstate"
 export ARM_KEY="alz-mgmt.tfstate"
 export ARM_RESOURCE_GROUP_NAME="rg-terraform-state"
-```text
+```
 
 GitHub ActionsのSecretsに保存しておく。
 
@@ -616,35 +616,35 @@ GitHub ActionsのSecretsに保存しておく。
 ```yaml
 - name: Terraform Validate
   run: terraform validate
-```text
+```
 
 **何？**：構文チェック
 
-```text
+```
 terraform validate
   ↓
 - .tfファイルの構文確認
 - 変数の参照確認
 - モジュールの整合性チェック
-```text
+```
 
 **エラー例**：
-```text
+```
 Error: Missing required argument
   on main.tf line 10:
   10: resource "azurerm_resource_group" "example" {
-```text
+```
 
 #### 6. Terraform Plan
 
 ```yaml
 - name: Terraform Plan
   run: terraform plan -out=tfplan
-```text
+```
 
 **何？**：変更内容の確認
 
-```text
+```
 terraform plan
   ↓
 - 現在のState
@@ -653,16 +653,16 @@ terraform plan
 を比較
   ↓
 何が変わるか表示
-```text
+```
 
 **-out=tfplan**：
-```text
+```
 plan結果をファイルに保存
   ↓
 apply時に使う
   ↓
 planとapplyで差異がない
-```text
+```
 
 #### 7. Comment PR
 
@@ -672,14 +672,14 @@ planとapplyで差異がない
   with:
     script: |
       // plan結果をPRにコメント
-```text
+```
 
 **何？**：plan結果をPRに投稿
 
 **例**：
-```text
+```
 ## Terraform Plan
-```text
+```
 Terraform will perform the following actions:
 
 # azurerm_resource_group.example will be created
@@ -689,7 +689,7 @@ Terraform will perform the following actions:
   }
 
 Plan: 1 to add, 0 to change, 0 to destroy.
-```text
+```
 ```
 
 **便利**：
@@ -749,7 +749,7 @@ jobs:
         if: ${{ inputs.terraform_action == 'destroy' }}
         run: terraform destroy -auto-approve
         working-directory: ${{ inputs.root_module_folder_relative_path }}
-```text
+```
 
 ### CI との違い
 
@@ -757,21 +757,21 @@ jobs:
 
 ```yaml
 environment: production
-```text
+```
 
 **何？**：環境設定
 
 **使い道**：
-```text
+```
 GitHub設定 → Environments → production
   ↓
 - 承認者を設定（required reviewers）
 - タイムアウト設定
 - Environment Secrets
-```text
+```
 
 **効果**：
-```text
+```
 CDワークフロー実行
   ↓
 承認待ち
@@ -779,26 +779,26 @@ CDワークフロー実行
 承認者が承認
   ↓
 apply実行
-```text
+```
 
 **安全**：
-```text
+```
 mainにマージされても即座にapplyされない
   ↓
 一度止まる
   ↓
 承認後にapply
-```text
+```
 
 #### 2. -auto-approve
 
 ```yaml
 run: terraform apply -auto-approve
-```text
+```
 
 **何？**：確認スキップ
 
-```text
+```
 通常：
 terraform apply
   ↓
@@ -808,10 +808,10 @@ CI/CD：
 terraform apply -auto-approve
   ↓
 確認スキップで自動実行
-```text
+```
 
 **安全性**：
-```text
+```
 planで確認済み
   ↓
 PR承認済み
@@ -819,7 +819,7 @@ PR承認済み
 Environment承認済み
   ↓
 -auto-approveでOK
-```text
+```
 
 #### 3. terraform_action分岐
 
@@ -831,17 +831,17 @@ Environment承認済み
 - name: Terraform Destroy
   if: ${{ inputs.terraform_action == 'destroy' }}
   run: terraform destroy -auto-approve
-```text
+```
 
 **何？**：applyかdestroyを選べる
 
-```text
+```
 workflow_dispatch（手動実行）
   ↓
 terraform_action選択
   - apply → リソース作成/更新
   - destroy → リソース削除
-```text
+```
 
 ---
 
@@ -849,7 +849,7 @@ terraform_action選択
 
 ### 必要なSecrets
 
-```text
+```
 AZURE_CLIENT_ID：Azure ADアプリのClient ID
 AZURE_TENANT_ID：Azure ADのTenant ID
 AZURE_SUBSCRIPTION_ID：Subscription ID
@@ -857,19 +857,19 @@ ARM_STORAGE_ACCOUNT_NAME：StateファイルのStorage Account
 ARM_CONTAINER_NAME：Stateファイルのコンテナ
 ARM_KEY：Stateファイル名
 ARM_RESOURCE_GROUP_NAME：StateファイルのResource Group
-```text
+```
 
 ### 設定場所
 
-```text
+```
 GitHub → Settings → Secrets and variables → Actions
   ↓
 - Repository secrets（リポジトリ全体）
 - Environment secrets（環境ごと）
-```text
+```
 
 **使い分け**：
-```text
+```
 Repository secrets：
 
 - Tenant ID
@@ -881,7 +881,7 @@ Environment secrets：
 - Client ID（本番用、開発用）
 - Subscription ID（本番用、開発用）
 → 環境ごとに違う
-```text
+```
 
 ---
 
@@ -891,7 +891,7 @@ Environment secrets：
 
 ```bash
 az ad app create --display-name "GitHub Actions OIDC"
-```text
+```
 
 ### 2. Service Principal作成
 
@@ -899,7 +899,7 @@ az ad app create --display-name "GitHub Actions OIDC"
 APP_ID="..."  # ↑で取得したApp ID
 
 az ad sp create --id $APP_ID
-```text
+```
 
 ### 3. Federated Credential設定
 
@@ -907,7 +907,7 @@ az ad sp create --id $APP_ID
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters @federated-credential.json
-```text
+```
 
 **federated-credential.json**：
 ```json
@@ -919,14 +919,14 @@ az ad app federated-credential create \
     "api://AzureADTokenExchange"
   ]
 }
-```text
+```
 
 **subject**：
-```text
+```
 repo:<owner>/<repo>:ref:refs/heads/<branch>
   ↓
 このリポジトリのこのブランチからのアクセスだけ許可
-```text
+```
 
 ### 4. 権限付与
 
@@ -937,15 +937,15 @@ az role assignment create \
   --assignee $APP_ID \
   --role "Owner" \
   --scope "/subscriptions/$SUBSCRIPTION_ID"
-```text
+```
 
 **Owner**：強力
 
 **本番では**：
-```text
+```
 - Contributorにする
 - カスタムロールで最小権限
-```text
+```
 
 ---
 
@@ -955,7 +955,7 @@ az role assignment create \
 
 ```bash
 git checkout -b feature/add-resource-group
-```text
+```
 
 ### 2. コード変更
 
@@ -965,7 +965,7 @@ resource "azurerm_resource_group" "test" {
   name     = "rg-test"
   location = "japaneast"
 }
-```text
+```
 
 ### 3. Commit & Push
 
@@ -973,21 +973,21 @@ resource "azurerm_resource_group" "test" {
 git add main.tf
 git commit -m "Add test resource group"
 git push origin feature/add-resource-group
-```text
+```
 
 ### 4. PR作成
 
-```text
+```
 GitHub → Pull requests → New pull request
   ↓
 base: main ← compare: feature/add-resource-group
   ↓
 Create pull request
-```text
+```
 
 ### 5. CI実行確認
 
-```text
+```
 PR画面 → Checks タブ
   ↓
 01 Azure Landing Zones Continuous Integration
@@ -995,10 +995,10 @@ PR画面 → Checks タブ
 実行中...
   ↓
 完了
-```text
+```
 
 **結果**：
-```text
+```
 ✓ Checkout
 ✓ Setup Terraform
 ✓ Azure Login
@@ -1006,36 +1006,36 @@ PR画面 → Checks タブ
 ✓ Terraform Validate
 ✓ Terraform Plan
 ✓ Comment PR
-```text
+```
 
 **PR画面にコメント**：
-```text
+```
 ## Terraform Plan
 ...
 Plan: 1 to add, 0 to change, 0 to destroy.
-```text
+```
 
 ### 6. レビュー & 承認
 
-```text
+```
 PR画面 → Files changed
   ↓
 変更内容確認
   ↓
 Review changes → Approve
-```text
+```
 
 ### 7. マージ
 
-```text
+```
 PR画面 → Merge pull request
   ↓
 Confirm merge
-```text
+```
 
 ### 8. CD実行確認
 
-```text
+```
 Actions タブ
   ↓
 02 Azure Landing Zones Continuous Delivery
@@ -1047,13 +1047,13 @@ Environment承認待ち（設定している場合）
 承認
   ↓
 完了
-```text
+```
 
 ### 9. Azure確認
 
 ```bash
 az group show --name rg-test
-```text
+```
 
 **作られてる！**
 
@@ -1063,24 +1063,24 @@ az group show --name rg-test
 
 ### ワークフロー実行ログ
 
-```text
+```
 Actions タブ → ワークフロー選択 → 実行選択
   ↓
 各ステップのログが見える
-```text
+```
 
 **エラー時**：
-```text
+```
 ✓ Checkout
 ✓ Setup Terraform
 ✓ Azure Login
 ✗ Terraform Init  ←ここで失敗
-```text
+```
 
 **ログ展開**：
-```text
+```
 Error: Failed to get existing workspaces: storage account not found
-```text
+```
 
 **原因**：Storage Accountの設定間違い
 
@@ -1091,22 +1091,22 @@ Error: Failed to get existing workspaces: storage account not found
   run: terraform plan -out=tfplan
   env:
     TF_LOG: DEBUG  # ←デバッグログ有効化
-```text
+```
 
 **詳細ログ**：
-```text
+```
 全APIリクエスト・レスポンスが見える
   ↓
 問題の特定が楽
-```text
+```
 
 ### Re-run Jobs
 
-```text
+```
 Actions → 失敗したワークフロー → Re-run jobs
   ↓
 もう一度実行
-```text
+```
 
 **一時的なエラー**（ネットワーク等）は再実行で直ることある。
 
@@ -1116,50 +1116,50 @@ Actions → 失敗したワークフロー → Re-run jobs
 
 ### エラー1: OIDC認証失敗
 
-```text
+```
 Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
-```text
+```
 
 **原因**：
 ```yaml
 permissions:
   id-token: write  # ←これがない
-```text
+```
 
 **対処法**：permissions追加
 
 ### エラー2: Backend設定エラー
 
-```text
+```
 Error: Failed to get existing workspaces
-```text
+```
 
 **原因**：環境変数が設定されてない
 
 **対処法**：
-```text
+```
 GitHub Secrets確認：
 
 - ARM_STORAGE_ACCOUNT_NAME
 - ARM_CONTAINER_NAME
 - ARM_KEY
 - ARM_RESOURCE_GROUP_NAME
-```text
+```
 
 ### エラー3: Terraform Lock
 
-```text
+```
 Error: Error acquiring the state lock
-```text
+```
 
 **原因**：
-```text
+```
 前回のワークフローが失敗
   ↓
 Lockが残ってる
   ↓
 次の実行がブロックされる
-```text
+```
 
 **対処法**：
 ```bash
@@ -1168,13 +1168,13 @@ Lockが残ってる
 
 # または
 terraform force-unlock <LOCK_ID>
-```text
+```
 
 ### エラー4: 権限不足
 
-```text
+```
 Error: insufficient privileges to complete the operation
-```text
+```
 
 **原因**：Service Principalの権限が足りない
 
@@ -1188,7 +1188,7 @@ az role assignment create \
   --assignee <CLIENT_ID> \
   --role "Contributor" \
   --scope "/subscriptions/<SUBSCRIPTION_ID>"
-```text
+```
 
 ---
 
@@ -1196,7 +1196,7 @@ az role assignment create \
 
 ### 1. Branch Protection
 
-```text
+```
 GitHub → Settings → Branches → Branch protection rules
   ↓
 main ブランチに設定：
@@ -1205,28 +1205,28 @@ main ブランチに設定：
 - Require status checks to pass before merging
   - CI（terraform plan）
 - Require branches to be up to date before merging
-```text
+```
 
 **効果**：
-```text
+```
 mainに直接pushできない
   ↓
 必ずPR経由
   ↓
 CI通過しないとマージできない
-```text
+```
 
 ### 2. Environment Protection
 
-```text
+```
 GitHub → Settings → Environments → production
   ↓
 - Required reviewers（承認者）
 - Wait timer（待機時間）
-```text
+```
 
 **効果**：
-```text
+```
 mainにマージ
   ↓
 自動で即applyされない
@@ -1234,7 +1234,7 @@ mainにマージ
 承認者が承認
   ↓
 apply実行
-```text
+```
 
 ### 3. Concurrency制御
 
@@ -1242,11 +1242,11 @@ apply実行
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: false
-```text
+```
 
 **何？**：同時実行の制御
 
-```text
+```
 2つのPRが同時にマージ
   ↓
 2つのCDが同時実行
@@ -1263,16 +1263,16 @@ concurrency設定：
 1つ目が完了
   ↓
 2つ目が実行
-```text
+```
 
 ### 4. Terraform Version固定
 
 ```yaml
 terraform_cli_version: '1.12.0'  # ←バージョン固定
-```text
+```
 
 **なぜ？**
-```text
+```
 'latest'だと：
 
 - 突然新バージョンが使われる
@@ -1282,14 +1282,14 @@ terraform_cli_version: '1.12.0'  # ←バージョン固定
 
 - 安定
 - アップグレードは計画的に
-```text
+```
 
 ---
 
 ## まとめ
 
 **GitHub Actions の流れ**：
-```text
+```
 1. ブランチ作成・コード変更
 2. PR作成
 3. CI実行（terraform plan）
@@ -1299,7 +1299,7 @@ terraform_cli_version: '1.12.0'  # ←バージョン固定
 7. CD実行（terraform apply）
 8. Environment承認（設定している場合）
 9. Azureに反映
-```text
+```
 
 **メリット**：
 

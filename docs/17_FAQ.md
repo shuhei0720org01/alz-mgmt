@@ -14,7 +14,7 @@ Azure Landing Zonesに関するよくある質問をまとめたよ。
 
 **A**: Azureを企業で使うための「土台」です。
 
-```text
+```
 個人で使う：
 
 - 適当にリソース作ってOK
@@ -28,7 +28,7 @@ Azure Landing Zonesに関するよくある質問をまとめたよ。
 → ちゃんとした構造が必要
   ↓
 それがAzure Landing Zones
-```text
+```
 
 **構成要素**：
 
@@ -42,24 +42,24 @@ Azure Landing Zonesに関するよくある質問をまとめたよ。
 **A**: いや、絶対じゃない。
 
 **使った方がいい場合**：
-```text
+```
 ✓ 複数のチーム・プロジェクト
 ✓ セキュリティ要件が厳しい
 ✓ ガバナンスが必要
 ✓ 長期運用
 ✓ エンタープライズ
-```text
+```
 
 **使わなくてもいい場合**：
-```text
+```
 ✓ 個人プロジェクト
 ✓ 小規模（VM数台）
 ✓ 短期間の検証
 ✓ PoC（概念実証）
-```text
+```
 
 **判断基準**：
-```text
+```
 Subscription 1個、VM 10台以下
   ↓
 普通にAzureリソース作るだけでOK
@@ -67,53 +67,53 @@ Subscription 1個、VM 10台以下
 Subscription 3個以上、複数部署
   ↓
 Azure Landing Zones使おう
-```text
+```
 
 ### Q3: デプロイにどのくらい時間かかる？
 
 **A**: 初回は2〜3時間。
 
 **内訳**：
-```text
+```
 準備（Azure、GitHub設定）: 1時間
 初回デプロイ: 1時間
 動作確認: 30分
-```text
+```
 
 **2回目以降**：
-```text
+```
 変更内容による
 - リソースグループ追加: 5分
 - Firewall作成: 30〜60分
 - Management Group追加: 10分
-```text
+```
 
 ### Q4: いくらかかる？
 
 **A**: 構成による。
 
 **最小構成（開発環境）**：
-```text
+```
 VNet: 無料
 Log Analytics: 5GB/月まで無料
 Management Group: 無料
 Policy: 無料
 ----------
 合計: ほぼ0円/月
-```text
+```
 
 **標準構成（本番環境）**：
-```text
+```
 Firewall Standard: 17万円/月
 VPN Gateway: 4万円/月
 Bastion: 2.7万円/月
 Log Analytics: 1万円/月
 ----------
 合計: 約25万円/月
-```text
+```
 
 **フル構成（大規模）**：
-```text
+```
 Firewall Premium: 25万円/月
 DDoS Protection: 40万円/月
 ExpressRoute: 10万円/月
@@ -121,7 +121,7 @@ VPN Gateway: 4万円/月
 Bastion: 2.7万円/月
 ----------
 合計: 約80万円/月
-```text
+```
 
 **コスト削減のコツ**：
 
@@ -152,11 +152,11 @@ Bastion: 2.7万円/月
    - デメリット：複雑になる
 
 **推奨**：
-```text
+```
 小規模 → Azure Portal（楽）
 中規模 → Bicep（バランス良い）
 大規模 → Terraform（柔軟）
-```text
+```
 
 ---
 
@@ -167,13 +167,13 @@ Bastion: 2.7万円/月
 **A**: できるけど注意が必要。
 
 **問題点**：
-```text
+```
 既存のManagement Groupがある
   ↓
 Terraformの管理下に入れる必要
   ↓
 terraform import
-```text
+```
 
 **手順**：
 ```bash
@@ -184,14 +184,14 @@ terraform import 'module.management_groups[0].azurerm_management_group.level_1["
 terraform plan
 
 # 差分があれば調整
-```text
+```
 
 **推奨**：
-```text
+```
 新しいAzure環境で始める
   ↓
 既存環境は移行計画を立てる
-```text
+```
 
 ### Q7: 複数環境（本番・開発）をどう管理する？
 
@@ -199,7 +199,7 @@ terraform plan
 
 #### 方法1: 同じリポジトリ、別State（推奨）
 
-```text
+```
 alz-mgmt/
 ├── environments/
 │   ├── production/
@@ -208,7 +208,7 @@ alz-mgmt/
 │       └── terraform.tfvars.json
 ├── main.tf
 └── ...
-```text
+```
 
 **デプロイ**：
 ```bash
@@ -221,7 +221,7 @@ terraform apply -var-file=terraform.tfvars.json
 cd environments/development
 terraform init -backend-config="key=dev.tfstate"
 terraform apply -var-file=terraform.tfvars.json
-```text
+```
 
 #### 方法2: Terraform Workspace
 
@@ -236,14 +236,14 @@ terraform apply
 
 terraform workspace select development
 terraform apply
-```text
+```
 
 #### 方法3: 完全に別リポジトリ
 
-```text
+```
 alz-mgmt-production/
 alz-mgmt-development/
-```text
+```
 
 **推奨**：方法1（別State）
 
@@ -252,16 +252,16 @@ alz-mgmt-development/
 **A**: まず落ち着いて確認。
 
 **手順**：
-```text
+```
 1. エラーメッセージ確認
 2. Chapter 14（トラブルシューティング）を見る
 3. Azureの状態確認
 4. terraform state確認
 5. 再度terraform apply
-```text
+```
 
 **よくある失敗**：
-```text
+```
 - Firewall作成タイムアウト
   → もう一度terraform apply
 
@@ -270,7 +270,7 @@ alz-mgmt-development/
 
 - 権限エラー
   → Service Principalの権限確認
-```text
+```
 
 **ロールバック**：
 ```bash
@@ -281,7 +281,7 @@ git push
 # またはDestroyして再作成
 terraform destroy
 terraform apply
-```text
+```
 
 ### Q9: GitHub Actionsなしでデプロイできる？
 
@@ -302,27 +302,27 @@ az login
 terraform init
 terraform plan
 terraform apply
-```text
+```
 
 **メリット**：
-```text
+```
 - シンプル
 - 設定が少ない
-```text
+```
 
 **デメリット**：
-```text
+```
 - 自動化されない
 - チーム協業しにくい
 - 履歴が残りにくい
-```text
+```
 
 **推奨**：
-```text
+```
 最初はローカル
   ↓
 慣れたらGitHub Actions
-```text
+```
 
 ---
 
@@ -333,7 +333,7 @@ terraform apply
 **A**: 規模と要件で決める。
 
 **Hub-and-Spoke**：
-```text
+```
 ✓ 小〜中規模（VNet 10個以下）
 ✓ 単一〜数リージョン
 ✓ コスト重視
@@ -346,10 +346,10 @@ terraform apply
 - Spoke VNet 5個
 - VPN接続 1〜2本
 - コスト: 約¥50万/月
-```text
+```
 
 **Virtual WAN**：
-```text
+```
 ✓ 大規模（VNet 10個以上）
 ✓ 多数のリージョン（5+）
 ✓ 多数のVPN接続（10+）
@@ -363,10 +363,10 @@ terraform apply
 - Spoke VNet 50個
 - 拠点VPN接続 100本
 - コスト: 約¥150万/月
-```text
+```
 
 **判断基準**：
-```text
+```
 VNet 10個以下 → Hub-and-Spoke
 VNet 10個以上 → Virtual WAN
 
@@ -377,7 +377,7 @@ VPN拠点 10個以下 → Hub-and-Spoke
 VPN拠点 10個以上 → Virtual WAN
 
 初めてのLanding Zones → Hub-and-Spoke（学習しやすい）
-```text
+```
 
 **詳細**：[Chapter 10](./10_Hub-and-Spoke.md)と[Chapter 11](./11_Virtual_WAN.md)で詳しく解説しています。
 
@@ -386,7 +386,7 @@ VPN拠点 10個以上 → Virtual WAN
 **A**: できるけど、結構大変。
 
 **移行手順（概要）**：
-```text
+```
 1. Virtual WAN作成
 2. Virtual Hub作成（既存Hubと別リージョン推奨）
 3. Spoke VNetを新Hubに接続
@@ -394,31 +394,31 @@ VPN拠点 10個以上 → Virtual WAN
 5. 既存Hubの停止
 6. 動作確認
 7. 既存Hub削除
-```text
+```
 
 **ダウンタイム**：
-```text
+```
 計画的に切り替えれば最小限（数分〜数時間）
-```text
+```
 
 **コスト影響**：
-```text
+```
 移行期間中：両方のコストがかかる
 移行後：Virtual WANの方が高い（約2〜3倍）
-```text
+```
 
 **推奨**：
-```text
+```
 最初からVirtual WANにするか、Hub-and-Spokeで十分か慎重に検討。
 移行は可能だけど、最初の選択が重要。
-```text
+```
 
 ### Q10.6: 管理グループの階層はどう設計する？
 
 **A**: 組織構造に合わせる。
 
 **基本パターン（このプロジェクト）**：
-```text
+```
 Root
 └── Azure Landing Zones
     ├── Platform（基盤チーム管理）
@@ -430,10 +430,10 @@ Root
     │   └── Online（インターネット公開）
     ├── Sandbox（実験用）
     └── Decommissioned（廃止予定）
-```text
+```
 
 **大企業パターン（部門別）**：
-```text
+```
 Root
 └── Azure Landing Zones
     ├── Platform
@@ -444,10 +444,10 @@ Root
     │   ├── Production
     │   └── Development
     └── Shared Services（共有サービス）
-```text
+```
 
 **グローバル企業パターン（地域別）**：
-```text
+```
 Root
 └── Azure Landing Zones
     ├── Platform
@@ -460,7 +460,7 @@ Root
     └── Americas
         ├── US East
         └── US West
-```text
+```
 
 **設計のポイント**：
 1. **階層は3〜4層まで**（深すぎると管理が複雑）
@@ -475,7 +475,7 @@ Root
 **A**: 要件による。
 
 **最小構成（1リージョン）**：
-```text
+```
 ✓ 災害対策不要（割り切り）
 ✓ コスト最重視
 ✓ 検証環境
@@ -484,10 +484,10 @@ Root
 
 - Japan East のみ
 - コスト: 約¥50万/月
-```text
+```
 
 **推奨構成（2リージョン）**：
-```text
+```
 ✓ 災害対策あり（基本）
 ✓ バランス重視
 ✓ 本番環境
@@ -497,10 +497,10 @@ Root
 - Japan East（プライマリ）
 - Japan West（セカンダリ）
 - コスト: 約¥100万/月
-```text
+```
 
 **グローバル構成（3+リージョン）**：
-```text
+```
 ✓ グローバル展開
 ✓ 低遅延（ユーザーに近い）
 ✓ 規制対応（データを国外に出せない）
@@ -512,14 +512,14 @@ Root
 - East US
 - West Europe
 - コスト: 約¥300万/月
-```text
+```
 
 **判断基準**：
-```text
+```
 RPO/RTO要件なし → 1リージョン
 RPO/RTO要件あり → 2リージョン
 海外ユーザーあり → 3+リージョン
-```text
+```
 
 **注意点**：
 
@@ -532,24 +532,24 @@ RPO/RTO要件あり → 2リージョン
 **A**: ビジネス要件による。
 
 **DR不要なケース**：
-```text
+```
 - 停止しても大きな影響なし
 - 復旧に数日かけてOK
 - コスト最優先
 - 検証環境
 
 → 1リージョンで十分
-```text
+```
 
 **DR必要なケース**：
-```text
+```
 - 止まったら困る（ECサイト、基幹システム）
 - SLA（可用性保証）が必要
 - 規制要件
 - 本番環境
 
 → 2リージョン構成
-```text
+```
 
 **DRの種類**：
 
@@ -575,7 +575,7 @@ RPO/RTO要件あり → 2リージョン
 **A**: 制限はあるけど、実用上は問題ない。
 
 **制限**：
-```text
+```
 Hub-and-Spoke：
 
 - VNetピアリング: 最大500個/VNet
@@ -585,12 +585,12 @@ Spoke VNet 500個まで
 Virtual WAN：
 
 - VNet接続: 制限なし（実質無制限）
-```text
+```
 
 **実用上**：
-```text
+```
 ほとんどの組織は10〜50個で十分
-```text
+```
 
 ### Q12: オンプレミスとの接続は必須？
 
@@ -599,60 +599,60 @@ Virtual WAN：
 **構成例**：
 
 #### オンプレ接続あり
-```text
+```
 オンプレデータセンター
   ↓ VPN / ExpressRoute
 Azure Hub VNet
   ↓
 Spoke VNet（アプリ）
-```text
+```
 
 #### オンプレ接続なし（クラウドネイティブ）
-```text
+```
 Azure Hub VNet
   ↓
 Spoke VNet（アプリ）
   ↓
 インターネット経由でユーザーアクセス
-```text
+```
 
 **オンプレ接続が必要な場合**：
-```text
+```
 ✓ 既存システムとの連携
 ✓ Active Directory連携
 ✓ データ移行
 ✓ ハイブリッドクラウド
-```text
+```
 
 **不要な場合**：
-```text
+```
 ✓ 新規クラウドネイティブアプリ
 ✓ SaaS的な利用
 ✓ 完全クラウド移行
-```text
+```
 
 ### Q13: FirewallとNSGの違いは？
 
 **A**: 役割が違う。
 
 **NSG（Network Security Group）**：
-```text
+```
 レベル: サブネット・NIC
 機能: L4（IPアドレス、ポート）
 用途: 基本的なフィルタリング
 コスト: 無料
-```text
+```
 
 **Azure Firewall**：
-```text
+```
 レベル: VNet全体
 機能: L7（FQDN、URL、脅威検知）
 用途: 高度なフィルタリング
 コスト: 約17万円/月〜
-```text
+```
 
 **使い分け**：
-```text
+```
 NSG:
 - サブネット間の通信制御
 - VM間の通信制御
@@ -663,15 +663,15 @@ Firewall:
 - アプリケーションレベルのフィルタリング
 - 脅威検知
 - 一元管理
-```text
+```
 
 **両方使う**：
-```text
+```
 Firewall: Hub VNetに配置（全体の制御）
 NSG: 各サブネットに配置（詳細制御）
   ↓
 多層防御
-```text
+```
 
 ---
 
@@ -682,7 +682,7 @@ NSG: 各サブネットに配置（詳細制御）
 **A**: 段階的にアップグレード。
 
 **手順**：
-```text
+```
 1. リリースノート確認
    https://github.com/hashicorp/terraform/releases
 
@@ -701,16 +701,16 @@ NSG: 各サブネットに配置（詳細制御）
 
 6. GitHub Actions設定も更新
    terraform_cli_version: '1.13.0'
-```text
+```
 
 **注意**：
-```text
+```
 メジャーバージョンアップ（1.x → 2.x）は慎重に
   ↓
 破壊的変更が多い
   ↓
 十分なテストが必要
-```text
+```
 
 ### Q15: リソースを手動で変更しちゃったらどうする？
 
@@ -728,23 +728,23 @@ terraform plan
 
 # .tfファイルも更新
 # （手動変更内容をコードに反映）
-```text
+```
 
 #### 方法2: 手動変更を戻す
 
 ```bash
 # Terraformの定義通りに戻す
 terraform apply
-```text
+```
 
 **予防策**：
-```text
+```
 Azure Portalでの手動変更を禁止
   ↓
 Policy設定
   ↓
 特定タグがないリソースは作成不可
-```text
+```
 
 ### Q16: Stateファイルが壊れたらどうする？
 
@@ -761,7 +761,7 @@ az storage blob upload \
   --name alz-mgmt.tfstate \
   --file ./backups/terraform-state-20260115.json \
   --overwrite
-```text
+```
 
 #### バックアップがない場合
 ```bash
@@ -772,31 +772,31 @@ terraform import <リソースタイプ>.<名前> <Azure Resource ID>
 terraform import azurerm_resource_group.management /subscriptions/.../resourceGroups/rg-management
 terraform import azurerm_virtual_network.hub /subscriptions/.../virtualNetworks/vnet-hub
 ...
-```text
+```
 
 **予防策**：
-```text
+```
 定期的にStateをバックアップ
   ↓
 Chapter 16のbackup-tfstate.shを使う
-```text
+```
 
 ### Q17: チームメンバーが増えたら？
 
 **A**: 権限とプロセスを整備。
 
 **権限設定**：
-```text
+```
 1. Azure AD Groupに追加
 2. GitHub Teamに追加
 3. 必要な権限を付与
    - Reader（閲覧）
    - Contributor（作業）
    - Owner（管理）
-```text
+```
 
 **プロセス整備**：
-```text
+```
 1. ドキュメント整備
    - README更新
    - 運用手順書
@@ -811,7 +811,7 @@ Chapter 16のbackup-tfstate.shを使う
    - PRテンプレート
    - レビュー観点
    - 承認ルール
-```text
+```
 
 ---
 
@@ -822,14 +822,14 @@ Chapter 16のbackup-tfstate.shを使う
 **A**: locals.tfを修正。
 
 **デフォルト**：
-```text
+```
 rg-myorg-management-001
-```text
+```
 
 **変更例**：
-```text
+```
 prd-rg-myorg-management-001  # 環境prefix追加
-```text
+```
 
 **実装**：
 ```hcl
@@ -845,7 +845,7 @@ locals {
     var.default_postfix
   )
 }
-```text
+```
 
 Chapter 15に詳しい例があるよ。
 
@@ -869,7 +869,7 @@ policy_definitions_to_add:
 
 policy_assignments_to_add:
   - Custom-Policy-Example
-```text
+```
 
 Chapter 15でカスタムポリシーの作り方を解説しています。
 
@@ -892,7 +892,7 @@ management_groups:
   - id: development  # 追加
     display_name: Development
     parent_id: myorg
-```text
+```
 
 Chapter 15に詳しく書いてある。
 
@@ -905,34 +905,34 @@ Chapter 15に詳しく書いてある。
 **A**: Firewallが原因かも。
 
 **原因**：
-```text
+```
 Firewall作成: 30〜60分
   ↓
 どうしようもない
   ↓
 Azureの仕様
-```text
+```
 
 **対処法**：
-```text
+```
 コーヒー飲んで待つ☕
-```text
+```
 
 **時短のコツ**：
-```text
+```
 開発環境はFirewall無効化
   ↓
 enabled_resources = {
   firewall = false
 }
-```text
+```
 
 ### Q22: GitHub Actionsで謎のエラー
 
 **A**: ローカルで再現するか確認。
 
 **手順**：
-```text
+```
 1. ローカルで同じコマンド実行
    terraform init
    terraform plan
@@ -945,7 +945,7 @@ enabled_resources = {
    → GitHub Actions固有の問題
    → Secrets確認
    → 権限確認
-```text
+```
 
 Chapter 14にトラブルシューティングガイドがある。
 
@@ -954,13 +954,13 @@ Chapter 14にトラブルシューティングガイドがある。
 **A**: Japan regionの問題。
 
 **原因**：
-```text
+```
 Japan East/WestはAvailability Zones非対応
   ↓
 でもzones指定してる
   ↓
 エラー
-```text
+```
 
 **対処法**：
 ```hcl
@@ -969,7 +969,7 @@ zones = ["1", "2", "3"]
 
 # OK
 zones = []  # 空リスト
-```text
+```
 
 Chapter 3で詳しく解説しています。
 
@@ -982,7 +982,7 @@ Chapter 3で詳しく解説しています。
 **A**: Terraformなら理論的には可能。
 
 **実際**：
-```text
+```
 このプロジェクト：
 
 - Azure専用
@@ -995,23 +995,23 @@ Chapter 3で詳しく解説しています。
 - AWSリソースを定義
 - モジュール分離
 → かなり大変
-```text
+```
 
 **推奨**：
-```text
+```
 Azure: このプロジェクト
 AWS: AWS Landing Zone使う
 GCP: GCP Foundation使う
   ↓
 各クラウド専用のものを使う方が楽
-```text
+```
 
 ### Q25: サポートはある？
 
 **A**: いくつかの選択肢がある。
 
 **コミュニティサポート**：
-```text
+```
 GitHub Issues:
 - このプロジェクトのIssue
 - モジュールのIssue
@@ -1019,10 +1019,10 @@ GitHub Issues:
 Stack Overflow:
 - terraform タグ
 - azure タグ
-```text
+```
 
 **有償サポート**：
-```text
+```
 Microsoft:
 - Azure サポートプラン
 - Professional Services
@@ -1034,14 +1034,14 @@ HashiCorp:
 パートナー:
 - SIer
 - クラウドインテグレーター
-```text
+```
 
 ### Q26: ドキュメントはどこ？
 
 **A**: このドキュメント群と公式ドキュメント。
 
 **このプロジェクトのドキュメント**：
-```text
+```
 docs_new/
 ├── 00_はじめに.md
 ├── README.md
@@ -1050,10 +1050,10 @@ docs_new/
 ├── 03_設定ファイル完全解説.md
 ...
 └── 17_FAQ.md（これ）
-```text
+```
 
 **公式ドキュメント**：
-```text
+```
 Terraform:
 https://www.terraform.io/docs
 
@@ -1062,14 +1062,14 @@ https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs
 
 Azure Landing Zones（Microsoft公式）:
 https://docs.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/
-```text
+```
 
 ### Q27: 学習リソースは？
 
 **A**: たくさんある。
 
 **無料**：
-```text
+```
 Microsoft Learn:
 https://docs.microsoft.com/learn/azure/
 
@@ -1079,10 +1079,10 @@ https://learn.hashicorp.com/terraform
 YouTube:
 - Azure Friday
 - HashiCorp
-```text
+```
 
 **有料**：
-```text
+```
 Udemy:
 - Azure コース
 - Terraform コース
@@ -1090,10 +1090,10 @@ Udemy:
 Pluralsight:
 - Azure Learning Path
 - Terraform Learning Path
-```text
+```
 
 **実践**：
-```text
+```
 一番の学習は実際に触ること
   ↓
 このプロジェクトをデプロイしてみる
@@ -1101,50 +1101,50 @@ Pluralsight:
 カスタマイズしてみる
   ↓
 壊して直す
-```text
+```
 
 ### Q28: 本番運用の前にチェックすることは？
 
 **A**: チェックリストを使おう。
 
 **セキュリティ**：
-```text
+```
 □ MFA有効化
 □ 最小権限の原則
 □ Private Endpoint使用
 □ Secrets管理（Key Vault）
 □ NSG・Firewall設定確認
-```text
+```
 
 **ネットワーク**：
-```text
+```
 □ アドレス空間重複なし
 □ ルーティング確認
 □ VPNまたはExpressRoute接続テスト
 □ DNS設定確認
-```text
+```
 
 **監視**：
-```text
+```
 □ Log Analytics設定
 □ アラートルール設定
 □ コストアラート設定
 □ Dashboard作成
-```text
+```
 
 **バックアップ**：
-```text
+```
 □ Terraform Stateバックアップ
 □ DRプラン作成
 □ ドキュメント整備
-```text
+```
 
 **テスト**：
-```text
+```
 □ 開発環境でフルテスト
 □ ロールバック手順確認
 □ 緊急連絡先確認
-```text
+```
 
 Chapter 16のベストプラクティスを見てください！
 
@@ -1153,27 +1153,27 @@ Chapter 16のベストプラクティスを見てください！
 **A**: この順番で確認。
 
 **ステップ1**: このドキュメント
-```text
+```
 Chapter 14: トラブルシューティング
 Chapter 17: FAQ（これ）
-```text
+```
 
 **ステップ2**: エラーメッセージをググる
-```text
+```
 "Error: zones are not supported" terraform azure
   ↓
 Stack Overflow、GitHub Issuesに答えがある
-```text
+```
 
 **ステップ3**: GitHub Issueを見る
-```text
+```
 https://github.com/Azure/terraform-azurerm-avm-ptn-alz/issues
   ↓
 似たような問題が報告されてるかも
-```text
+```
 
 **ステップ4**: 質問する
-```text
+```
 Stack Overflow:
 - terraform タグ付けて質問
 - エラーメッセージ、コード、環境情報を添える
@@ -1181,14 +1181,14 @@ Stack Overflow:
 GitHub Issue:
 - 再現手順を明確に
 - terraform version、provider version記載
-```text
+```
 
 **ステップ5**: サポートに連絡
-```text
+```
 Azureサポート契約がある場合
   ↓
 サポートチケット作成
-```text
+```
 
 ---
 
@@ -1199,7 +1199,7 @@ Azureサポート契約がある場合
 **A**: プロジェクト次第。
 
 **必要な場合**：
-```text
+```
 ✓ エンタープライズ
 ✓ 複数チーム
 ✓ 長期運用
@@ -1207,37 +1207,37 @@ Azureサポート契約がある場合
 ✓ 拡張性が必要
 
 → Azure Landing Zones使おう
-```text
+```
 
 **オーバースペックな場合**：
-```text
+```
 ✓ 小規模プロジェクト
 ✓ 個人利用
 ✓ 短期間のPoC
 ✓ シンプルな構成
 
 → 普通にAzureリソース作ればOK
-```text
+```
 
 **判断基準**：
-```text
+```
 「後で拡張する可能性がある？」
   ↓
 Yes → Azure Landing Zones
 No → シンプルにいこう
-```text
+```
 
 **このドキュメントの目的**：
-```text
+```
 Azure Landing Zonesを理解して
   ↓
 自分で構築・カスタマイズできるようになる
   ↓
 最高の教科書
-```text
+```
 
 **達成できた？**
-```text
+```
 Chapter 00: はじめに
 Chapter 01: 基礎知識
 Chapter 02: プロジェクト構造
@@ -1258,10 +1258,10 @@ Chapter 16: ベストプラクティス
 Chapter 17: FAQ
 
 全部読めば完璧！
-```text
+```
 
 **最後のメッセージ**：
-```text
+```
 完璧を目指さなくていい
   ↓
 まず動かしてみる
@@ -1271,7 +1271,7 @@ Chapter 17: FAQ
 少しずつ改善
   ↓
 それがベストプラクティス
-```text
+```
 
 **がんばって！🚀**
 
