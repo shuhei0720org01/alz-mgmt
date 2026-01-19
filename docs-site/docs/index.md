@@ -20,37 +20,37 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 
 <div class="grid cards" markdown>
 
--   :material-language-terraform:{ .lg .middle } __Terraformの基本__
+-   __Terraformの基本__
 
     ---
 
     変数、ローカル変数、モジュールの使い方を基礎から学べます
 
--   :material-microsoft-azure:{ .lg .middle } __Azureのリソース__
+-   __Azureのリソース__
 
     ---
 
     管理グループ、ポリシー、ネットワーク構成を深く理解できます
 
--   :material-office-building:{ .lg .middle } __Landing Zonesの設計__
+-   __Landing Zonesの設計__
 
     ---
 
     8つの設計領域と実装パターンをマスターできます
 
--   :material-code-tags:{ .lg .middle } __全コード解説__
+-   __全コード解説__
 
     ---
 
     このリポジトリの全てのコードを詳しく解説しています
 
--   :material-cloud-upload:{ .lg .middle } __環境構築__
+-   __環境構築__
 
     ---
 
     GitHub ActionsでCI/CDパイプラインまで構築します
 
--   :material-wrench:{ .lg .middle } __トラブルシューティング__
+-   __トラブルシューティング__
 
     ---
 
@@ -167,25 +167,25 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 
 <div class="grid cards" markdown>
 
--   :material-clock-outline:{ .lg .middle } __1日30分でもOK__
+-   __1日30分でもOK__
 
     ---
 
     一気に読もうとしないでください。毎日少しずつ進める方が理解が深まります。
 
--   :material-keyboard:{ .lg .middle } __手を動かす__
+-   __手を動かす__
 
     ---
 
     読むだけじゃダメ。実際にコードを書いたり、動かしたりしてください。このリポジトリをクローンして、手元で触りながら学ぶのがベストです。
 
--   :material-fast-forward:{ .lg .middle } __わからなくても進む__
+-   __わからなくても進む__
 
     ---
 
     最初は理解できないことだらけです。それが普通。一度全部読んでから、もう一周すると「あ、そういうことか！」ってなります。
 
--   :material-note-edit:{ .lg .middle } __メモを取る__
+-   __メモを取る__
 
     ---
 
@@ -206,22 +206,22 @@ Azureは知らなくてOK。Terraformも知らなくてOK。
 
 ## このコースの特徴
 
-### :material-file-code: 1. 実際のコードを使う
+### 1. 実際のコードを使う
 
 このリポジトリの実際のコードを引用しながら説明します。  
 架空のサンプルコードじゃありません。
 
-### :material-lightbulb-on: 2. なぜそうなっているか説明する
+### 2. なぜそうなっているか説明する
 
 「こう書きます」だけじゃなく、「なぜこう書くのか」を説明します。  
 理由がわかると、応用が効くようになります。
 
-### :material-alert-circle: 3. 失敗も共有する
+### 3. 失敗も共有する
 
 実際にハマったポイント、エラーが出た場所も正直に書きます。  
 同じ失敗をしないように。
 
-### :material-chat: 4. カジュアルな文体
+### 4. カジュアルな文体
 
 教科書っぽくない、普通の会話みたいな感じで書いてます。  
 堅苦しいのは苦手なので。
