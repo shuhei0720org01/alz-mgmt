@@ -1,0 +1,59 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '.github/workflows/deploy-docs.yml'
+  
+  # 手動実行も可能に
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          cd docs-site
+          pip install -r requirements.txt
+      
+      - name: Copy docs to docs-site
+        run: |
+          # docsフォルダの内容をdocs-site/docsにコピー
+          cp -r docs/*.md docs-site/docs/
+          # READMEは除外（index.mdで代替）
+          rm -f docs-site/docs/README.md
+      
+      - name: Build documentation
+        run: |
+          cd docs-site
+          mkdocs build --strict
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/site
+          commit_message: 'docs: update documentation site'
