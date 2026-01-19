@@ -76,7 +76,7 @@ Hub-and-Spokeネットワークの仕組みを理解しよう。
 
 **📊 Hub-and-Spoke構成図（このプロジェクト）**
 
-```
+```text title="Hub-and-Spoke構成"
                     インターネット
                          ↕
                    Azure Firewall
@@ -111,7 +111,7 @@ Hub-and-Spokeネットワークの仕組みを理解しよう。
 
 **🎯 通信の流れ（例）**
 
-```
+```text title="通信の流れ"
 Spoke 1 (Webサーバー) → インターネット へアクセスしたい
   ↓
 1. User Defined Route (UDR) で Hub へ
@@ -187,7 +187,7 @@ Hubにピアリング
 
 ### connectivity_type
 
-```hcl
+```hcl title="ネットワークタイプの設定"
 connectivity_type = "hub_and_spoke_vnet"
 ```
 
@@ -199,7 +199,7 @@ connectivity_type = "hub_and_spoke_vnet"
 
 ### hub_and_spoke_networks_settings
 
-```hcl
+```hcl title="DDoS Protection設定"
 hub_and_spoke_networks_settings = {
   enabled_resources = {
     ddos_protection_plan = true
@@ -224,7 +224,7 @@ Basic：無料（自動で有効）
 ```
 
 **注意**：
-```hcl
+```hcl title="開発環境でのコスト削減設定"
 # 開発環境ではfalseにしとこう
 enabled_resources = {
   ddos_protection_plan = false  # ←コスト削減
@@ -235,7 +235,7 @@ Chapter 3で見た設定ですね。
 
 ### hub_virtual_networks
 
-```hcl
+```hcl title="Hub VNetの基本設定"
 hub_virtual_networks = {
   primary = {
     location          = "japaneast"
@@ -273,7 +273,7 @@ primaryってキーは何でもいい。複数のHubを作る時に識別する�
 
 ### 1. Hub Virtual Network（VNet）
 
-```hcl
+```hcl title="Hub VNetの名前とアドレス空間"
 hub_virtual_network = {
   name          = "vnet-jpe-hub"
   address_space = ["10.0.0.0/16"]
@@ -303,7 +303,7 @@ hub_virtual_network = {
 
 ### 2. Azure Firewall
 
-```hcl
+```hcl title="Azure Firewallの完全設定"
 firewall = {
   subnet_address_prefix            = "10.0.0.0/26"
   management_subnet_address_prefix = "10.0.0.64/26"
@@ -369,7 +369,7 @@ management_subnet_address_prefix = "10.0.0.64/26"
 
 #### management_ip_enabled
 
-```hcl
+```hcl title="管理用Public IPの有効化"
 management_ip_enabled = true
 ```
 
@@ -391,7 +391,7 @@ Public IP 1個だけ
 ```
 
 **おすすめ**：
-```hcl
+```hcl title="環境別のmanagement_ip設定"
 # 本番環境
 management_ip_enabled = true  # ←安定性重視
 
@@ -401,7 +401,7 @@ management_ip_enabled = false  # ←コスト重視
 
 #### firewall_policy
 
-```hcl
+```hcl title="Firewallポリシーの設定"
 firewall_policy = {
   name = "fwp-jpe-hub"
 }
@@ -433,7 +433,7 @@ NATルール：
 
 ### 3. VPN Gateway
 
-```hcl
+```hcl title="VPN Gatewayの設定"
 virtual_network_gateways = {
   subnet_address_prefix = "10.0.1.0/26"
   
@@ -471,7 +471,7 @@ Spoke VNet
 
 #### Active-Active構成
 
-```hcl
+```hcl title="VPN GatewayのActive-Active構成"
 ip_configurations = {
   default = { ... }  # ←1個目のPublic IP
   second = { ... }   # ←2個目のPublic IP
@@ -504,7 +504,7 @@ VpnGw3：1.25 Gbps
 
 #### GatewaySubnet
 
-```hcl
+```hcl title="Gatewayサブネットのアドレス"
 subnet_address_prefix = "10.0.1.0/26"
 ```
 
@@ -514,7 +514,7 @@ subnet_address_prefix = "10.0.1.0/26"
 
 ### 4. ExpressRoute Gateway
 
-```hcl
+```hcl title="ExpressRoute Gatewayの設定"
 express_route = {
   name = "ergw-jpe-hub"
   ip_configurations = {
@@ -559,7 +559,7 @@ ExpressRoute：
 
 ### 5. Azure Bastion
 
-```hcl
+```hcl title="Azure Bastionの設定"
 bastion = {
   subnet_address_prefix = "10.0.2.0/27"
   name                  = "bas-jpe-hub"
@@ -598,12 +598,12 @@ PC → Azureポータル → Bastion → VM（Private IPだけ）
 
 Chapter 3で見た重要な設定：
 
-```hcl
+```hcl title="Japan regionのzones設定"
 zones = []  # ←Japan regionはAvailability Zones非対応
 ```
 
 **Japan East/Westの場合は必須**：
-```hcl
+```hcl title="zones設定の正誤例"
 # OK
 zones = []
 
@@ -619,7 +619,7 @@ Standard：約21万円/月
 
 #### AzureBastionSubnet
 
-```hcl
+```hcl title="Bastionサブネットのアドレス"
 subnet_address_prefix = "10.0.2.0/27"
 ```
 
@@ -629,7 +629,7 @@ subnet_address_prefix = "10.0.2.0/27"
 
 ### 6. Private DNS Zones
 
-```hcl
+```hcl title="Private DNSの有効化"
 enabled_resources = {
   private_dns_zones = true
 }
@@ -664,7 +664,7 @@ privatelink.azurewebsites.net
 
 ### primary / secondary
 
-```hcl
+```hcl title="マルチリージョンHub構成"
 hub_virtual_networks = {
   primary = {
     location = "japaneast"
@@ -706,7 +706,7 @@ Japan West Hub
 - 管理が複雑
 
 **おすすめ**：
-```hcl
+```hcl title="環境別のリージョン設定"
 # 開発環境：primaryだけ
 hub_virtual_networks = {
   primary = { ... }
@@ -726,7 +726,7 @@ hub_virtual_networks = {
 
 ### User Defined Route（UDR）
 
-```hcl
+```hcl title="ルートテーブルの設定"
 hub_virtual_network = {
   route_table_name_firewall     = "rt-fw-jpe"
   route_table_name_user_subnets = "rt-user-jpe"
@@ -780,7 +780,7 @@ Spoke VM → インターネット
 
 ### 最小構成
 
-```hcl
+```hcl title="コスト削減版の設定"
 hub_virtual_networks = {
   primary = {
     location = "japaneast"
@@ -843,7 +843,7 @@ Private DNS：無料
 
 ### VNetの確認
 
-```bash
+```bash title="VNet情報の取得"
 # VNet一覧
 az network vnet list --output table
 
@@ -855,7 +855,7 @@ az network vnet show \
 
 ### Firewallの確認
 
-```bash
+```bash title="Firewall情報とログの確認"
 # Firewall一覧
 az network firewall list --output table
 
@@ -867,7 +867,7 @@ az monitor log-analytics query \
 
 ### ルートテーブルの確認
 
-```bash
+```bash title="ルートテーブル情報の取得"
 # ルートテーブル一覧
 az network route-table list --output table
 
@@ -912,7 +912,7 @@ Error: availability zones are not supported in this region
 **原因**：Japan East/Westで`zones`を指定してる
 
 **対処法**：
-```hcl
+```hcl title="Japan regionではzonesを空リストに"
 zones = []  # ←空リスト
 ```
 
@@ -927,7 +927,7 @@ Error: address space overlaps with existing VNet
 **原因**：VNetのアドレス空間が他と重複
 
 **対処法**：
-```hcl
+```hcl title="アドレス空間を分ける"
 # NG
 primary:   10.0.0.0/16
 secondary: 10.0.0.0/16  # ←重複
@@ -946,7 +946,7 @@ Error: timeout waiting for firewall to be ready
 **原因**：Firewallの作成に時間がかかる（30分〜1時間）
 
 **対処法**：
-```bash
+```bash title="再度applyを実行"
 # もう一度apply
 terraform apply
 
