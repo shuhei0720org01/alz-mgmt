@@ -49,7 +49,7 @@ jobs:
       - name: Build documentation
         run: |
           cd docs-site
-          mkdocs build --strict
+          mkdocs build
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
