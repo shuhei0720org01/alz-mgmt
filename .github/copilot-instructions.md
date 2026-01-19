@@ -85,7 +85,15 @@
   - モジュールエラー（version、input）
   - デバッグテクニック5つ（TF_LOG、graph、show、console、Azure CLI）
   - FAQ 5項目（version upgrade、state management、import、cost reduction）
-- ⏸️ Chapter 15〜17: 未着手（3章残り）
+- ✅ Chapter 15 (15_カスタマイズ.md): 完全装飾完了（PR #52）
+  - lib構造とファイルの役割（architecture_definitions、archetype_definitions）
+  - Management Group追加・削除・階層変更
+  - ポリシーカスタマイズ（追加・削除・パラメータ変更）
+  - 命名規則カスタマイズ（環境prefix、リージョン略語）
+  - ネットワークカスタマイズ（サブネット、Firewallルール、Spoke VNet）
+  - サブスクリプション配置、タグ、ロギング設定
+  - 実践例：3環境構成（本番・ステージング・開発）
+- ⏸️ Chapter 16〜17: 未着手（2章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
