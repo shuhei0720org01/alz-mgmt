@@ -71,7 +71,13 @@
   - ステップ詳細（Checkout、Setup、Azure Login、Init、Validate、Plan、Comment）
   - OIDC設定（Azure ADアプリ、Service Principal、Federated Credential）
   - 実践手順、デバッグ技術、エラー対処4つ、ベストプラクティス4つ
-- ⏸️ Chapter 13〜17: 未着手（5章残り）
+- ✅ Chapter 13 (13_デプロイ手順.md): 完全装飾完了（PR #48）
+  - ゼロから環境を作るデプロイ手順（全6フェーズ）
+  - Phase 1-2: Azure準備、GitHub準備（Service Principal、Storage、Secrets）
+  - Phase 3-4: ローカルデプロイ、GitHub Actionsデプロイ
+  - Phase 5-6: 本番デプロイ、動作確認（Management Group、Policy、Firewall等）
+  - トラブルシューティング4つ、デプロイ後チェックリスト
+- ⏸️ Chapter 14〜17: 未着手（4章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
