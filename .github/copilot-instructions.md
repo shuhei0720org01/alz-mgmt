@@ -64,7 +64,14 @@
   - Virtual Hub設定（address_prefix、routing_preference、スケールユニット）
   - Firewall（Virtual WAN版）、VPN Gateway、VNet接続、ルーティング
   - Routing Intent、Sidecar VNet、コスト削減版、デバッグ技術、エラー対処4つ
-- ⏸️ Chapter 12〜17: 未着手（6章残り）
+- ✅ Chapter 12 (12_GitHub_Actions.md): 完全装飾完了（PR #46）
+  - GitHub ActionsによるCI/CDパイプライン
+  - ワークフロー定義（ci.yaml、cd.yaml）、トリガー設定
+  - 再利用可能ワークフロー（ci-template、cd-template）
+  - ステップ詳細（Checkout、Setup、Azure Login、Init、Validate、Plan、Comment）
+  - OIDC設定（Azure ADアプリ、Service Principal、Federated Credential）
+  - 実践手順、デバッグ技術、エラー対処4つ、ベストプラクティス4つ
+- ⏸️ Chapter 13〜17: 未着手（5章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
