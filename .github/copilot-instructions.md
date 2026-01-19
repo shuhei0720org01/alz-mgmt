@@ -58,7 +58,13 @@
   - Hub VNet構成要素6つ（VNet、Firewall、VPN GW、ER GW、Bastion、DNS）
   - マルチリージョン構成（primary/secondary）
   - ルーティング設定（UDR）、コスト削減版、デバッグ技術、エラー対処4つ
-- ⏸️ Chapter 11〜17: 未着手（7章残り）
+- ✅ Chapter 11 (11_Virtual_WAN.md): 完全装飾完了（PR #44）
+  - Virtual WANのグローバルアーキテクチャ、Hub-and-Spokeとの比較
+  - tfvars設定（connectivity_type、virtual_wan_settings、virtual_hubs）
+  - Virtual Hub設定（address_prefix、routing_preference、スケールユニット）
+  - Firewall（Virtual WAN版）、VPN Gateway、VNet接続、ルーティング
+  - Routing Intent、Sidecar VNet、コスト削減版、デバッグ技術、エラー対処4つ
+- ⏸️ Chapter 12〜17: 未着手（6章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
