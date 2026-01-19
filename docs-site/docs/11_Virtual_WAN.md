@@ -3,6 +3,7 @@
 ## 8つの設計領域との対応
 
 このChapterは以下の設計領域を実装します：
+
 - ✅ **4. Network Topology and Connectivity**（ネットワーク構成 - 高度な実装）
 - ✅ **8. Platform Automation and DevOps**（プラットフォーム自動化）
 
@@ -38,12 +39,14 @@ Microsoftがマネージドで提供するグローバルネットワークサ�
 **Hub-and-Spokeとの違い**：
 ```
 Hub-and-Spoke：
+
 - 自分でVNet作る
 - 自分でFirewall設定
 - 自分でルーティング設定
 - 小〜中規模向け
 
 Virtual WAN：
+
 - Microsoftが管理
 - 設定がシンプル
 - グローバル規模
@@ -51,6 +54,7 @@ Virtual WAN：
 ```
 
 **例えるなら**：
+
 - **Hub-and-Spoke**：自家用車（自分で運転）
 - **Virtual WAN**：タクシー（プロに任せる）
 
@@ -146,6 +150,7 @@ VPN Gateway：最大10,000接続
 
 ```
 Virtual WAN Hub内で全部管理：
+
 - VPN接続
 - ExpressRoute接続
 - Firewall
@@ -171,10 +176,12 @@ Hub-and-Spokeより高い
 
 ```
 Hub-and-Spoke：
+
 - 細かい設定変更可能
 - 自由度高い
 
 Virtual WAN：
+
 - マネージドなので制限あり
 - Microsoftの設計に従う
 ```
@@ -183,6 +190,7 @@ Virtual WAN：
 
 ```
 新しい概念：
+
 - Virtual Hub
 - Virtual Network Connection
 - Routing Intent
@@ -337,14 +345,17 @@ hub_routing_preference = "ExpressRoute"
 **選択肢**：
 ```
 ExpressRoute：
+
 - ExpressRoute経由を優先
 - VPNはバックアップ
 
 VpnGateway：
+
 - VPN経由を優先
 - ExpressRouteはバックアップ
 
 ASPath：
+
 - BGP AS Pathで判断
 - 細かい制御
 ```
@@ -398,11 +409,13 @@ firewall = {
 
 ```
 Hub-and-Spoke：
+
 - 自分でサブネット作る
 - 自分でPublic IP管理
 - VNetにデプロイ
 
 Virtual WAN：
+
 - サブネット不要
 - Public IP自動作成
 - Virtual Hubにデプロイ
@@ -420,15 +433,18 @@ threat_intelligence_mode = "Alert"
 **選択肢**：
 ```
 Off：
+
 - 無効
 - 脅威検知しない
 
 Alert：
+
 - 警告だけ
 - ブロックしない
 - ログに記録
 
 Deny：
+
 - 警告 + ブロック
 - 悪意あるトラフィックを遮断
 ```
@@ -451,15 +467,18 @@ sku_tier = "Standard"
 **選択肢**：
 ```
 Basic：
+
 - 約8万円/月
 - 基本機能のみ
 
 Standard：
+
 - 約17万円/月
 - 脅威インテリジェンス
 - アプリケーションルール
 
 Premium：
+
 - 約25万円/月
 - TLS検査
 - IDPS（侵入検知/防止）
@@ -538,10 +557,12 @@ virtual_network_gateway_vpn = {
 
 ```
 Hub-and-Spoke：
+
 - VPN Gatewayだけ作る
 - 接続は別途設定（Local Network Gateway）
 
 Virtual WAN：
+
 - VPN Gateway + VPN Site（接続先情報）をまとめて設定
 - 設定がシンプル
 ```
@@ -566,9 +587,11 @@ scale_unit = 1
 **Hub-and-Spokeとの違い**：
 ```
 Hub-and-Spoke：
+
 - VpnGw1、VpnGw2、VpnGw3（固定SKU）
 
 Virtual WAN：
+
 - 1〜20ユニット（柔軟にスケール）
 ```
 
@@ -634,11 +657,13 @@ virtual_network_connections = {
 
 ```
 Hub-and-Spoke：
+
 - VNet Peering作成
 - 双方向で設定
 - ルーティング手動設定
 
 Virtual WAN：
+
 - Virtual Network Connection作成
 - 片方向でOK
 - ルーティング自動設定
@@ -1137,6 +1162,7 @@ sidecar_virtual_network = { ... }
 ```
 
 **重要な設定**：
+
 - `virtual_router_auto_scale_min_capacity`：性能とコスト
 - `internet_security_enabled`：Firewall経由
 - `routing_intents`：全トラフィック制御

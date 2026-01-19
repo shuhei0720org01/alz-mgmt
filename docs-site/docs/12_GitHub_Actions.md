@@ -25,6 +25,7 @@ mainブランチにマージ
 ```
 
 **例えるなら**：
+
 - **手動デプロイ**：料理を全部自分で作る
 - **GitHub Actions**：オートメーションキッチン（自動で調理）
 
@@ -368,6 +369,7 @@ terraform_actionを選択
 **便利**：
 ```
 緊急時：
+
 - destroy実行（全削除）
 - 特定バージョンのTerraformでapply
 ```
@@ -555,11 +557,13 @@ terraform コマンドが使える
 **OIDC（OpenID Connect）**：
 ```
 従来：
+
 - Service Principalのパスワードをシークレットに保存
 - パスワードが漏洩するリスク
 - 定期的なローテーション必要
 
 OIDC：
+
 - パスワード不要
 - 一時的なトークンで認証
 - より安全
@@ -867,11 +871,13 @@ GitHub → Settings → Secrets and variables → Actions
 **使い分け**：
 ```
 Repository secrets：
+
 - Tenant ID
 - Storage Account情報
 → 環境問わず共通
 
 Environment secrets：
+
 - Client ID（本番用、開発用）
 - Subscription ID（本番用、開発用）
 → 環境ごとに違う
@@ -1133,6 +1139,7 @@ Error: Failed to get existing workspaces
 **対処法**：
 ```
 GitHub Secrets確認：
+
 - ARM_STORAGE_ACCOUNT_NAME
 - ARM_CONTAINER_NAME
 - ARM_KEY
@@ -1193,6 +1200,7 @@ az role assignment create \
 GitHub → Settings → Branches → Branch protection rules
   ↓
 main ブランチに設定：
+
 - Require pull request reviews before merging
 - Require status checks to pass before merging
   - CI（terraform plan）
@@ -1266,10 +1274,12 @@ terraform_cli_version: '1.12.0'  # ←バージョン固定
 **なぜ？**
 ```
 'latest'だと：
+
 - 突然新バージョンが使われる
 - 互換性問題でエラー
 
 固定すると：
+
 - 安定
 - アップグレードは計画的に
 ```
@@ -1292,12 +1302,14 @@ terraform_cli_version: '1.12.0'  # ←バージョン固定
 ```
 
 **メリット**：
+
 - 自動化（ヒューマンエラー削減）
 - 履歴が残る
 - 承認フロー
 - 並行実行防止
 
 **重要な設定**：
+
 - **OIDC**：パスワードレス認証
 - **Secrets**：機密情報の管理
 - **Environment**：承認フロー
