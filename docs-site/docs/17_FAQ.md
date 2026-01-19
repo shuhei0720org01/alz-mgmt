@@ -176,7 +176,7 @@ terraform import
 ```
 
 **手順**：
-```bash
+```bash title="既存Management Groupのimport"
 # 既存Management Groupをimport
 terraform import 'module.management_groups[0].azurerm_management_group.level_1["existing-mg"]' /providers/Microsoft.Management/managementGroups/existing-mg
 
@@ -211,7 +211,7 @@ alz-mgmt/
 ```
 
 **デプロイ**：
-```bash
+```bash title="環境別のデプロイ"
 # 本番
 cd environments/production
 terraform init -backend-config="key=prod.tfstate"
@@ -225,7 +225,7 @@ terraform apply -var-file=terraform.tfvars.json
 
 #### 方法2: Terraform Workspace
 
-```bash
+```bash title="Workspaceでの環境分離"
 # Workspace作成
 terraform workspace new production
 terraform workspace new development
@@ -273,7 +273,7 @@ alz-mgmt-development/
 ```
 
 **ロールバック**：
-```bash
+```bash title="変更のロールバック"
 # 最後のCommitに戻す
 git revert HEAD
 git push
@@ -288,7 +288,7 @@ terraform apply
 **A**: できる。ローカルで実行すればOK。
 
 **ローカル実行**：
-```bash
+```bash title="ローカルでのTerraform実行"
 # 環境変数設定
 export ARM_STORAGE_ACCOUNT_NAME="..."
 export ARM_CONTAINER_NAME="tfstate"
@@ -682,7 +682,7 @@ NSG: 各サブネットに配置（詳細制御）
 **A**: 段階的にアップグレード。
 
 **手順**：
-```
+```bash title="Terraformバージョンアップグレード手順"
 1. リリースノート確認
    https://github.com/hashicorp/terraform/releases
 
@@ -718,7 +718,7 @@ NSG: 各サブネットに配置（詳細制御）
 
 #### 方法1: Terraformに取り込む（推奨）
 
-```bash
+```bash title="手動変更をTerraformに反映"
 # 現在の状態を取り込む
 terraform apply -refresh-only
 
@@ -732,7 +732,7 @@ terraform plan
 
 #### 方法2: 手動変更を戻す
 
-```bash
+```bash title="Terraform定義通りに戻す"
 # Terraformの定義通りに戻す
 terraform apply
 ```
@@ -753,7 +753,7 @@ Policy設定
 **対処法**：
 
 #### バックアップがある場合
-```bash
+```bash title="Stateファイルをバックアップから復元"
 # Stateファイルをバックアップから復元
 az storage blob upload \
   --account-name $ARM_STORAGE_ACCOUNT_NAME \
@@ -764,7 +764,7 @@ az storage blob upload \
 ```
 
 #### バックアップがない場合
-```bash
+```bash title="Azureの現状からState再構築"
 # Azureの現状からStateを再構築
 terraform import <リソースタイプ>.<名前> <Azure Resource ID>
 
@@ -832,7 +832,7 @@ prd-rg-myorg-management-001  # 環境prefix追加
 ```
 
 **実装**：
-```hcl
+```hcl title="環境prefix付き命名規則"
 # locals.tf
 locals {
   environment_prefix = var.environment  # "prd", "dev"
