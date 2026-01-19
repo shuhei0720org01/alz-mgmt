@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
       - 'docs-site/**'
       - '.github/workflows/deploy-docs.yml'
   
@@ -48,13 +47,6 @@ jobs:
         run: |
           cd docs-site
           pip install -r requirements.txt
-      
-      - name: Copy docs to docs-site
-        run: |
-          # docsフォルダの内容をdocs-site/docsにコピー
-          cp -r docs/*.md docs-site/docs/
-          # READMEは除外（index.mdで代替）
-          rm -f docs-site/docs/README.md
       
       - name: Build documentation
         run: |

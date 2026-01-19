@@ -3,9 +3,6 @@ site_description: TerraformでAzure Landing Zonesを完全理解する教科書
 site_author: shuhei0720org01
 site_url: https://shuhei0720org01.github.io/alz-mgmt/
 
-# マークダウンファイルの場所（親ディレクトリのdocs/を直接参照）
-docs_dir: ../docs
-
 repo_name: shuhei0720org01/alz-mgmt
 repo_url: https://github.com/shuhei0720org01/alz-mgmt
 
