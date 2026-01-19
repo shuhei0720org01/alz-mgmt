@@ -44,7 +44,15 @@
   - tfvars設定（architecture、policy_default_values、subscription_placement）
   - モジュール呼び出し、ポリシー種類4つ
   - ポリシー継承、実践例2つ、デバッグ技術、設計パターン4種類
-- ⏸️ Chapter 09〜17: 未着手（9章残り）
+- ✅ Chapter 09 (09_管理リソース.md): 完全装飾完了（PR #40）
+  - 管理リソースの役割、3つのシナリオ
+  - tfvars設定（enabled、location、workspace_name、DCR、Managed Identity）
+  - モジュール呼び出し（count、providers、coalesce）
+  - Log Analytics詳細（KQLクエリ、アラート、設定項目）
+  - DCR詳細3種類（change_tracking、defender_sql、vm_insights）
+  - Managed Identity（System/User-assigned、使用フロー、ポリシー連携）
+  - 実践例3つ、デバッグ技術、エラー対処、コスト最適化
+- ⏸️ Chapter 10〜17: 未着手（8章残り）
 
 **デザイン装飾のルール**:
 - ✅ 使用する要素: タブ (`=== "タイトル"`)、アドモニション (`!!! warning/info/success/tip`)、コードタイトル (```lang title="xxx")
