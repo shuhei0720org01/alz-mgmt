@@ -48,3 +48,6 @@ tfplan.json
 resources.json
 issues.json
 issues.csv
+
+# Ignore Copilot instructions
+.github/copilot-instructions.md
