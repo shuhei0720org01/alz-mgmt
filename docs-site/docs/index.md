@@ -2,7 +2,7 @@
 
 ## ようこそ！
 
-この教科書は、[shuhei0720org01/alz-mgmt](https://github.com/shuhei0720org01/alz-mgmt) リポジトリのTerraformコードを完全に理解するためのガイドです。
+この教科書は、Azure Landing ZonesのTerraformコードを完全に理解するためのガイドです。
 
 Azure Landing Zonesを完全に理解して、自分で作れるようになる教材です。
 
@@ -123,9 +123,9 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 
 </div>
 
-### :material-numeric-4-circle: レベル4: 実践（15日目〜21日目）
+### :material-numeric-4-circle: レベル4: GitHub Actionsを理解する（15日目〜17日目）
 
-実際に動かしてみます。
+GitHub ActionsによるCI/CD自動化を学びます。
 
 <div class="grid cards" markdown>
 
@@ -135,6 +135,14 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 -   [**13. CI/CDパイプライン構築**](./13_CI_CD_パイプライン構築.md)  
     実践的なパイプライン
 
+</div>
+
+### :material-numeric-5-circle: レベル5: Bootstrapで実践（18日目〜21日目）
+
+実際にLanding Zonesをデプロイします。
+
+<div class="grid cards" markdown>
+
 -   [**14. Bootstrap Phase 1**](./14_Bootstrap_Phase_1.md)  
     環境構築の実践
 
@@ -143,9 +151,9 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 
 </div>
 
-### :material-numeric-5-circle: レベル5: マスター（22日目〜）
+### :material-numeric-6-circle: レベル6: 運用マスター（22日目〜）
 
-自分でカスタマイズできるようになります。
+運用を極めて、自分でカスタマイズできるようになります。
 
 <div class="grid cards" markdown>
 
@@ -171,9 +179,8 @@ Azure Landing Zonesを完全に理解して、自分で作れるようになる�
 
     ---
 
-    読むだけじゃダメ。実際にコードを読んで理解することが重要です。GitHubでこのリポジトリのコードを見ながら学びましょう。
+    実際にコードを読んで理解することが重要です。GitHubでこのリポジトリのコードを見ながら学びましょう。
     
-    **注意**: このリポジトリは完成済みのコード例です。実際にデプロイする場合は、Azure公式のBootstrap手順（Chapter 14-15）に従って、最初から環境を構築する必要があります。
 
 -   __わからなくても進む__
 
