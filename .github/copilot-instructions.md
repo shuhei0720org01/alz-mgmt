@@ -1,133 +1,7 @@
 # GitHub Copilot Instructions
-
-## 現在の状況
-
-**プロジェクト**: GitHub Pages教科書サイトのデザイン改善
-
-- 教科書作成: Chapter 00〜17（全18章）完成済み
-- 口調統一: 全章「カジュアル敬語調」で統一完了
-- サイト構築: MkDocs Material でGitHub Pages化完了
-- **新タスク**: 全18章にMaterial for MkDocsのデザイン要素を追加（おしゃれなデザイン化）
-
-**デザイン装飾の進捗**:
-- ✅ Chapter 00 (00_はじめに.md): 完全装飾完了（PR #23, #24）
-- ✅ Chapter 01 (01_基礎知識.md): 完全装飾完了（PR #25, #26, #27）
-- ✅ Chapter 02 (02_プロジェクト構造.md): 完全装飾完了（PR #28, #29）
-  - ファイル構成、データフロー、設定ファイル: タイトル化完了
-  - mainファイル群、outputs、モジュール構造: タイトル化完了
-  - lib/ポリシー定義、CI/CD、まとめ: タイトル化完了
-- ✅ Chapter 03 (03_設定ファイル完全解説.md): 完全装飾完了（PR #30, #31）
-  - Part 1-7: テンプレート変数、リージョン設定、リソース名、有効/無効設定
-  - Part 8-9: 管理グループ、ポリシー、ネットワーク設定、練習問題
-- ✅ Chapter 04 (04_変数定義.md): 完全装飾完了（PR #32）
-  - 型定義、バリデーション、デフォルト値の例
-  - 全変数定義（starter_locations、subscription_ids等）
-  - 全型の例（基本型、コレクション型、構造型）
-  - 全バリデーションパターン、実践例
-- ✅ Chapter 05 (05_ローカル変数.md): 完全装飾完了（PR #33）
-  - locals定義、variablesとの違い、具体例
-  - 定数定義、接続タイプ判定、依存関係
-  - 全5パターン、実践例3つ、デバッグ技
-- ✅ Chapter 06 (06_設定テンプレート.md): 完全装飾完了（PR #34）
-  - config-templatingモジュール構造、入力変数、データソース
-  - テンプレート処理4段階（組込み変数、カスタム名、リソースID、最終統合）
-  - JSON変換トリック、実践例3つ、デバッグ技術
-- ✅ Chapter 07 (07_リソースグループ.md): 完全装飾完了（PR #36）
-  - リソースグループ基本構造、削除ルール
-  - tfvars設定（テンプレート、タグ、enabled）
-  - 変数定義（map(object)、optional）
-  - モジュール呼び出し（for_each、try、providers）
-  - 実践例3つ、デバッグ技術、エラー対処、設計パターン
-- ✅ Chapter 08 (08_管理グループとポリシー.md): 完全装飾完了（PR #38）
-  - 管理グループ階層構造（完全版・簡易版）
-  - アーキテクチャ定義、アーキタイプ定義
-  - tfvars設定（architecture、policy_default_values、subscription_placement）
-  - モジュール呼び出し、ポリシー種類4つ
-  - ポリシー継承、実践例2つ、デバッグ技術、設計パターン4種類
-- ✅ Chapter 09 (09_管理リソース.md): 完全装飾完了（PR #40）
-  - 管理リソースの役割、3つのシナリオ
-  - tfvars設定（enabled、location、workspace_name、DCR、Managed Identity）
-  - モジュール呼び出し（count、providers、coalesce）
-  - Log Analytics詳細（KQLクエリ、アラート、設定項目）
-  - DCR詳細3種類（change_tracking、defender_sql、vm_insights）
-  - Managed Identity（System/User-assigned、使用フロー、ポリシー連携）
-  - 実践例3つ、デバッグ技術、エラー対処、コスト最適化
-- ✅ Chapter 10 (10_Hub-and-Spoke.md): 完全装飾完了（PR #42）
-  - Hub-and-Spokeアーキテクチャ、Virtual WANとの比較
-  - tfvars設定（connectivity_type、DDoS Protection、hub_virtual_networks）
-  - Hub VNet構成要素6つ（VNet、Firewall、VPN GW、ER GW、Bastion、DNS）
-  - マルチリージョン構成（primary/secondary）
-  - ルーティング設定（UDR）、コスト削減版、デバッグ技術、エラー対処4つ
-- ✅ Chapter 11 (11_Virtual_WAN.md): 完全装飾完了（PR #44）
-  - Virtual WANのグローバルアーキテクチャ、Hub-and-Spokeとの比較
-  - tfvars設定（connectivity_type、virtual_wan_settings、virtual_hubs）
-  - Virtual Hub設定（address_prefix、routing_preference、スケールユニット）
-  - Firewall（Virtual WAN版）、VPN Gateway、VNet接続、ルーティング
-  - Routing Intent、Sidecar VNet、コスト削減版、デバッグ技術、エラー対処4つ
-- ✅ Chapter 12 (12_GitHub_Actions.md): 完全装飾完了（PR #46）
-  - GitHub ActionsによるCI/CDパイプライン
-  - ワークフロー定義（ci.yaml、cd.yaml）、トリガー設定
-  - 再利用可能ワークフロー（ci-template、cd-template）
-  - ステップ詳細（Checkout、Setup、Azure Login、Init、Validate、Plan、Comment）
-  - OIDC設定（Azure ADアプリ、Service Principal、Federated Credential）
-  - 実践手順、デバッグ技術、エラー対処4つ、ベストプラクティス4つ
-- ✅ Chapter 13 (13_デプロイ手順.md): 完全装飾完了（PR #48）
-  - ゼロから環境を作るデプロイ手順（全6フェーズ）
-  - Phase 1-2: Azure準備、GitHub準備（Service Principal、Storage、Secrets）
-  - Phase 3-4: ローカルデプロイ、GitHub Actionsデプロイ
-  - Phase 5-6: 本番デプロイ、動作確認（Management Group、Policy、Firewall等）
-  - トラブルシューティング4つ、デプロイ後チェックリスト
-- ✅ Chapter 14 (14_トラブルシューティング.md): 完全装飾完了（PR #50）
-  - 認証エラー（OIDC、Azure login、Service Principal）
-  - Terraform State問題（Lock、permissions、drift）
-  - リソース作成エラー（Zones、naming、Firewall timeout）
-  - GitHub Actionsエラー（permissions、secrets、concurrency）
-  - モジュールエラー（version、input）
-  - デバッグテクニック5つ（TF_LOG、graph、show、console、Azure CLI）
-  - FAQ 5項目（version upgrade、state management、import、cost reduction）
-- ✅ Chapter 15 (15_カスタマイズ.md): 完全装飾完了（PR #52）
-  - lib構造とファイルの役割（architecture_definitions、archetype_definitions）
-  - Management Group追加・削除・階層変更
-  - ポリシーカスタマイズ（追加・削除・パラメータ変更）
-  - 命名規則カスタマイズ（環境prefix、リージョン略語）
-  - ネットワークカスタマイズ（サブネット、Firewallルール、Spoke VNet）
-  - サブスクリプション配置、タグ、ロギング設定
-  - 実践例：3環境構成（本番・ステージング・開発）
-- ✅ Chapter 16 (16_ベストプラクティス.md): 完全装飾完了（PR #54）
-  - セキュリティ（最小権限、MFA、Private Endpoint、アクセスレビュー）
-  - コスト管理（予算、タグ、自動停止、Reserved Instances、アラート）
-  - Infrastructure as Code（全コード化、State管理、モジュール化、検証、Output）
-  - チーム協業（ブランチ戦略、PRルール、コードレビュー、ペアプログラミング）
-  - ドキュメント（README、ADR、ランブック、トラブルシューティングガイド）
-  - 監視とアラート（Log Analytics、アラートルール、Action Group）
-  - バックアップとDR（Stateバックアップ、マルチリージョン、DR計画）
-  - 変更管理（変更ウィンドウ、承認プロセス、ロールバック計画）
-  - 継続的改善（定期レビュー、バージョンアップ、技術負債管理）
-- ✅ Chapter 17 (17_FAQ.md): 完全装飾完了（PR #56）
-  - 基本編（ALZとは、必要性、デプロイ時間、コスト、ツール選択）
-  - デプロイ編（既存環境、複数環境管理、失敗時対処、ローカル実行）
-  - ネットワーク編（Hub vs vWAN、移行、MG設計、リージョン数、DRサイト、Spoke数、Firewall vs NSG）
-  - 運用編（バージョンアップ、手動変更、State破損、チーム拡大）
-  - カスタマイズ編（命名規則、独自ポリシー、MG構造変更）
-  - トラブル編（apply遅延、GitHub Actions、zones エラー）
-  - その他（マルチクラウド、サポート、ドキュメント、学習リソース、本番チェックリスト）
-
-## 🎊 完了：全18章の装飾が完成しました！ 🎊
-
-**プロジェクト完了日**: 2026年1月19日
-
-**完成した教科書サイト**: https://shuhei0720org01.github.io/alz-mgmt/
-
-**成果**:
-- 全18章（Chapter 00-17）にMaterial for MkDocsデザイン要素を追加
-- 総コードタイトル数: 約340個以上（bash、hcl、yaml、json、kql、cron等）
-- 総PR数: 36個（18章×2PR = 章装飾PR + instruction更新PR）
-- 文章は一言一句変更なし（マークアップのみ追加）
-- 全ビルド成功
-
 ---
 
-## 🚀 新規大規模プロジェクト：教科書再構成（実践・運用編の作り替え）
+## 🚀 新規大規模プロジェクト：教科書再構成（実践・運用編の全面改訂）
 
 **プロジェクト開始日**: 2026年1月20日
 
@@ -137,25 +11,67 @@
 
 **前提サイト**: https://azure.github.io/Azure-Landing-Zones/bootstrap/
 
-**作成する新セクション**:
-1. **GitHub Actions編**（新規）- Chapter 18
-   - GitHub Actionsの基礎から応用まで
-   - OIDC認証の仕組み
-   - 再利用可能ワークフローの理解
-   
-2. **実践編**（全面改訂）- Chapter 19
-   - Azure Landing Zones公式Bootstrap手順に完全準拠
-   - Terraform選択時の詳細手順
-   - 実際にデプロイする流れをステップバイステップで解説
-   
-3. **運用編**（全面改訂）- Chapter 20
-   - デプロイ後のランディングゾーン運用方法
-   - 日常的な管理タスク
-   - トラブルシューティングと保守
+**現在の構成**（mkdocs.yml）:
+```yaml
+nav:
+  - 基礎編: Chapter 00-02
+  - 設定編: Chapter 03-05
+  - モジュール編: Chapter 06-11
+  - 実践編: Chapter 12-13
+  - 運用編: Chapter 14-17
+```
 
-**既存章の扱い**:
-- Chapter 00-17は完全に保持（削除・変更なし）
-- 新章を追加する形で構成
+**改訂対象**:
+- ✅ **保持**: Chapter 00-11（基礎編・設定編・モジュール編）
+- 🔄 **全面改訂**: Chapter 12-17（実践編・運用編）
+
+**新しい構成**:
+
+#### Chapter 12: GitHub Actions - CI/CDの基礎（全面改訂）
+既存: 1327行（GitHub Actions解説、OIDC、ワークフロー）
+新規内容:
+- Part 1: GitHub Actions基礎
+- Part 2: OIDC認証の仕組み
+- Part 3: 再利用可能ワークフローの理解
+- Part 4: CI/CDパイプラインの実装
+
+#### Chapter 13: デプロイ手順 - Bootstrap実践（全面改訂）
+既存: 1249行（デプロイ手順）
+新規内容（Azure公式Bootstrap手順に完全準拠）:
+- Part 1: 前提条件の準備（Azure/GitHub）
+- Part 2: Starter Moduleの選択
+- Part 3: Phase 1 - Bootstrapデプロイ
+- Part 4: Phase 2 - Landing Zonesデプロイ
+- Part 5: デプロイ後の検証
+
+#### Chapter 14: トラブルシューティング（全面改訂）
+既存: 1206行（エラー対処法）
+新規内容:
+- Part 1: よくあるエラーと対処法
+- Part 2: デプロイ失敗時の対処
+- Part 3: State管理のトラブル
+- Part 4: 認証エラーの解決
+
+#### Chapter 15: カスタマイズ（全面改訂）
+新規内容:
+- Part 1: tfvarsのカスタマイズ
+- Part 2: 独自ポリシーの追加
+- Part 3: ネットワーク構成の変更
+- Part 4: 管理リソースの拡張
+
+#### Chapter 16: ベストプラクティス（全面改訂）
+新規内容:
+- Part 1: コード品質の保ち方
+- Part 2: セキュリティ設定
+- Part 3: 変更管理のフロー
+- Part 4: チーム開発のルール
+
+#### Chapter 17: FAQ（全面改訂）
+新規内容:
+- Part 1: よくある質問
+- Part 2: アーキテクチャ選択
+- Part 3: 運用上の疑問
+- Part 4: パフォーマンス・コスト
 
 **口調**: カジュアル敬語調（Chapter 01準拠）を厳守
 
@@ -163,26 +79,28 @@
 
 **Phase 1: 計画・調査**
 - ⏳ Azure Landing Zones公式Bootstrapサイトの詳細調査
-- ⏳ 既存Chapter 12-14（GitHub Actions、デプロイ、トラブルシューティング）の分析
-- ⏳ 新章構成の設計
+- ⏳ 既存Chapter 12-17の内容分析
+- ⏳ 新章構成の詳細設計
+- ⏳ Bootstrap手順のTerraformフローの理解
 
-**Phase 2: GitHub Actions編（Chapter 18）作成**
+**Phase 2: Chapter 12（GitHub Actions）全面改訂**
 - ⏳ Part 1: GitHub Actions基礎
 - ⏳ Part 2: OIDC認証の仕組み
 - ⏳ Part 3: 再利用可能ワークフロー
-- ⏳ Part 4: 実践演習
+- ⏳ Part 4: CI/CDパイプライン実装
 
-**Phase 3: 実践編（Chapter 19）全面改訂**
-- ⏳ Part 1: Bootstrap手順の準備
-- ⏳ Part 2: Terraformオプション選択
-- ⏳ Part 3: ステップバイステップデプロイ
-- ⏳ Part 4: デプロイ後の検証
+**Phase 3: Chapter 13（デプロイ手順）全面改訂**
+- ⏳ Part 1: 前提条件の準備
+- ⏳ Part 2: Starter Module選択
+- ⏳ Part 3: Phase 1 - Bootstrap
+- ⏳ Part 4: Phase 2 - Landing Zones
+- ⏳ Part 5: デプロイ後の検証
 
-**Phase 4: 運用編（Chapter 20）全面改訂**
-- ⏳ Part 1: 日常運用タスク
-- ⏳ Part 2: 変更管理
-- ⏳ Part 3: モニタリングとアラート
-- ⏳ Part 4: トラブルシューティング
+**Phase 4: Chapter 14-17（運用編）全面改訂**
+- ⏳ Chapter 14: トラブルシューティング
+- ⏳ Chapter 15: カスタマイズ
+- ⏳ Chapter 16: ベストプラクティス
+- ⏳ Chapter 17: FAQ
 
 **Phase 5: 統合・テスト**
 - ⏳ 全章のビルドテスト
@@ -190,15 +108,16 @@
 - ⏳ ナビゲーション構成の最適化
 
 ### 制約事項
-- 既存Chapter 00-17は一切変更しない
-- 新章もMaterial for MkDocsデザイン要素を使用
+- 既存Chapter 00-11は一切変更しない
+- Chapter 12-17は全面改訂（既存内容は参考にするが、ゼロから書き直し）
+- Material for MkDocsデザイン要素を使用
 - コードタイトル、タブ、アドモニションで見やすく
 - 文章は「カジュアル敬語調」で統一
 
 ### 参考資料
 - Azure公式: https://azure.github.io/Azure-Landing-Zones/bootstrap/
 - 既存Chapter 01: 口調の正解例
-- 既存Chapter 12-14: GitHub Actions・デプロイ関連の既存内容
+- 既存Chapter 12-17: 既存内容（参考程度）
 
 ---
 
