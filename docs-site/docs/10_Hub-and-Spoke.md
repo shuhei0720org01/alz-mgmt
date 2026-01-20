@@ -977,6 +977,77 @@ terraform apply
 次のChapterでは、Virtual WAN構成を見ていきます。
 Hub-and-Spokeのマネージド版で、より大規模な環境向けです。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+Japan East（東日本）でAzure Firewallを作成する際、  
+Availability Zonesをどう設定しますか？
+
+### 問題2
+Hub VNetとSpoke VNetを接続するために使うAzureリソースは何ですか？
+
+### 問題3
+Bastionを有効化するには、  
+どの変数を`true`に設定しますか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+**`zones = []`（空のリスト）**を設定します。
+
+```hcl title="Japan EastはAvailability Zones未対応"
+resource "azurerm_firewall" "connectivity" {
+  name                = "fw-connectivity-jp"
+  location            = "japaneast"
+  resource_group_name = azurerm_resource_group.connectivity.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+  zones               = []  # ← Japan Eastは未対応なので空
+}
+```
+
+US、Europeなど対応リージョンなら`zones = ["1", "2", "3"]`と設定します。
+
+### 答え2
+**VNet Peering（`azurerm_virtual_network_peering`）**です。
+
+```hcl title="Hub-Spoke間の接続"
+# Hub → Spoke
+resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  name                      = "hub-to-spoke"
+  resource_group_name       = azurerm_resource_group.hub.name
+  virtual_network_name      = azurerm_virtual_network.hub.name
+  remote_virtual_network_id = azurerm_virtual_network.spoke.id
+}
+
+# Spoke → Hub
+resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+  name                      = "spoke-to-hub"
+  resource_group_name       = azurerm_resource_group.spoke.name
+  virtual_network_name      = azurerm_virtual_network.spoke.name
+  remote_virtual_network_id = azurerm_virtual_network.hub.id
+}
+```
+
+双方向のPeeringが必要です。
+
+### 答え3
+**`bastion = true`**を設定します。
+
+```hcl title="platform-landing-zone.auto.tfvars"
+connectivity = {
+  hub_and_spoke_vnet = {
+    enabled = true
+    bastion = true  # ← これ
+    # ...
+  }
+}
+```
+
 ---
 
 **所要時間**: 50分  

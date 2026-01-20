@@ -1212,5 +1212,117 @@ jobs:
 
 次の章では、Azure公式Bootstrap手順に従って実際にLanding Zonesをデプロイします。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+再利用可能ワークフローを使う理由は何ですか？
+
+### 問題2
+`terraform plan`を実行するタイミングはいつですか？
+
+### 問題3
+本番環境（`main`ブランチ）へのデプロイに承認を必要とするには、  
+どの機能を使いますか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+**同じワークフローを複数の環境で使い回せるから**です。
+
+```yaml
+# 再利用可能ワークフロー（.github/workflows/terraform.yml）
+name: Terraform Workflow
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - run: terraform plan
+      - run: terraform apply
+```
+
+```yaml
+# 開発環境用（.github/workflows/dev.yml）
+on: push
+jobs:
+  deploy:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      environment: dev
+
+# 本番環境用（.github/workflows/prod.yml）
+on: push
+jobs:
+  deploy:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      environment: prod
+```
+
+コードの重複を避けられます。
+
+### 答え2
+**Pull Request作成時**と**mainブランチへのプッシュ前**です。
+
+```yaml
+# PRでplan実行
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  plan:
+    steps:
+      - run: terraform plan  # 変更内容を確認
+```
+
+```yaml
+# mainブランチへのプッシュ時はapply前にplan
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  plan:
+    steps:
+      - run: terraform plan
+  
+  apply:
+    needs: plan  # plan成功後にapply
+    steps:
+      - run: terraform apply
+```
+
+### 答え3
+**Environment Protection Rules**を使います。
+
+```yaml
+# ワークフロー定義
+jobs:
+  deploy:
+    environment: production  # ← 環境を指定
+    steps:
+      - run: terraform apply
+```
+
+GitHub Settings → Environments → production:
+- ✅ **Required reviewers**: 承認者を指定
+- ✅ **Wait timer**: デプロイ前の待機時間
+- ✅ **Deployment branches**: `main`ブランチのみ許可
+
+承認者がApproveするまでデプロイが実行されません。
+
 !!! tip "次の章へ"
     [Chapter 14: Bootstrap Phase 1](14_Bootstrap_Phase_1.md)で、前提条件の準備からBootstrap環境のセットアップまでを学びます。

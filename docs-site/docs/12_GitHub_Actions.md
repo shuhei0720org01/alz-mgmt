@@ -1057,5 +1057,85 @@ Secrets・Variablesを安全に使うためのポイントです。
 
 次の章では、これらの知識を使って実際のCI/CDパイプラインを構築します。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+GitHub ActionsでTerraformを実行する際、  
+OIDC認証を使う理由は何ですか？
+
+### 問題2
+次のワークフロー定義で、ジョブが実行されるタイミングはいつですか？
+
+```yaml
+on:
+  pull_request:
+    branches:
+      - main
+```
+
+### 問題3
+SecretsとVariablesの違いは何ですか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+**Secretsに認証情報を保存しなくて済むから**です。
+
+従来の方法:
+```yaml
+# ❌ Service PrincipalのパスワードをSecretに保存
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}  # ← パスワード
+```
+
+OIDC認証:
+```yaml
+# ✅ パスワード不要
+permissions:
+  id-token: write
+steps:
+  - uses: azure/login@v2
+    with:
+      client-id: ${{ secrets.ARM_CLIENT_ID }}
+      tenant-id: ${{ secrets.ARM_TENANT_ID }}
+      subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      # パスワード不要！
+```
+
+OIDCでは一時的なトークンを使うため、**長期的な認証情報を保存する必要がありません**。
+
+### 答え2
+**`main`ブランチへのPull Request作成時**に実行されます。
+
+```yaml
+on:
+  pull_request:        # PRイベント
+    branches:
+      - main           # mainブランチへのPR
+```
+
+つまり：
+- 他のブランチから`main`へPRを作成 → 実行
+- `main`ブランチへ直接プッシュ → 実行されない
+- `develop`ブランチへのPR → 実行されない
+
+### 答え3
+
+| 項目 | Secrets | Variables |
+|------|---------|----------|
+| 暗号化 | ✅ 暗号化される | ❌ 平文 |
+| ログ表示 | ✅ マスクされる | ❌ そのまま表示 |
+| 用途 | パスワード、APIキー | 環境設定値 |
+| 例 | `ARM_CLIENT_ID` | `ENVIRONMENT`, `REGION` |
+
+**使い分け：**
+- **Secrets**: 秘密情報（パスワード、トークン等）
+- **Variables**: 非機密な設定値（リージョン名、環境名等）
+
 !!! tip "次の章へ"
     [Chapter 13: CI/CDパイプライン構築](13_CI_CD_パイプライン構築.md)で、再利用可能ワークフローを使った実践的なパイプラインを学びます。

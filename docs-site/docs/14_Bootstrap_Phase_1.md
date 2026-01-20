@@ -973,5 +973,67 @@ Bootstrap完了後、正しく設定されているか確認します。
 
 次の章では、実際にLanding Zonesをデプロイします（Phase 2）。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+Bootstrap Phase 1で作成するリソースは何ですか？（3つ答えてください）
+
+### 問題2
+Terraform StateをAzure Storageに保存する理由は何ですか？
+
+### 問題3
+Federated Credentialで設定する`subject`の値は何を表していますか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+1. **Storage Account**（Terraform State保存用）
+2. **User Assigned Managed Identity**（GitHub Actions用の認証ID）
+3. **Federated Credential**（OIDC認証用の信頼関係）
+
+これらがBootstrap環境の基盤になります。
+
+### 答え2
+**複数人でTerraformを実行してもState情報を共有できるから**です。
+
+ローカルState（❌）:
+```
+開発者A: terraform apply → ローカルにstate保存
+開発者B: terraform apply → 開発者Aの変更が見えない！
+→ リソースが重複作成される
+```
+
+リモートState（✅）:
+```
+開発者A: terraform apply → Azure Storageにstate保存
+開発者B: terraform apply → Azure Storageからstate取得
+→ 開発者Aの変更が見える
+```
+
+また、**State Lockingにより同時実行を防止**できます。
+
+### 答え3
+**どのGitHubリポジトリ・ブランチからの認証を許可するか**を表しています。
+
+```hcl
+subject = "repo:myorg/alz-mgmt:ref:refs/heads/main"
+```
+
+構造:
+```
+repo:{organization}/{repository}:ref:refs/heads/{branch}
+```
+
+例:
+- `repo:myorg/alz-mgmt:ref:refs/heads/main` → mainブランチからのみ許可
+- `repo:myorg/alz-mgmt:ref:refs/heads/develop` → developブランチからのみ許可
+- `repo:myorg/alz-mgmt:pull_request` → Pull Requestからも許可
+
+これにより、**特定のリポジトリ・ブランチからのみAzure認証を許可**できます。
+
 !!! tip "次の章へ"
     [Chapter 15: Bootstrap Phase 2](15_Bootstrap_Phase_2.md)で、Landing Zonesのデプロイと検証を学びます。

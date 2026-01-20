@@ -1130,5 +1130,82 @@ State関連のトラブル対処です。
 
 次の章では、Landing Zonesの運用管理の基礎を学びます。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+Landing Zonesのデプロイに失敗した場合、  
+最初に確認すべきログはどこにありますか？
+
+### 問題2
+デプロイ後に確認すべきリソースを3つ挙げてください。
+
+### 問題3
+`terraform state list`コマンドは何を確認するために使いますか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+**GitHub Actionsのワークフロー実行ログ**です。
+
+GitHub → Actions → 該当のワークフロー実行:
+```
+Set up job
+Run actions/checkout@v4
+Run hashicorp/setup-terraform@v3
+Terraform Init
+Terraform Plan
+Terraform Apply  # ← ここでエラー
+```
+
+エラーメッセージから原因を特定：
+- **OIDC認証エラー**: Federated Credentialの設定ミス
+- **権限エラー**: Managed Identityのロール不足
+- **Terraformエラー**: 設定ファイルの間違い
+
+### 答え2
+1. **管理グループ**：階層構造が正しく作成されているか
+2. **ポリシー割り当て**：適切な管理グループに割り当てられているか
+3. **リソースグループ**：management、connectivityなどが作成されているか
+
+Azure Portal または Azure CLI で確認:
+```bash
+# 管理グループ確認
+az account management-group list
+
+# リソースグループ確認
+az group list --query "[].{name:name, location:location}"
+
+# ポリシー割り当て確認
+az policy assignment list --scope /providers/Microsoft.Management/managementGroups/contoso
+```
+
+### 答え3
+**Terraformで管理しているリソースの一覧を確認**するために使います。
+
+```bash
+terraform state list
+```
+
+出力例:
+```
+azurerm_resource_group.management
+azurerm_resource_group.connectivity
+azurerm_log_analytics_workspace.management
+azurerm_virtual_network.hub
+azurerm_firewall.connectivity
+...
+```
+
+これにより：
+- どのリソースがTerraformで管理されているか確認
+- デプロイ漏れがないかチェック
+- Stateファイルの整合性確認
+
+ができます。
+
 !!! tip "次の章へ"
     [Chapter 16: 運用管理の基礎](16_運用管理の基礎.md)で、日常運用タスクとリソース管理を学びます。

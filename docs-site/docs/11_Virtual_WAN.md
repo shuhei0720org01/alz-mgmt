@@ -1171,6 +1171,88 @@ sidecar_virtual_network = { ... }
 次のChapterでは、GitHub Actionsを使った自動デプロイを見ていきます。
 Terraform実行を自動化するやつ。
 
+## 練習問題
+
+理解度チェックです。休憩中に考えてみましょう。
+
+### 問題1
+Virtual Hubの性能を最小コストで運用するには、  
+`virtual_router_auto_scale_min_capacity`を何に設定しますか？
+
+### 問題2
+Virtual WANとHub-and-Spokeの主な違いは何ですか？
+
+### 問題3
+Virtual WANでBastionを使うために必要な設定は何ですか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+**`2`**に設定します。
+
+```hcl title="最小コスト構成"
+connectivity = {
+  virtual_wan = {
+    enabled = true
+    virtual_hubs = {
+      primary = {
+        location                           = "japaneast"
+        virtual_router_auto_scale_min_capacity = 2  # ← 最小値
+      }
+    }
+  }
+}
+```
+
+最小値は`2`、最大値は`50`です。
+性能とコストのトレードオフを考えて設定します。
+
+### 答え2
+
+| 項目 | Hub-and-Spoke | Virtual WAN |
+|------|---------------|-------------|
+| 管理 | 手動設定 | マネージド |
+| 規模 | 小〜中規模 | 大規模 |
+| グローバル展開 | 手動構成 | 自動メッシュ |
+| コスト | 低〜中 | 高 |
+| 柔軟性 | 高い | 制約あり |
+
+**主な違い：**
+- Virtual WANは**マネージドサービス**（Microsoftが管理）
+- **複数リージョンを自動でメッシュ接続**（Hub-and-Spokeは手動）
+- **大規模環境向け**（数百〜数千のリソース）
+
+### 答え3
+**`sidecar_virtual_network`を有効化**します。
+
+```hcl title="Virtual WANでBastionを使う"
+connectivity = {
+  virtual_wan = {
+    enabled = true
+    virtual_hubs = {
+      primary = {
+        location = "japaneast"
+        bastion  = true  # ← Bastion有効化
+      }
+    }
+  }
+}
+
+# Bastion用のVNet
+sidecar_virtual_network = {
+  hub_primary_sidecar = {
+    name          = "vnet-sidecar-jp"
+    address_space = ["10.1.0.0/24"]
+    # ...
+  }
+}
+```
+
+Virtual WANでは、Bastionを直接Virtual Hubに配置できないため、  
+**Sidecar VNet**（専用VNet）が必要です。
+
 ---
 
 **所要時間**: 55分  
