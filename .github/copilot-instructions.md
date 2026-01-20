@@ -125,7 +125,84 @@
 - 文章は一言一句変更なし（マークアップのみ追加）
 - 全ビルド成功
 
-**追加作業 - Markdown書式修正**:
+---
+
+## 🚀 新規大規模プロジェクト：教科書再構成（実践・運用編の作り替え）
+
+**プロジェクト開始日**: 2026年1月20日
+
+**目的**: Azure Landing Zones公式Bootstrap手順に基づいた実践・運用編の全面改訂
+
+### プロジェクト概要
+
+**前提サイト**: https://azure.github.io/Azure-Landing-Zones/bootstrap/
+
+**作成する新セクション**:
+1. **GitHub Actions編**（新規）- Chapter 18
+   - GitHub Actionsの基礎から応用まで
+   - OIDC認証の仕組み
+   - 再利用可能ワークフローの理解
+   
+2. **実践編**（全面改訂）- Chapter 19
+   - Azure Landing Zones公式Bootstrap手順に完全準拠
+   - Terraform選択時の詳細手順
+   - 実際にデプロイする流れをステップバイステップで解説
+   
+3. **運用編**（全面改訂）- Chapter 20
+   - デプロイ後のランディングゾーン運用方法
+   - 日常的な管理タスク
+   - トラブルシューティングと保守
+
+**既存章の扱い**:
+- Chapter 00-17は完全に保持（削除・変更なし）
+- 新章を追加する形で構成
+
+**口調**: カジュアル敬語調（Chapter 01準拠）を厳守
+
+### 進捗管理
+
+**Phase 1: 計画・調査**
+- ⏳ Azure Landing Zones公式Bootstrapサイトの詳細調査
+- ⏳ 既存Chapter 12-14（GitHub Actions、デプロイ、トラブルシューティング）の分析
+- ⏳ 新章構成の設計
+
+**Phase 2: GitHub Actions編（Chapter 18）作成**
+- ⏳ Part 1: GitHub Actions基礎
+- ⏳ Part 2: OIDC認証の仕組み
+- ⏳ Part 3: 再利用可能ワークフロー
+- ⏳ Part 4: 実践演習
+
+**Phase 3: 実践編（Chapter 19）全面改訂**
+- ⏳ Part 1: Bootstrap手順の準備
+- ⏳ Part 2: Terraformオプション選択
+- ⏳ Part 3: ステップバイステップデプロイ
+- ⏳ Part 4: デプロイ後の検証
+
+**Phase 4: 運用編（Chapter 20）全面改訂**
+- ⏳ Part 1: 日常運用タスク
+- ⏳ Part 2: 変更管理
+- ⏳ Part 3: モニタリングとアラート
+- ⏳ Part 4: トラブルシューティング
+
+**Phase 5: 統合・テスト**
+- ⏳ 全章のビルドテスト
+- ⏳ リンク整合性チェック
+- ⏳ ナビゲーション構成の最適化
+
+### 制約事項
+- 既存Chapter 00-17は一切変更しない
+- 新章もMaterial for MkDocsデザイン要素を使用
+- コードタイトル、タブ、アドモニションで見やすく
+- 文章は「カジュアル敬語調」で統一
+
+### 参考資料
+- Azure公式: https://azure.github.io/Azure-Landing-Zones/bootstrap/
+- 既存Chapter 01: 口調の正解例
+- 既存Chapter 12-14: GitHub Actions・デプロイ関連の既存内容
+
+---
+
+## 追加作業 - Markdown書式修正:
 - 日付: 2026年1月19日
 - PR #58: markdown formatting修正（リストと表の空行追加）
 - 修正箇所: 6箇所（Chapter 03×3、06×1、08×1、16×1）
