@@ -126,11 +126,12 @@ nav:
     - 09. 管理リソース: 09_管理リソース.md
     - 10. Hub-and-Spoke: 10_Hub-and-Spoke.md
     - 11. Virtual WAN: 11_Virtual_WAN.md
-  - 実践編:
-    - 12. GitHub Actions: 12_GitHub_Actions.md
-    - 13. デプロイ手順: 13_デプロイ手順.md
+  - GitHub Actions編:
+    - 12. GitHub Actions基礎: 12_GitHub_Actions.md
+    - 13. CI/CDパイプライン構築: 13_CI_CD_パイプライン構築.md
+  - Bootstrap実践編:
+    - 14. Bootstrap Phase 1: 14_Bootstrap_Phase_1.md
+    - 15. Bootstrap Phase 2: 15_Bootstrap_Phase_2.md
   - 運用編:
-    - 14. トラブルシューティング: 14_トラブルシューティング.md
-    - 15. カスタマイズ: 15_カスタマイズ.md
-    - 16. ベストプラクティス: 16_ベストプラクティス.md
-    - 17. FAQ: 17_FAQ.md
+    - 16. 運用管理の基礎: 16_運用管理の基礎.md
+    - 17. 運用の自動化と効率化: 17_運用の自動化と効率化.md

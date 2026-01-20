@@ -25,7 +25,7 @@ Virtual WANはその「マネージド版」です。比較の詳細はChapter 1
 **スキップしてもOKな人：**
 - 日本国内のみの展開
 - 当面Hub-and-Spokeで十分
-- すぐにデプロイしたい → [Chapter 13](./13_デプロイ手順.md)へ
+- すぐにデプロイしたい → [Chapter 14](./14_Bootstrap_Phase_1.md)へ
 
 ---
 
