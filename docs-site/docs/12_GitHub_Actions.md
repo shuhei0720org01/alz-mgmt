@@ -1,473 +1,189 @@
-# 12. GitHub Actions - 自動デプロイの仕組み
+# 12. GitHub Actions基礎 - CI/CDを理解しよう
 
-## このChapterでやること
+!!! info "この章で学ぶこと"
+    GitHub Actionsを使ったCI/CDの基礎を学びます：
 
-GitHub Actionsで自動デプロイを理解しよう。
+    1. GitHub Actionsって何？
+    2. ワークフロー構文の理解
+    3. OIDC認証の仕組み
+    4. Secrets・Variables管理
 
-**GitHub Actionsって何？**
-GitHub上で動くCI/CD（継続的インテグレーション/デリバリー）サービス。
-
-**CI/CDって何？**
-```
-CI（Continuous Integration）：
-コードをプッシュ
-  ↓
-自動でテスト・検証
-  ↓
-問題があれば教えてくれる
-
-CD（Continuous Delivery）：
-mainブランチにマージ
-  ↓
-自動でデプロイ
-  ↓
-本番環境に反映
-```
-
-**例えるなら**：
-
-- **手動デプロイ**：料理を全部自分で作る
-- **GitHub Actions**：オートメーションキッチン（自動で調理）
-
-**📊 CI/CDパイプライン全体図**
-
-```text title="GitHub Actionsの開発フロー"
-【開発の流れ】
-
-1. コード変更
-   ↓
-   開発者が feature ブランチで作業
-   variables.tf を編集
-   ↓
-
-2. Pull Request作成
-   ↓
-   feature → main への PR
-   ↓
-
-3. 自動検証（terraform plan）
-   ━━━━━━━━━━━━━━━━━━━━━━━
-   │ GitHub Actions 起動       │
-   │   ↓                      │
-   │ terraform init            │
-   │   ↓                      │
-   │ terraform fmt -check      │
-   │   ↓                      │
-   │ terraform validate        │
-   │   ↓                      │
-   │ terraform plan           │
-   │   ↓                      │
-   │ 変更内容をPRにコメント    │
-   ━━━━━━━━━━━━━━━━━━━━━━━
-   ↓
-
-4. レビュー・承認
-   ↓
-   チームメンバーが確認
-   「OK、承認！」
-   ↓
-
-5. マージ
-   ↓
-   main ブランチにマージ
-   ↓
-
-6. 自動デプロイ（terraform apply）
-   ━━━━━━━━━━━━━━━━━━━━━━━
-   │ GitHub Actions 起動       │
-   │   ↓                      │
-   │ terraform init            │
-   │   ↓                      │
-   │ terraform apply -auto-approve │
-   │   ↓                      │
-   │ Azure にリソース作成      │
-   │   ↓                      │
-   │ 結果を Slack に通知      │
-   ━━━━━━━━━━━━━━━━━━━━━━━
-   ↓
-
-7. 本番環境に反映 ✅
-```
-
-**🔄 詳細なワークフロー図**
-
-```text title="GitHub ActionsとAzureの連携"
-┌─────────────┐
-│  開発者PC   │
-│             │
-│ git push    │
-└──────┬──────┘
-       │
-       ↓
-┌──────────────────────────────────┐
-│        GitHub Repository         │
-│  ┌────────────────────────────┐  │
-│  │ Pull Request               │  │
-│  │   feature → main           │  │
-│  └────────┬───────────────────┘  │
-│           ↓                      │
-│  ┌────────────────────────────┐  │
-│  │  GitHub Actions            │  │
-│  │  (Workflow実行)            │  │
-│  │                            │  │
-│  │  Step 1: Checkout          │  │
-│  │  Step 2: Setup Terraform   │  │
-│  │  Step 3: terraform plan    │  │
-│  └────────┬───────────────────┘  │
-└───────────┼──────────────────────┘
-            │
-            ↓
-    ┌───────────────┐
-    │    Azure      │
-    │  (認証・接続) │
-    │               │
-    │  OIDC認証     │
-    │  ↓            │
-    │  State取得    │
-    │  ↓            │
-    │  Plan実行     │
-    └───────────────┘
-            ↓
-    結果をPRにコメント
-```
+    この章を読めば、自動デプロイの仕組みが理解できます。
 
 ---
 
-## なぜGitHub Actionsを使う？
+## Part 1: GitHub Actionsとは
 
-### 1. ヒューマンエラー防止
+### CI/CDって何？
 
-```
-手動デプロイ：
-terraform plan → 確認 → terraform apply
-  ↓
-コマンド打ち間違い
-環境変数設定し忘れ
-承認なしでデプロイ
-  ↓
-事故る
-```
+まず、CI/CDの概念から理解しましょう。
 
-```
-GitHub Actions：
-PRを作る → 自動でplan → レビュー → マージで自動apply
-  ↓
-手順が自動化
-  ↓
-間違いが減る
-```
+=== "CI (Continuous Integration)"
 
-### 2. 履歴が残る
+    ```text title="継続的インテグレーション"
+    開発者がコードをプッシュ
+      ↓
+    自動でテスト・検証
+      ↓
+    問題があれば即座に通知
+    ```
 
-```
-手動デプロイ：
-誰がいつデプロイしたかわからない
+    **目的**: コードの品質を保つ
 
-GitHub Actions：
-全部GitHubに記録
-- いつ
-- 誰が
-- 何を
-- どうなったか
-  ↓
-完全にトレース可能
-```
+=== "CD (Continuous Delivery)"
 
-### 3. 承認フロー
+    ```text title="継続的デリバリー"
+    mainブランチにマージ
+      ↓
+    自動でデプロイ
+      ↓
+    本番環境に反映
+    ```
 
-```
-GitHub Actions：
-PRでplan結果を確認
-  ↓
-レビュー・承認
-  ↓
-マージ後にapply
-  ↓
-勝手にデプロイされない
-```
+    **目的**: リリースを自動化
 
-### 4. 並行実行の防止
+!!! tip "例えるなら"
+    - **手動デプロイ**: 料理を全部自分で作る
+    - **CI/CD**: オートメーションキッチン（自動で調理）
 
-```
-手動デプロイ：
-2人が同時にapply実行
-  ↓
-ステートファイル破損
-  ↓
-やばい
+### GitHub Actionsって何？
 
-GitHub Actions：
-同時実行を制御
-  ↓
-安全
-```
+GitHub上で動くCI/CDサービスです。
 
----
+```yaml title=".github/workflows/ci.yaml"
+name: CI
 
-## Part 1: ワークフローの構成
-
-このプロジェクトには2つのワークフローがある：
-
-### 1. CI（Continuous Integration）
-
-**ファイル**：`.github/workflows/ci.yaml`
-
-```yaml title="CIワークフローの定義"
-name: 01 Azure Landing Zones Continuous Integration
-on:
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      terraform_cli_version:
-        description: 'Terraform CLI Version'
-        required: true
-        default: 'latest'
-        type: string
-
-jobs:
-  validate_and_plan:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
-    name: 'CI'
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: write
-    with:
-      root_module_folder_relative_path: '.'
-      terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```
-
-**何してる？**：
-```
-1. PRが作られる
-2. 自動でterraform plan実行
-3. PR上にplan結果を表示
-4. レビュアーが確認
-```
-
-### 2. CD（Continuous Delivery）
-
-**ファイル**：`.github/workflows/cd.yaml`
-
-```yaml title="CDワークフローの定義"
-name: 02 Azure Landing Zones Continuous Delivery
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      terraform_action:
-        description: 'Terraform Action to perform'
-        required: true
-        default: 'apply'
-        type: choice
-        options:
-          - 'apply'
-          - 'destroy'
-      terraform_cli_version:
-        description: 'Terraform CLI Version'
-        required: true
-        default: 'latest'
-        type: string
+    branches: [main]
 
 jobs:
-  plan_and_apply:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
-    name: 'CD'
-    permissions:
-      id-token: write
-      contents: read
-    with:
-      terraform_action: ${{ inputs.terraform_action }}
-      root_module_folder_relative_path: '.'
-      terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```
-
-**何してる？**：
-```
-1. mainブランチにpush（マージ）される
-2. 自動でterraform apply実行
-3. Azureに反映
-```
-
----
-
-## Part 2: ワークフローの詳細解説
-
-### on（トリガー）
-
-#### CI: pull_request
-
-```yaml title="PR作成時のトリガー"
-on:
-  pull_request:
-    branches:
-      - main
-```
-
-**何？**：PRが作られたら実行
-
-```
-feature/add-vnet ブランチ
-  ↓ PR作成
-main ブランチ
-  ↓ トリガー
-CI実行
-```
-
-#### CD: push
-
-```yaml title="mainブランチpush時のトリガー"
-on:
-  push:
-    branches:
-      - main
-```
-
-**何？**：mainブランチにpushされたら実行
-
-```
-PR承認
-  ↓ マージ
-main ブランチ
-  ↓ トリガー
-CD実行
-```
-
-#### workflow_dispatch
-
-```yaml title="手動実行の設定"
-on:
-  workflow_dispatch:
-    inputs:
-      terraform_action:
-        description: 'Terraform Action to perform'
-        required: true
-        default: 'apply'
-        type: choice
-        options:
-          - 'apply'
-          - 'destroy'
-```
-
-**何？**：手動実行
-
-**使い道**：
-```
-GitHub UI → Actions → ワークフロー選択 → Run workflow
-  ↓
-terraform_actionを選択
-  - apply：リソース作成
-  - destroy：リソース削除
-  ↓
-手動で実行
-```
-
-**便利**：
-```
-緊急時：
-
-- destroy実行（全削除）
-- 特定バージョンのTerraformでapply
-```
-
-### permissions
-
-```yaml title="GitHubトークンの権限設定"
-permissions:
-  id-token: write
-  contents: read
-  pull-requests: write
-```
-
-**何？**：GitHubトークンの権限
-
-#### id-token: write
-
-```
-OIDC（OpenID Connect）でAzureにログイン
-  ↓
-パスワード不要
-  ↓
-セキュア
-```
-
-後で詳しく解説するね。
-
-#### contents: read
-
-```
-リポジトリのコードを読む
-  ↓
-Terraformファイルを取得
-```
-
-#### pull-requests: write
-
-```
-PRにコメント投稿
-  ↓
-plan結果を表示
-```
-
-### jobs
-
-```yaml title="再利用可能ワークフローの呼び出し"
-jobs:
-  validate_and_plan:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
-    with:
-      root_module_folder_relative_path: '.'
-      terraform_cli_version: ${{ inputs.terraform_cli_version }}
-```
-
-**何してる？**：再利用可能なワークフローを呼び出し
-
-**構造**：
-```
-alz-mgmt（このリポジトリ）
-  ├── .github/workflows/ci.yaml（トリガー定義だけ）
-  └── 実際の処理は別リポジトリ
-        ↓
-alz-mgmt-templates
-  └── .github/workflows/ci-template.yaml（実際の処理）
-```
-
-**メリット**：
-```
-複数のプロジェクトで同じワークフロー使える
-  ↓
-1箇所修正すれば全プロジェクトに反映
-  ↓
-DRY（Don't Repeat Yourself）
-```
-
----
-
-## Part 3: Reusable Workflow（再利用可能ワークフロー）
-
-### ci-template.yaml（想定される内容）
-
-実際のファイルは`alz-mgmt-templates`リポジトリにありますが、典型的な内容は以下の通りです：
-
-```yaml title="CIテンプレートワークフロー"
-name: CI Template
-on:
-  workflow_call:
-    inputs:
-      root_module_folder_relative_path:
-        required: true
-        type: string
-      terraform_cli_version:
-        required: true
-        type: string
-
-jobs:
-  terraform_plan:
+  test:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: npm test
+```
+
+このファイルをリポジトリに置くだけで、CI/CDが動き始めます。
+
+!!! success "GitHub Actionsの特徴"
+    - GitHubに統合されている
+    - 無料枠がある（Public: 無制限、Private: 2000分/月）
+    - マーケットプレイスに豊富なActionがある
+    - YAMLで設定できる
+
+### GitHub Actionsの開発フロー
+
+実際の開発フローを見てみましょう：
+
+```mermaid
+graph LR
+    A[コード変更] --> B[Pull Request作成]
+    B --> C[GitHub Actions起動]
+    C --> D[Terraform Plan実行]
+    D --> E{問題なし?}
+    E -->|Yes| F[レビュー承認]
+    E -->|No| G[修正]
+    G --> B
+    F --> H[mainにマージ]
+    H --> I[Apply自動実行]
+    I --> J[デプロイ完了]
+```
+
+**開発の流れ**:
+
+1. **コード変更**: feature ブランチで作業
+2. **Pull Request作成**: feature → main への PR
+3. **自動検証**: terraform plan が自動実行
+4. **レビュー**: チームメンバーが確認
+5. **マージ**: mainブランチに統合
+6. **自動デプロイ**: terraform apply が自動実行
+
+### ワークフロー・ジョブ・ステップの関係
+
+GitHub Actionsは3階層の構造になっています：
+
+```yaml title="構造の理解"
+# ワークフロー（Workflow）
+name: CI/CD Pipeline
+
+on: [push]
+
+# ジョブ（Job）
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # ステップ（Steps）
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run tests
+        run: npm test
+```
+
+=== "ワークフロー（Workflow）"
+
+    - 最上位の概念
+    - `.github/workflows/*.yaml` ファイル
+    - 複数のジョブをまとめたもの
+
+=== "ジョブ（Job）"
+
+    - ワークフローの中の作業単位
+    - 並列実行可能
+    - 別々のランナーで実行
+
+=== "ステップ（Step）"
+
+    - ジョブの中の個別タスク
+    - 順番に実行される
+    - コマンド or Action
+
+!!! example "実例：ビルド・テスト・デプロイ"
+    ```yaml title="3つのジョブ"
+    jobs:
+      build:
+        steps:
+          - name: Build
+            run: npm run build
+      
+      test:
+        needs: build
+        steps:
+          - name: Test
+            run: npm test
+      
+      deploy:
+        needs: test
+        steps:
+          - name: Deploy
+            run: npm run deploy
+    ```
+
+### 実例で理解するワークフロー
+
+実際のAzure Landing Zonesプロジェクトでのワークフローを見てみましょう：
+
+```yaml title=".github/workflows/ci.yaml"
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate_and_plan:
+    name: Validate and Plan
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -475,7 +191,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ inputs.terraform_cli_version }}
+          terraform_version: 1.9.0
       
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -486,841 +202,860 @@ jobs:
       
       - name: Terraform Init
         run: terraform init
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
       
       - name: Terraform Validate
         run: terraform validate
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
       
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
-      
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // plan結果をPRにコメント
+        run: terraform plan
 ```
 
-### ステップ解説
+**何が起こるか**:
 
-#### 1. Checkout
+1. PR作成時にトリガー
+2. Terraformをセットアップ
+3. Azure OIDC認証
+4. Terraform初期化
+5. 構文チェック
+6. 実行計画の作成
 
-```yaml title="リポジトリのクローン"
-- name: Checkout
-  uses: actions/checkout@v4
-```
-
-**何？**：リポジトリのコードをクローン
-
-```
-GitHub Actions Runner（実行環境）
-  ↓
-git clone
-  ↓
-コードを取得
-```
-
-#### 2. Setup Terraform
-
-```yaml title="Terraformのインストール"
-- name: Setup Terraform
-  uses: hashicorp/setup-terraform@v3
-  with:
-    terraform_version: ${{ inputs.terraform_cli_version }}
-```
-
-**何？**：Terraformをインストール
-
-```
-指定されたバージョンのTerraformをダウンロード
-  ↓
-PATHに追加
-  ↓
-terraform コマンドが使える
-```
-
-#### 3. Azure Login (OIDC)
-
-```yaml title="AzureへのOIDC認証"
-- name: Azure Login (OIDC)
-  uses: azure/login@v2
-  with:
-    client-id: ${{ secrets.AZURE_CLIENT_ID }}
-    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-    subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-```
-
-**何？**：Azureにログイン（OIDC）
-
-**OIDC（OpenID Connect）**：
-```
-従来：
-
-- Service Principalのパスワードをシークレットに保存
-- パスワードが漏洩するリスク
-- 定期的なローテーション必要
-
-OIDC：
-
-- パスワード不要
-- 一時的なトークンで認証
-- より安全
-```
-
-**仕組み**：
-```
-1. GitHub Actions → Azure ADに「私はGitHubです」と証明
-2. Azure AD → GitHubを信頼（事前設定）
-3. Azure AD → 一時トークン発行
-4. GitHub Actions → トークンでAzureにアクセス
-```
-
-#### 4. Terraform Init
-
-```yaml title="Terraformの初期化"
-- name: Terraform Init
-  run: terraform init
-  working-directory: ${{ inputs.root_module_folder_relative_path }}
-```
-
-**何？**：Terraformの初期化
-
-```
-terraform init
-  ↓
-- Providerダウンロード
-- Backend設定読み込み
-- Stateファイル取得
-```
-
-**Backend設定**：
-```hcl title="terraform.tfのbackend設定"
-# terraform.tf
-backend "azurerm" {}
-```
-
-**環境変数で設定**：
-```bash title="Backend用の環境変数"
-export ARM_STORAGE_ACCOUNT_NAME="stterraform12345"
-export ARM_CONTAINER_NAME="tfstate"
-export ARM_KEY="alz-mgmt.tfstate"
-export ARM_RESOURCE_GROUP_NAME="rg-terraform-state"
-```
-
-GitHub ActionsのSecretsに保存しておく。
-
-#### 5. Terraform Validate
-
-```yaml title="構文チェック"
-- name: Terraform Validate
-  run: terraform validate
-```
-
-**何？**：構文チェック
-
-```
-terraform validate
-  ↓
-- .tfファイルの構文確認
-- 変数の参照確認
-- モジュールの整合性チェック
-```
-
-**エラー例**：
-```
-Error: Missing required argument
-  on main.tf line 10:
-  10: resource "azurerm_resource_group" "example" {
-```
-
-#### 6. Terraform Plan
-
-```yaml title="変更内容の確認"
-- name: Terraform Plan
-  run: terraform plan -out=tfplan
-```
-
-**何？**：変更内容の確認
-
-```
-terraform plan
-  ↓
-- 現在のState
-- 設定ファイル
-- 実際のAzure
-を比較
-  ↓
-何が変わるか表示
-```
-
-**-out=tfplan**：
-```
-plan結果をファイルに保存
-  ↓
-apply時に使う
-  ↓
-planとapplyで差異がない
-```
-
-#### 7. Comment PR
-
-```yaml title="Plan結果をPRにコメント"
-- name: Comment PR
-  uses: actions/github-script@v7
-  with:
-    script: |
-      // plan結果をPRにコメント
-```
-
-**何？**：plan結果をPRに投稿
-
-**例**：
-```
-## Terraform Plan
-```
-Terraform will perform the following actions:
-
-# azurerm_resource_group.example will be created
-+ resource "azurerm_resource_group" "example" {
-    + name     = "rg-example"
-    + location = "japaneast"
-  }
-
-Plan: 1 to add, 0 to change, 0 to destroy.
-```
-```
-
-**便利**：
-レビュアーがPR画面で変更内容を確認できる。
+わかりますか？このワークフローがあれば、PRを作るだけで自動的に検証が走ります。
 
 ---
 
-## Part 4: CD Workflow（Apply）
+## Part 2: ワークフロー構文の理解
 
-### cd-template.yaml（想定される内容）
+### YAMLの基本
 
-```yaml title="CDテンプレートワークフロー"
-name: CD Template
-on:
-  workflow_call:
-    inputs:
-      terraform_action:
-        required: true
-        type: string
-      root_module_folder_relative_path:
-        required: true
-        type: string
-      terraform_cli_version:
-        required: true
-        type: string
+GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえましょう。
 
+=== "基本構文"
+
+    ```yaml title="YAML基本"
+    # コメント
+    key: value
+    
+    # リスト
+    items:
+      - item1
+      - item2
+      - item3
+    
+    # ネスト
+    parent:
+      child: value
+      grandchild:
+        key: value
+    ```
+
+=== "注意点"
+
+    ```yaml title="YAMLの罠"
+    # ❌ NG: インデント不統一（スペース2個とタブ混在）
+    jobs:
+      build:
+        steps:
+    	  - run: test  # タブ使用（NG）
+    
+    # ✅ OK: スペース2個で統一
+    jobs:
+      build:
+        steps:
+          - run: test
+    ```
+
+!!! warning "YAMLでよくあるミス"
+    - インデントミス（スペース2個で統一）
+    - コロン`:` の後にスペースがない
+    - クォート `"` の閉じ忘れ
+
+### on（トリガー）の設定
+
+ワークフローをいつ実行するか指定します。
+
+=== "Pushトリガー"
+
+    ```yaml title="mainブランチへのPush"
+    on:
+      push:
+        branches:
+          - main
+    ```
+
+=== "Pull Requestトリガー"
+
+    ```yaml title="PR作成時"
+    on:
+      pull_request:
+        branches:
+          - main
+    ```
+
+=== "複数トリガー"
+
+    ```yaml title="PushとPR両方"
+    on:
+      push:
+        branches: [main]
+      pull_request:
+        branches: [main]
+    ```
+
+=== "Scheduleトリガー"
+
+    ```yaml title="毎日午前2時"
+    on:
+      schedule:
+        - cron: '0 2 * * *'
+    ```
+
+=== "手動トリガー"
+
+    ```yaml title="GitHub UIから手動実行"
+    on:
+      workflow_dispatch:
+    ```
+
+!!! tip "トリガーの使い分け"
+    - **push**: デプロイ用（mainマージ後）
+    - **pull_request**: テスト用（PR作成時）
+    - **schedule**: 定期実行（バックアップ等）
+    - **workflow_dispatch**: 手動実行（緊急対応）
+
+### jobs の定義
+
+ジョブは実際の作業を定義します。
+
+```yaml title="ジョブの基本構成"
 jobs:
-  terraform_apply:
+  job-name:
     runs-on: ubuntu-latest
-    environment: production  # ←環境設定
+    
     steps:
-      - name: Checkout
+      - name: Step 1
+        run: echo "Hello"
+```
+
+**必須項目**:
+
+- `runs-on`: 実行環境（ubuntu-latest, windows-latest, macos-latest）
+- `steps`: 実行するステップのリスト
+
+**オプション項目**:
+
+```yaml title="よく使うオプション"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # タイムアウト（デフォルト360分）
+    timeout-minutes: 30
+    
+    # 環境変数
+    env:
+      NODE_ENV: production
+    
+    # 依存関係
+    needs: [test]
+    
+    # 条件付き実行
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - run: npm run build
+```
+
+### 並列実行と直列実行
+
+ジョブは並列実行できます。
+
+=== "並列実行（デフォルト）"
+
+    ```yaml title="同時に実行"
+    jobs:
+      job-a:
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "Job A"
+      
+      job-b:
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "Job B"
+    ```
+
+    Job AとJob Bが同時に実行されます。
+
+=== "直列実行（needs使用）"
+
+    ```yaml title="順番に実行"
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - run: npm run build
+      
+      test:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+          - run: npm test
+      
+      deploy:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+          - run: npm run deploy
+    ```
+
+    build → test → deploy の順に実行されます。
+
+### steps の実装
+
+ステップは2種類の書き方があります。
+
+=== "コマンド実行（run）"
+
+    ```yaml title="シェルコマンド"
+    steps:
+      - name: Print message
+        run: echo "Hello World"
+      
+      - name: Multi-line script
+        run: |
+          echo "Line 1"
+          echo "Line 2"
+          npm install
+          npm test
+    ```
+
+=== "Action使用（uses）"
+
+    ```yaml title="既存のActionを利用"
+    steps:
+      - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ inputs.terraform_cli_version }}
+          terraform_version: 1.9.0
+    ```
+
+!!! tip "Actionとは"
+    GitHub Marketplaceで公開されている再利用可能なコード。
+    
+    - `actions/checkout`: コードのチェックアウト
+    - `actions/setup-node`: Node.jsのセットアップ
+    - `hashicorp/setup-terraform`: Terraformのインストール
+
+### 環境変数とSecrets
+
+環境変数には3種類あります。
+
+=== "ワークフローレベル"
+
+    ```yaml title="全ジョブで利用可能"
+    name: CI
+    
+    env:
+      NODE_ENV: production
+      LOG_LEVEL: info
+    
+    jobs:
+      build:
+        steps:
+          - run: echo $NODE_ENV
+    ```
+
+=== "ジョブレベル"
+
+    ```yaml title="特定ジョブのみ"
+    jobs:
+      build:
+        env:
+          BUILD_ENV: staging
+        steps:
+          - run: echo $BUILD_ENV
+    ```
+
+=== "ステップレベル"
+
+    ```yaml title="特定ステップのみ"
+    steps:
+      - name: Deploy
+        env:
+          DEPLOY_TARGET: production
+        run: npm run deploy
+    ```
+
+### Secretsの使い方
+
+機密情報はSecretsに保存します。
+
+```yaml title="Secretsの参照"
+steps:
+  - name: Azure Login
+    uses: azure/login@v2
+    with:
+      client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
+!!! warning "Secretsの注意点"
+    - ログに出力されない（マスクされる）
+    - PRのforkから参照できない（セキュリティ）
+    - 変更履歴は残らない
+
+### 条件分岐
+
+ステップやジョブを条件付きで実行できます。
+
+```yaml title="if条件の例"
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - run: npm run deploy
+  
+  test:
+    steps:
+      - name: Run tests
+        if: success()
+        run: npm test
+      
+      - name: Notify on failure
+        if: failure()
+        run: echo "Tests failed!"
+```
+
+**よく使う条件**:
+
+- `success()`: 前のステップが成功
+- `failure()`: 前のステップが失敗
+- `always()`: 常に実行
+- `github.ref == 'refs/heads/main'`: mainブランチのみ
+
+---
+
+## Part 3: OIDC認証の仕組み
+
+### 従来のSecret認証の問題点
+
+以前は、Azure認証にService Principalのパスワードを使っていました。
+
+=== "従来の方法（Secret方式）"
+
+    ```yaml title="Secret認証（非推奨）"
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          # {
+          #   "clientId": "xxx",
+          #   "clientSecret": "yyy",  ← パスワード
+          #   "subscriptionId": "zzz",
+          #   "tenantId": "aaa"
+          # }
+    ```
+
+=== "問題点"
+
+    !!! danger "Secretの問題"
+        - **漏洩リスク**: Secretが流出すると悪用される
+        - **ローテーション**: 定期的なパスワード変更が必要
+        - **管理コスト**: 複数環境で管理が大変
+        - **有効期限**: 期限切れで突然エラー
+
+### OIDCとは何か
+
+OIDC（OpenID Connect）は、パスワードなしで認証する仕組みです。
+
+```text title="OIDC認証の流れ"
+GitHub Actions
+  ↓
+  「私はGitHub Actionsです」（トークン発行）
+  ↓
+Azure
+  ↓
+  「あなたのトークンを確認しました。OK!」
+  ↓
+認証成功（パスワード不要）
+```
+
+!!! success "OIDCのメリット"
+    - パスワード不要
+    - 自動でトークン発行
+    - 短時間で期限切れ（安全）
+    - ローテーション不要
+
+### Azure OIDC認証の流れ
+
+実際の認証フローを見てみましょう。
+
+```mermaid
+sequenceDiagram
+    participant GH as GitHub Actions
+    participant Azure as Azure AD
+    participant Resource as Azure Resource
+    
+    GH->>GH: ワークフロー開始
+    GH->>Azure: OIDCトークン要求
+    Azure->>Azure: トークン検証
+    Azure->>GH: アクセストークン発行
+    GH->>Resource: リソース操作（Terraform）
+    Resource->>GH: 操作完了
+```
+
+**ステップ説明**:
+
+1. **GitHub Actions起動**: ワークフロー開始
+2. **OIDCトークン要求**: GitHub → Azure ADに認証要求
+3. **トークン検証**: Azure ADが発行元を確認
+4. **アクセストークン発行**: 一時的なトークンを発行
+5. **リソース操作**: Terraformでリソース作成
+6. **完了**: トークンは自動で無効化
+
+### Federated Identity Credentialの理解
+
+Azure側でGitHub Actionsを信頼する設定をします。
+
+```bash title="Federated Credentialの作成"
+az identity federated-credential create \
+  --name "github-actions-plan" \
+  --identity-name "alz-plan-identity" \
+  --resource-group "alz-identity-rg" \
+  --issuer "https://token.actions.githubusercontent.com" \
+  --subject "repo:shuhei0720org01/alz-mgmt:environment:alz-mgmt-plan" \
+  --audiences "api://AzureADTokenExchange"
+```
+
+**重要なパラメータ**:
+
+- `issuer`: GitHubのトークン発行元
+- `subject`: どのリポジトリ・環境を信頼するか
+- `audiences`: トークンの受信者
+
+!!! example "subject（サブジェクト）の構造"
+    ```
+    repo:組織名/リポジトリ名:environment:環境名
+    
+    例: repo:shuhei0720org01/alz-mgmt:environment:alz-mgmt-plan
+    ```
+    
+    この設定により、**alz-mgmt-plan環境からのみ**認証を許可します。
+
+### permissions設定
+
+GitHub Actions側で、OIDCトークンを取得する権限を設定します。
+
+```yaml title="permissions設定"
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write     # OIDCトークン取得に必要
+      contents: read      # コード読み取り
+    
+    steps:
+      - uses: actions/checkout@v4
       
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
-      
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+```
+
+**必須permissions**:
+
+- `id-token: write`: OIDCトークンの書き込み権限
+- `contents: read`: リポジトリの読み取り権限
+
+!!! warning "permissionsを忘れると"
+    ```
+    Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
+    ```
+    
+    このエラーが出たら、permissions設定を確認してください。
+
+### OIDC設定の全体像
+
+Azure側とGitHub側の設定をまとめます。
+
+=== "Azure側設定"
+
+    ```bash title="1. Managed Identityの作成"
+    az identity create \
+      --name "alz-plan-identity" \
+      --resource-group "alz-identity-rg"
+    ```
+    
+    ```bash title="2. Federated Credentialの作成"
+    az identity federated-credential create \
+      --name "github-actions-plan" \
+      --identity-name "alz-plan-identity" \
+      --resource-group "alz-identity-rg" \
+      --issuer "https://token.actions.githubusercontent.com" \
+      --subject "repo:org/repo:environment:env-name"
+    ```
+    
+    ```bash title="3. 権限の付与"
+    az role assignment create \
+      --assignee <identity-client-id> \
+      --role "Contributor" \
+      --scope /subscriptions/<subscription-id>
+    ```
+
+=== "GitHub側設定"
+
+    ```yaml title="ワークフロー設定"
+    jobs:
+      plan:
+        runs-on: ubuntu-latest
+        environment: alz-mgmt-plan  # 環境名
+        
+        permissions:
+          id-token: write
+          contents: read
+        
+        steps:
+          - uses: azure/login@v2
+            with:
+              client-id: ${{ vars.AZURE_CLIENT_ID }}
+              tenant-id: ${{ vars.AZURE_TENANT_ID }}
+              subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+    ```
+
+わかりますか？Azure側で「このGitHub環境を信頼する」と設定し、GitHub側で「この環境からOIDCで認証する」と設定します。
+
+---
+
+## Part 4: Secrets・Variables管理
+
+### Secretsとは
+
+機密情報を安全に保存する仕組みです。
+
+```yaml title="Secretsの使用例"
+steps:
+  - name: Use secret
+    run: |
+      echo "Secret value: ${{ secrets.MY_SECRET }}"
+      # ログには「***」と表示される
+```
+
+**Secretsの特徴**:
+
+- ログに出力されない（自動マスク）
+- UIから値を確認できない（一度保存したら見れない）
+- 暗号化して保存
+- PRのforkからアクセスできない
+
+!!! tip "Secretsを使うべき情報"
+    - パスワード
+    - APIキー
+    - トークン
+    - 証明書
+    - その他の機密情報
+
+### Variablesとは
+
+機密でない設定値を保存します。
+
+```yaml title="Variablesの使用例"
+steps:
+  - name: Use variable
+    run: |
+      echo "Client ID: ${{ vars.AZURE_CLIENT_ID }}"
+      # ログに平文で表示される
+```
+
+**Variablesの特徴**:
+
+- ログに表示される
+- UIから値を確認できる
+- 暗号化されない
+- PRのforkからアクセス可能
+
+!!! tip "Variablesを使うべき情報"
+    - Client ID
+    - Tenant ID
+    - Subscription ID
+    - リージョン名
+    - 環境名
+
+### Secretsの設定方法
+
+GitHub UIで設定します。
+
+=== "Repository Secrets"
+
+    **場所**: Settings → Secrets and variables → Actions → Repository secrets
+    
+    ```yaml title="使用例"
+    steps:
+      - run: echo ${{ secrets.REPO_SECRET }}
+    ```
+    
+    全ブランチ・全環境から参照可能。
+
+=== "Environment Secrets"
+
+    **場所**: Settings → Environments → [環境名] → Environment secrets
+    
+    ```yaml title="使用例"
+    jobs:
+      deploy:
+        environment: production  # 環境指定
+        steps:
+          - run: echo ${{ secrets.ENV_SECRET }}
+    ```
+    
+    特定環境でのみ参照可能。
+
+!!! success "Environment Secretsを使うメリット"
+    - 環境ごとに異なる値を設定できる
+    - Protection rulesで承認制にできる
+    - より細かいアクセス制御
+
+### Variablesの設定方法
+
+SecretsとVariablesは同じ場所にあります。
+
+=== "Repository Variables"
+
+    **場所**: Settings → Secrets and variables → Actions → Variables
+    
+    ```yaml title="使用例"
+    steps:
+      - run: echo ${{ vars.AZURE_REGION }}
+    ```
+
+=== "Environment Variables"
+
+    **場所**: Settings → Environments → [環境名] → Environment variables
+    
+    ```yaml title="使用例"
+    jobs:
+      deploy:
+        environment: production
+        steps:
+          - run: echo ${{ vars.DEPLOYMENT_TARGET }}
+    ```
+
+### Azure Landing Zonesでの設定例
+
+実際のプロジェクトでの設定を見てみましょう。
+
+=== "Plan環境"
+
+    **Environment**: `alz-mgmt-plan`
+    
+    **Variables**:
+
+    ```
+    AZURE_CLIENT_ID: <plan-identity-client-id>
+    AZURE_TENANT_ID: <tenant-id>
+    AZURE_SUBSCRIPTION_ID: <subscription-id>
+    BACKEND_AZURE_RESOURCE_GROUP_NAME: alz-state-rg
+    BACKEND_AZURE_STORAGE_ACCOUNT_NAME: stoalzmgmt001
+    BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME: tfstate
+    ```
+    
+    **Secrets**: なし（OIDC使用）
+
+=== "Apply環境"
+
+    **Environment**: `alz-mgmt-apply`
+    
+    **Variables**:
+
+    ```
+    AZURE_CLIENT_ID: <apply-identity-client-id>
+    AZURE_TENANT_ID: <tenant-id>
+    AZURE_SUBSCRIPTION_ID: <subscription-id>
+    BACKEND_AZURE_RESOURCE_GROUP_NAME: alz-state-rg
+    BACKEND_AZURE_STORAGE_ACCOUNT_NAME: stoalzmgmt001
+    BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME: tfstate
+    ```
+    
+    **Secrets**: なし（OIDC使用）
+
+### Environment Protection Rules
+
+環境に保護ルールを設定できます。
+
+```yaml title="Settings → Environments → [環境名] → Protection rules"
+Required reviewers: 承認者を指定
+  ✓ user1@example.com
+  ✓ user2@example.com
+
+Wait timer: デプロイ前の待機時間
+  ⏱ 5 minutes
+
+Deployment branches: デプロイ可能なブランチ
+  🌿 Selected branches
+     ✓ main
+```
+
+**ワークフローでの使用**:
+
+```yaml title=".github/workflows/cd.yaml"
+jobs:
+  apply:
+    environment: alz-mgmt-apply  # 承認必要
+    steps:
       - name: Terraform Apply
-        if: ${{ inputs.terraform_action == 'apply' }}
         run: terraform apply -auto-approve
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
-      
-      - name: Terraform Destroy
-        if: ${{ inputs.terraform_action == 'destroy' }}
-        run: terraform destroy -auto-approve
-        working-directory: ${{ inputs.root_module_folder_relative_path }}
 ```
 
-### CI との違い
+このジョブは、承認者の承認がないと実行されません。
+
+### Secrets vs Variables の使い分け
+
+どちらを使うべきか判断フローです。
+
+```mermaid
+graph TD
+    A[設定値] --> B{機密情報?}
+    B -->|Yes| C[Secrets]
+    B -->|No| D[Variables]
+    
+    C --> E{環境ごとに異なる?}
+    E -->|Yes| F[Environment Secrets]
+    E -->|No| G[Repository Secrets]
+    
+    D --> H{環境ごとに異なる?}
+    H -->|Yes| I[Environment Variables]
+    H -->|No| J[Repository Variables]
+```
+
+!!! example "具体例"
+
+    | 項目 | 種類 | 理由 |
+    |------|------|------|
+    | パスワード | Environment Secrets | 機密、環境別 |
+    | Client ID | Environment Variables | 非機密、環境別 |
+    | リージョン名 | Repository Variables | 非機密、共通 |
+    | APIキー | Repository Secrets | 機密、共通 |
+
+### セキュリティベストプラクティス
+
+Secrets・Variablesを安全に使うためのポイントです。
+
+!!! success "やるべきこと"
+    ✅ **最小権限の原則**
+    
+    - 必要最小限の権限だけ付与
+    - Apply環境は承認必須に
+    
+    ✅ **環境の分離**
+    
+    - Plan環境とApply環境を分ける
+    - Managed Identityも別々に
+    
+    ✅ **定期レビュー**
+    
+    - 使われていないSecretsを削除
+    - 権限の見直し
+
+!!! danger "やってはいけないこと"
+    ❌ **Secretsをログに出力**
+    
+    ```yaml
+    # NG例
+    - run: echo "Secret is ${{ secrets.MY_SECRET }}"
+    ```
+    
+    ❌ **環境変数に直接設定**
+    
+    ```yaml
+    # NG例
+    env:
+      PASSWORD: my-password-123
+    ```
+    
+    ❌ **PRのforkに権限付与**
+    
+    - 外部からのPRにSecretsアクセスを許可しない
+
+### Secretsのローテーション
+
+定期的にSecretsを更新する場合の手順です。
+
+=== "OIDC使用時"
+
+    OIDCを使っていれば、Secretsのローテーションは不要です。
+    
+    ```text
+    トークンは自動発行 & 短期間で無効化
+      ↓
+    ローテーション不要 🎉
+    ```
+
+=== "Secret認証使用時"
+
+    Service Principalのパスワードを定期的に変更します。
+    
+    ```bash title="1. 新しいパスワード生成"
+    az ad sp credential reset \
+      --id <client-id> \
+      --query password -o tsv
+    ```
+    
+    ```yaml title="2. GitHub Secretsを更新"
+    Settings → Secrets → AZURE_CREDENTIALS
+      ↓
+    新しい値を入力
+    ```
 
-#### 1. environment: production
-
-```yaml title="環境設定と承認フロー"
-environment: production
-```
-
-**何？**：環境設定
-
-**使い道**：
-```
-GitHub設定 → Environments → production
-  ↓
-- 承認者を設定（required reviewers）
-- タイムアウト設定
-- Environment Secrets
-```
-
-**効果**：
-```
-CDワークフロー実行
-  ↓
-承認待ち
-  ↓
-承認者が承認
-  ↓
-apply実行
-```
-
-**安全**：
-```
-mainにマージされても即座にapplyされない
-  ↓
-一度止まる
-  ↓
-承認後にapply
-```
-
-#### 2. -auto-approve
-
-```yaml title="自動承認でApply実行"
-run: terraform apply -auto-approve
-```
-
-**何？**：確認スキップ
-
-```
-通常：
-terraform apply
-  ↓
-Do you want to perform these actions? (yes/no): ←手動入力
-
-CI/CD：
-terraform apply -auto-approve
-  ↓
-確認スキップで自動実行
-```
-
-**安全性**：
-```
-planで確認済み
-  ↓
-PR承認済み
-  ↓
-Environment承認済み
-  ↓
--auto-approveでOK
-```
-
-#### 3. terraform_action分岐
-
-```yaml title="Apply/Destroyの切り替え"
-- name: Terraform Apply
-  if: ${{ inputs.terraform_action == 'apply' }}
-  run: terraform apply -auto-approve
-
-- name: Terraform Destroy
-  if: ${{ inputs.terraform_action == 'destroy' }}
-  run: terraform destroy -auto-approve
-```
-
-**何？**：applyかdestroyを選べる
-
-```
-workflow_dispatch（手動実行）
-  ↓
-terraform_action選択
-  - apply → リソース作成/更新
-  - destroy → リソース削除
-```
-
----
-
-## Part 5: Secrets設定
-
-### 必要なSecrets
-
-```
-AZURE_CLIENT_ID：Azure ADアプリのClient ID
-AZURE_TENANT_ID：Azure ADのTenant ID
-AZURE_SUBSCRIPTION_ID：Subscription ID
-ARM_STORAGE_ACCOUNT_NAME：StateファイルのStorage Account
-ARM_CONTAINER_NAME：Stateファイルのコンテナ
-ARM_KEY：Stateファイル名
-ARM_RESOURCE_GROUP_NAME：StateファイルのResource Group
-```
-
-### 設定場所
-
-```
-GitHub → Settings → Secrets and variables → Actions
-  ↓
-- Repository secrets（リポジトリ全体）
-- Environment secrets（環境ごと）
-```
-
-**使い分け**：
-```
-Repository secrets：
-
-- Tenant ID
-- Storage Account情報
-→ 環境問わず共通
-
-Environment secrets：
-
-- Client ID（本番用、開発用）
-- Subscription ID（本番用、開発用）
-→ 環境ごとに違う
-```
-
----
-
-## Part 6: OIDC設定（Azure側）
-
-### 1. Azure ADアプリ作成
-
-```bash title="GitHub Actions用アプリの作成"
-az ad app create --display-name "GitHub Actions OIDC"
-```
-
-### 2. Service Principal作成
-
-```bash title="Service Principalの作成"
-APP_ID="..."  # ↑で取得したApp ID
-
-az ad sp create --id $APP_ID
-```
-
-### 3. Federated Credential設定
-
-```bash title="OIDC用Federated Credentialの作成"
-az ad app federated-credential create \
-  --id $APP_ID \
-  --parameters @federated-credential.json
-```
-
-**federated-credential.json**：
-```json title="Federated Credentialの設定ファイル"
-{
-  "name": "github-actions-oidc",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:shuhei0720org01/alz-mgmt:ref:refs/heads/main",
-  "audiences": [
-    "api://AzureADTokenExchange"
-  ]
-}
-```
-
-**subject**：
-```
-repo:<owner>/<repo>:ref:refs/heads/<branch>
-  ↓
-このリポジトリのこのブランチからのアクセスだけ許可
-```
-
-### 4. 権限付与
-
-```bash title="SubscriptionへのOwner権限付与"
-SUBSCRIPTION_ID="..."
-
-az role assignment create \
-  --assignee $APP_ID \
-  --role "Owner" \
-  --scope "/subscriptions/$SUBSCRIPTION_ID"
-```
-
-**Owner**：強力
-
-**本番では**：
-```
-- Contributorにする
-- カスタムロールで最小権限
-```
-
----
-
-## 実践：ワークフローを動かしてみよう
-
-### 1. ブランチ作成
-
-```bash title="新しいfeatureブランチ作成"
-git checkout -b feature/add-resource-group
-```
-
-### 2. コード変更
-
-```hcl title="main.tfにリソースグループ追加"
-# main.tf
-resource "azurerm_resource_group" "test" {
-  name     = "rg-test"
-  location = "japaneast"
-}
-```
-
-### 3. Commit & Push
-
-```bash title="変更をコミットしてPush"
-git add main.tf
-git commit -m "Add test resource group"
-git push origin feature/add-resource-group
-```
-
-### 4. PR作成
-
-```
-GitHub → Pull requests → New pull request
-  ↓
-base: main ← compare: feature/add-resource-group
-  ↓
-Create pull request
-```
-
-### 5. CI実行確認
-
-```
-PR画面 → Checks タブ
-  ↓
-01 Azure Landing Zones Continuous Integration
-  ↓
-実行中...
-  ↓
-完了
-```
-
-**結果**：
-```
-✓ Checkout
-✓ Setup Terraform
-✓ Azure Login
-✓ Terraform Init
-✓ Terraform Validate
-✓ Terraform Plan
-✓ Comment PR
-```
-
-**PR画面にコメント**：
-```
-## Terraform Plan
-...
-Plan: 1 to add, 0 to change, 0 to destroy.
-```
-
-### 6. レビュー & 承認
-
-```
-PR画面 → Files changed
-  ↓
-変更内容確認
-  ↓
-Review changes → Approve
-```
-
-### 7. マージ
-
-```
-PR画面 → Merge pull request
-  ↓
-Confirm merge
-```
-
-### 8. CD実行確認
-
-```
-Actions タブ
-  ↓
-02 Azure Landing Zones Continuous Delivery
-  ↓
-実行中...
-  ↓
-Environment承認待ち（設定している場合）
-  ↓
-承認
-  ↓
-完了
-```
-
-### 9. Azure確認
-
-```bash title="作成されたリソースグループを確認"
-az group show --name rg-test
-```
-
-**作られてる！**
-
----
-
-## デバッグ技
-
-### ワークフロー実行ログ
-
-```
-Actions タブ → ワークフロー選択 → 実行選択
-  ↓
-各ステップのログが見える
-```
-
-**エラー時**：
-```
-✓ Checkout
-✓ Setup Terraform
-✓ Azure Login
-✗ Terraform Init  ←ここで失敗
-```
-
-**ログ展開**：
-```
-Error: Failed to get existing workspaces: storage account not found
-```
-
-**原因**：Storage Accountの設定間違い
-
-### Terraform Debug
-
-```yaml title="デバッグログの有効化"
-- name: Terraform Plan
-  run: terraform plan -out=tfplan
-  env:
-    TF_LOG: DEBUG  # ←デバッグログ有効化
-```
-
-**詳細ログ**：
-```
-全APIリクエスト・レスポンスが見える
-  ↓
-問題の特定が楽
-```
-
-### Re-run Jobs
-
-```
-Actions → 失敗したワークフロー → Re-run jobs
-  ↓
-もう一度実行
-```
-
-**一時的なエラー**（ネットワーク等）は再実行で直ることある。
-
----
-
-## よくあるエラー
-
-### エラー1: OIDC認証失敗
-
-```
-Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
-```
-
-**原因**：
-```yaml title="permissionsの追加が必要"
-permissions:
-  id-token: write  # ←これがない
-```
-
-**対処法**：permissions追加
-
-### エラー2: Backend設定エラー
-
-```
-Error: Failed to get existing workspaces
-```
-
-**原因**：環境変数が設定されてない
-
-**対処法**：
-```
-GitHub Secrets確認：
-
-- ARM_STORAGE_ACCOUNT_NAME
-- ARM_CONTAINER_NAME
-- ARM_KEY
-- ARM_RESOURCE_GROUP_NAME
-```
-
-### エラー3: Terraform Lock
-
-```
-Error: Error acquiring the state lock
-```
-
-**原因**：
-```
-前回のワークフローが失敗
-  ↓
-Lockが残ってる
-  ↓
-次の実行がブロックされる
-```
-
-**対処法**：
-```bash title="ロックの強制解除"
-# Azure Portal → Storage Account → tfstate コンテナ → .terraform.lock.info
-# 削除
-
-# または
-terraform force-unlock <LOCK_ID>
-```
-
-### エラー4: 権限不足
-
-```
-Error: insufficient privileges to complete the operation
-```
-
-**原因**：Service Principalの権限が足りない
-
-**対処法**：
-```bash title="権限の確認と追加"
-# 権限確認
-az role assignment list --assignee <CLIENT_ID>
-
-# 権限追加
-az role assignment create \
-  --assignee <CLIENT_ID> \
-  --role "Contributor" \
-  --scope "/subscriptions/<SUBSCRIPTION_ID>"
-```
-
----
-
-## ベストプラクティス
-
-### 1. Branch Protection
-
-```
-GitHub → Settings → Branches → Branch protection rules
-  ↓
-main ブランチに設定：
-
-- Require pull request reviews before merging
-- Require status checks to pass before merging
-  - CI（terraform plan）
-- Require branches to be up to date before merging
-```
-
-**効果**：
-```
-mainに直接pushできない
-  ↓
-必ずPR経由
-  ↓
-CI通過しないとマージできない
-```
-
-### 2. Environment Protection
-
-```
-GitHub → Settings → Environments → production
-  ↓
-- Required reviewers（承認者）
-- Wait timer（待機時間）
-```
-
-**効果**：
-```
-mainにマージ
-  ↓
-自動で即applyされない
-  ↓
-承認者が承認
-  ↓
-apply実行
-```
-
-### 3. Concurrency制御
-
-```yaml title="同時実行の制御"
-concurrency:
-  group: terraform-${{ github.ref }}
-  cancel-in-progress: false
-```
-
-**何？**：同時実行の制御
-
-```
-2つのPRが同時にマージ
-  ↓
-2つのCDが同時実行
-  ↓
-State Lock競合
-  ↓
-エラー
-
-concurrency設定：
-1つ目のCDが実行中
-  ↓
-2つ目のCDは待機
-  ↓
-1つ目が完了
-  ↓
-2つ目が実行
-```
-
-### 4. Terraform Version固定
-
-```yaml title="安定したバージョンの使用"
-terraform_cli_version: '1.12.0'  # ←バージョン固定
-```
-
-**なぜ？**
-```
-'latest'だと：
-
-- 突然新バージョンが使われる
-- 互換性問題でエラー
-
-固定すると：
-
-- 安定
-- アップグレードは計画的に
-```
+!!! tip "OIDC推奨"
+    新規プロジェクトでは必ずOIDC認証を使いましょう。ローテーション不要で管理が楽になります。
 
 ---
 
 ## まとめ
 
-**GitHub Actions の流れ**：
-```
-1. ブランチ作成・コード変更
-2. PR作成
-3. CI実行（terraform plan）
-4. PR上で確認
-5. レビュー・承認
-6. マージ
-7. CD実行（terraform apply）
-8. Environment承認（設定している場合）
-9. Azureに反映
-```
+この章で学んだこと：
 
-**メリット**：
+### ✅ Part 1: GitHub Actionsとは
 
-- 自動化（ヒューマンエラー削減）
-- 履歴が残る
-- 承認フロー
-- 並行実行防止
+- CI/CDの概念
+- ワークフロー・ジョブ・ステップの関係
+- 開発フローの理解
 
-**重要な設定**：
+### ✅ Part 2: ワークフロー構文の理解
 
-- **OIDC**：パスワードレス認証
-- **Secrets**：機密情報の管理
-- **Environment**：承認フロー
-- **Branch Protection**：mainブランチ保護
+- YAMLの基本
+- トリガー（on）の設定
+- jobs と steps の定義
+- 環境変数の使い方
 
-次のChapterでは、実際のデプロイ手順を見ていきます。
-ゼロから環境を作る時のステップバイステップガイド。
+### ✅ Part 3: OIDC認証の仕組み
 
----
+- 従来のSecret認証の問題点
+- OIDCの仕組み
+- Federated Identity Credential
+- permissions設定
 
-**所要時間**: 60分  
-**難易度**: ★★★★☆  
-**前**: [11_Virtual_WAN.md](./11_Virtual_WAN.md)  
-**次**: [13_デプロイ手順.md](./13_デプロイ手順.md)
+### ✅ Part 4: Secrets・Variables管理
+
+- Secretsの特徴と使い方
+- Variablesの特徴と使い方
+- Environment Protection Rules
+- セキュリティベストプラクティス
+
+次の章では、これらの知識を使って実際のCI/CDパイプラインを構築します。
+
+!!! tip "次の章へ"
+    [Chapter 13: CI/CDパイプライン構築](13_CI_CD_パイプライン構築.md)で、再利用可能ワークフローを使った実践的なパイプラインを学びます。
