@@ -25,7 +25,7 @@ jobs:
     name: Plan with Terraform
     runs-on: ubuntu-latest
     concurrency: mgmt-tfstate
-    environment: production
+    environment: alz-mgmt-plan
     permissions:
       id-token: write
       contents: read
@@ -39,6 +39,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
@@ -94,7 +101,7 @@ jobs:
     name: Apply with Terraform
     runs-on: ubuntu-latest
     concurrency: mgmt-tfstate
-    environment: production
+    environment: alz-mgmt-apply
     permissions:
       id-token: write
       contents: read
@@ -110,6 +117,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: module
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
