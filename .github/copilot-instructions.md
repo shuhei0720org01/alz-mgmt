@@ -27,51 +27,43 @@ nav:
 
 **新しい構成**:
 
-#### Chapter 12: GitHub Actions - CI/CDの基礎（全面改訂）
-既存: 1327行（GitHub Actions解説、OIDC、ワークフロー）
-新規内容:
-- Part 1: GitHub Actions基礎
-- Part 2: OIDC認証の仕組み
-- Part 3: 再利用可能ワークフローの理解
-- Part 4: CI/CDパイプラインの実装
+#### Chapter 12: GitHub Actions基礎（全面改訂）
+- Part 1: GitHub Actionsとは
+- Part 2: ワークフロー構文の理解
+- Part 3: OIDC認証の仕組み
+- Part 4: Secrets・Variables管理
 
-#### Chapter 13: デプロイ手順 - Bootstrap実践（全面改訂）
-既存: 1249行（デプロイ手順）
-新規内容（Azure公式Bootstrap手順に完全準拠）:
-- Part 1: 前提条件の準備（Azure/GitHub）
+#### Chapter 13: CI/CDパイプライン構築（全面改訂）
+- Part 1: 再利用可能ワークフローの理解
+- Part 2: 環境設定とデプロイ戦略
+- Part 3: Plan/Apply自動化
+- Part 4: 本番運用のワークフロー設計
+
+#### Chapter 14: Bootstrap Phase 1（全面改訂）
+Azure公式Bootstrap手順に完全準拠：
+- Part 1: 前提条件の準備
 - Part 2: Starter Moduleの選択
-- Part 3: Phase 1 - Bootstrapデプロイ
-- Part 4: Phase 2 - Landing Zonesデプロイ
-- Part 5: デプロイ後の検証
+- Part 3: Bootstrap環境のセットアップ
+- Part 4: Phase 1デプロイ実行
 
-#### Chapter 14: トラブルシューティング（全面改訂）
-既存: 1206行（エラー対処法）
-新規内容:
-- Part 1: よくあるエラーと対処法
-- Part 2: デプロイ失敗時の対処
-- Part 3: State管理のトラブル
-- Part 4: 認証エラーの解決
+#### Chapter 15: Bootstrap Phase 2（全面改訂）
+Azure公式Bootstrap手順に完全準拠：
+- Part 1: Landing Zonesのデプロイ
+- Part 2: デプロイ後の検証
+- Part 3: カスタマイズの実践
+- Part 4: トラブルシューティング
 
-#### Chapter 15: カスタマイズ（全面改訂）
-新規内容:
-- Part 1: tfvarsのカスタマイズ
-- Part 2: 独自ポリシーの追加
-- Part 3: ネットワーク構成の変更
-- Part 4: 管理リソースの拡張
+#### Chapter 16: 運用管理の基礎（全面改訂）
+- Part 1: 日常運用タスク
+- Part 2: 変更管理フロー
+- Part 3: リソースの追加・削除
+- Part 4: ポリシーの更新管理
 
-#### Chapter 16: ベストプラクティス（全面改訂）
-新規内容:
-- Part 1: コード品質の保ち方
-- Part 2: セキュリティ設定
-- Part 3: 変更管理のフロー
-- Part 4: チーム開発のルール
-
-#### Chapter 17: FAQ（全面改訂）
-新規内容:
-- Part 1: よくある質問
-- Part 2: アーキテクチャ選択
-- Part 3: 運用上の疑問
-- Part 4: パフォーマンス・コスト
+#### Chapter 17: 運用の自動化と効率化（全面改訂）
+- Part 1: 運用自動化の設計
+- Part 2: モニタリングとアラート
+- Part 3: コスト最適化の実践
+- Part 4: 運用ベストプラクティス
 
 **口調**: カジュアル敬語調（Chapter 01準拠）を厳守
 
@@ -83,24 +75,23 @@ nav:
 - ⏳ 新章構成の詳細設計
 - ⏳ Bootstrap手順のTerraformフローの理解
 
-**Phase 2: Chapter 12（GitHub Actions）全面改訂**
-- ⏳ Part 1: GitHub Actions基礎
-- ⏳ Part 2: OIDC認証の仕組み
-- ⏳ Part 3: 再利用可能ワークフロー
-- ⏳ Part 4: CI/CDパイプライン実装
+**Phase 2: Chapter 12-13（GitHub Actions編）全面改訂**
+- ⏳ Chapter 12: GitHub Actions基礎
+  - Part 1-4: GitHub Actionsの仕組みとOIDC認証
+- ⏳ Chapter 13: CI/CDパイプライン構築
+  - Part 1-4: 再利用可能ワークフローと運用設計
 
-**Phase 3: Chapter 13（デプロイ手順）全面改訂**
-- ⏳ Part 1: 前提条件の準備
-- ⏳ Part 2: Starter Module選択
-- ⏳ Part 3: Phase 1 - Bootstrap
-- ⏳ Part 4: Phase 2 - Landing Zones
-- ⏳ Part 5: デプロイ後の検証
+**Phase 3: Chapter 14-15（実践編）全面改訂**
+- ⏳ Chapter 14: Bootstrap Phase 1
+  - Part 1-4: 前提条件からBootstrapデプロイまで
+- ⏳ Chapter 15: Bootstrap Phase 2
+  - Part 1-4: Landing Zonesデプロイと検証
 
-**Phase 4: Chapter 14-17（運用編）全面改訂**
-- ⏳ Chapter 14: トラブルシューティング
-- ⏳ Chapter 15: カスタマイズ
-- ⏳ Chapter 16: ベストプラクティス
-- ⏳ Chapter 17: FAQ
+**Phase 4: Chapter 16-17（運用編）全面改訂**
+- ⏳ Chapter 16: 運用管理の基礎
+  - Part 1-4: 日常運用とリソース管理
+- ⏳ Chapter 17: 運用の自動化と効率化
+  - Part 1-4: モニタリングとコスト最適化
 
 **Phase 5: 統合・テスト**
 - ⏳ 全章のビルドテスト
