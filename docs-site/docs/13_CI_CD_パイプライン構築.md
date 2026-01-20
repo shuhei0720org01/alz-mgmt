@@ -12,6 +12,58 @@
 
 ---
 
+## CI/CDパイプラインの全体像
+
+GitHub ActionsによるTerraform CI/CDパイプラインの流れを視覚化してみましょう。
+
+```mermaid
+graph TB
+    A[開発者: コード変更] --> B[feature ブランチにプッシュ]
+    B --> C[Pull Request作成]
+    
+    C --> D[GitHub Actions: Plan ワークフロー]
+    D --> D1[Checkout コード]
+    D1 --> D2[Terraform Init]
+    D2 --> D3[Terraform Plan]
+    D3 --> D4[Plan結果をPRにコメント]
+    
+    D4 --> E{レビュー承認?}
+    E -->|承認| F[main ブランチにマージ]
+    E -->|却下| G[修正して再プッシュ]
+    G --> D
+    
+    F --> H[GitHub Actions: Apply ワークフロー]
+    H --> H1[Checkout コード]
+    H1 --> H2[Terraform Init]
+    H2 --> H3[Terraform Plan 再確認]
+    
+    H3 --> I{Environment Protection<br/>承認待ち?}
+    I -->|本番環境| J[承認者が手動承認]
+    I -->|開発環境| K[承認スキップ]
+    
+    J --> L[Terraform Apply]
+    K --> L
+    
+    L --> M[Azure: リソース作成/更新]
+    M --> N[Slack/Teams: 通知]
+    
+    style A fill:#e1f5ff
+    style D fill:#fff4e1
+    style H fill:#ffe1e1
+    style M fill:#e1ffe1
+    style I fill:#ffebe1
+```
+
+**パイプラインの特徴**：
+
+1. **PR時**: 自動でPlanを実行、変更内容を確認
+2. **レビュー**: コードレビューと承認プロセス
+3. **マージ時**: mainブランチへマージ後、自動Apply
+4. **承認制御**: 本番環境では手動承認が必要
+5. **通知**: デプロイ結果をSlack/Teamsに通知
+
+---
+
 ## Part 1: 再利用可能ワークフローの理解
 
 ### 再利用可能ワークフローとは
