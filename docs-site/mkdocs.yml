@@ -125,11 +125,13 @@ nav:
     - 06. 設定テンプレート: 06_設定テンプレート.md
     - 07. リソースグループ: 07_リソースグループ.md
     - 07. リソースグループ（v2）: 07_リソースグループv2.md
+    - 07. リソースグループ（v3）: 07_リソースグループv3.md
     - 08. 管理グループとポリシー: 08_管理グループとポリシー.md
     - 08. 管理グループとポリシー（v2）: 08_管理グループとポリシーv2.md
     - 09. 管理リソース: 09_管理リソース.md
     - 09. 管理リソース（v2）: 09_管理リソースv2.md
     - 10. Hub-and-Spoke: 10_Hub-and-Spoke.md
+    - 10. Hub-and-Spoke（v2）: 10_Hub-and-Spokev2.md
     - 11. Virtual WAN: 11_Virtual_WAN.md
   - GitHub Actions編:
     - 12. GitHub Actions基礎: 12_GitHub_Actions.md
