@@ -162,36 +162,86 @@ DNSサーバー、Firewallルール、VPN接続、全部Hubで一元管理。
 
 ---
 
-## Part 1: 設定ファイル（tfvars）
+## Part 1: 設定ファイル（platform-landing-zone.auto.tfvars）
+
+platform-landing-zone.auto.tfvarsファイルを見ていこう。
 
 ### connectivity_type
 
-```hcl title="ネットワークタイプの設定"
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
 connectivity_type = "hub_and_spoke_vnet"
 ```
 
 **何をしてる？**：ネットワークの種類を指定
 
-- `hub_and_spoke_vnet`：Hub-and-Spoke構成
+- `hub_and_spoke_vnet`：Hub-and-Spoke構成（この章）
 - `virtual_wan`：Virtual WAN構成（Chapter 11で解説）
 - `none`：ネットワーク作らない
 
-### hub_and_spoke_networks_settings
+### connectivity_resource_groups
 
-```hcl title="DDoS Protection設定"
-hub_and_spoke_networks_settings = {
-  enabled_resources = {
-    ddos_protection_plan = true
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
+connectivity_resource_groups = {
+  ddos = {
+    name     = "$${ddos_resource_group_name}"
+    location = "$${starter_location_01}"
+    settings = {
+      enabled = "$${ddos_protection_plan_enabled}"
+    }
   }
-  ddos_protection_plan = {
-    name                = "ddos-alz"
-    resource_group_name = "rg-ddos"
-    location            = "japaneast"
+  vnet_primary = {
+    name     = "$${connectivity_hub_primary_resource_group_name}"
+    location = "$${starter_location_01}"
+    settings = {
+      enabled = true
+    }
+  }
+  vnet_secondary = {
+    name     = "$${connectivity_hub_secondary_resource_group_name}"
+    location = "$${starter_location_02}"
+    settings = {
+      enabled = true
+    }
+  }
+  dns = {
+    name     = "$${dns_resource_group_name}"
+    location = "$${starter_location_01}"
+    settings = {
+      enabled = "$${primary_private_dns_zones_enabled}"
+    }
   }
 }
 ```
 
-#### ddos_protection_plan
+**何してる？**
+
+4種類のリソースグループを定義してる：
+
+- **ddos**: DDoS Protection Plan用
+- **vnet_primary**: プライマリHub VNet用（東日本）
+- **vnet_secondary**: セカンダリHub VNet用（西日本）
+- **dns**: Private DNS Zone用
+
+全て`$${変数名}`形式で変数置換システムを使ってる（Chapter 09で学んだやつ）。
+
+### hub_and_spoke_networks_settings
+
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
+hub_and_spoke_networks_settings = {
+  enabled_resources = {
+    ddos_protection_plan = "$${ddos_protection_plan_enabled}"
+  }
+  ddos_protection_plan = {
+    name                = "$${ddos_protection_plan_name}"
+    resource_group_name = "$${ddos_resource_group_name}"
+    location            = "$${starter_location_01}"
+  }
+}
+```
+
+**何してる？**
+
+DDoS Protection Planの設定。
 
 **DDoS Protectionって何？**
 
@@ -204,50 +254,233 @@ Standard：約40万円/月（高い！）
 Basic：無料（自動で有効）
 ```
 
-**注意**：
+**変数置換後の値**：
 
-```hcl title="開発環境でのコスト削減設定"
-# 開発環境ではfalseにしとこう
-enabled_resources = {
-  ddos_protection_plan = false  # ←コスト削減
-}
-```
+`custom_replacements.names`で`ddos_protection_plan_enabled = false`と定義されてることが多い（コスト削減のため）。
 
-Chapter 3で見た設定ですね。
+### hub_virtual_networks - primary
 
-### hub_virtual_networks
+まず全体構造：
 
-```hcl title="Hub VNetの基本設定"
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
 hub_virtual_networks = {
   primary = {
-    location          = "japaneast"
-    default_parent_id = "/subscriptions/.../resourceGroups/rg-jpe-connectivity"
-    
-    enabled_resources = {
-      firewall                              = true
-      bastion                               = true
-      virtual_network_gateway_express_route = false
-      virtual_network_gateway_vpn           = true
-      private_dns_zones                     = true
-      private_dns_resolver                  = false
-    }
-    
-    hub_virtual_network = {
-      name          = "vnet-jpe-hub"
-      address_space = ["10.0.0.0/16"]
-    }
-    
-    firewall = {
-      subnet_address_prefix = "10.0.0.0/26"
-      name                  = "fw-jpe-hub"
-    }
-    
-    ...
+    # プライマリHub（東日本）の設定
+  }
+  secondary = {
+    # セカンダリHub（西日本）の設定
   }
 }
 ```
 
-`primary`ってキーは何でもいい。複数のHubを作る時に識別するため。
+**primaryの詳細**：
+
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
+primary = {
+  location          = "$${starter_location_01}"
+  default_parent_id = "$${primary_connectivity_resource_group_id}"
+  enabled_resources = {
+    firewall                              = "$${primary_firewall_enabled}"
+    bastion                               = "$${primary_bastion_enabled}"
+    virtual_network_gateway_express_route = "$${primary_virtual_network_gateway_express_route_enabled}"
+    virtual_network_gateway_vpn           = "$${primary_virtual_network_gateway_vpn_enabled}"
+    private_dns_zones                     = "$${primary_private_dns_zones_enabled}"
+    private_dns_resolver                  = "$${primary_private_dns_resolver_enabled}"
+  }
+  hub_virtual_network = {
+    name                          = "$${primary_virtual_network_name}"
+    address_space                 = ["$${primary_hub_virtual_network_address_space}"]
+    routing_address_space         = ["$${primary_hub_address_space}"]
+    route_table_name_firewall     = "$${primary_route_table_firewall_name}"
+    route_table_name_user_subnets = "$${primary_route_table_user_subnets_name}"
+    subnets                       = {}
+  }
+  firewall = {
+    subnet_address_prefix            = "$${primary_firewall_subnet_address_prefix}"
+    management_subnet_address_prefix = "$${primary_firewall_management_subnet_address_prefix}"
+    name                             = "$${primary_firewall_name}"
+    default_ip_configuration = {
+      public_ip_config = {
+        name = "$${primary_firewall_public_ip_name}"
+      }
+    }
+    management_ip_enabled = "$${primary_firewall_management_ip_enabled}"
+    management_ip_configuration = {
+      public_ip_config = {
+        name = "$${primary_firewall_management_public_ip_name}"
+      }
+    }
+  }
+  firewall_policy = {
+    name = "$${primary_firewall_policy_name}"
+  }
+  virtual_network_gateways = {
+    subnet_address_prefix = "$${primary_gateway_subnet_address_prefix}"
+    express_route = {
+      name                                  = "$${primary_virtual_network_gateway_express_route_name}"
+      hosted_on_behalf_of_public_ip_enabled = "$${primary_virtual_network_gateway_express_route_hobo_public_ip_enabled}"
+      ip_configurations = {
+        default = {
+          public_ip = {
+            name = "$${primary_virtual_network_gateway_express_route_public_ip_name}"
+          }
+        }
+      }
+    }
+    vpn = {
+      name = "$${primary_virtual_network_gateway_vpn_name}"
+      ip_configurations = {
+        active_active_1 = {
+          public_ip = {
+            name = "$${primary_virtual_network_gateway_vpn_public_ip_name_1}"
+          }
+        }
+        active_active_2 = {
+          public_ip = {
+            name = "$${primary_virtual_network_gateway_vpn_public_ip_name_2}"
+          }
+        }
+      }
+    }
+  }
+  private_dns_zones = {
+    parent_id = "$${dns_resource_group_id}"
+    private_link_private_dns_zones_regex_filter = {
+      enabled = false
+    }
+    auto_registration_zone_enabled = "$${primary_private_dns_auto_registration_zone_enabled}"
+    auto_registration_zone_name    = "$${primary_auto_registration_zone_name}"
+  }
+  private_dns_resolver = {
+    subnet_address_prefix = "$${primary_private_dns_resolver_subnet_address_prefix}"
+    name                  = "$${primary_private_dns_resolver_name}"
+  }
+  bastion = {
+    subnet_address_prefix = "$${primary_bastion_subnet_address_prefix}"
+    name                  = "$${primary_bastion_host_name}"
+    zones                 = []
+    bastion_public_ip = {
+      name  = "$${primary_bastion_host_public_ip_name}"
+      zones = []
+    }
+  }
+}
+```
+
+**構成要素**：
+
+1. **enabled_resources**: どのリソースを作成するか制御
+2. **hub_virtual_network**: Hub VNet本体の設定
+3. **firewall**: Azure Firewallの設定
+4. **firewall_policy**: Firewall Policyの設定
+5. **virtual_network_gateways**: VPN/ExpressRoute Gatewayの設定
+6. **private_dns_zones**: Private DNS Zoneの設定
+7. **private_dns_resolver**: DNS Resolverの設定
+8. **bastion**: Azure Bastionの設定
+
+### hub_virtual_networks - secondary
+
+```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
+secondary = {
+  location          = "$${starter_location_02}"
+  default_parent_id = "$${secondary_connectivity_resource_group_id}"
+  enabled_resources = {
+    firewall                              = "$${secondary_firewall_enabled}"
+    bastion                               = "$${secondary_bastion_enabled}"
+    virtual_network_gateway_express_route = "$${secondary_virtual_network_gateway_express_route_enabled}"
+    virtual_network_gateway_vpn           = "$${secondary_virtual_network_gateway_vpn_enabled}"
+    private_dns_zones                     = "$${secondary_private_dns_zones_enabled}"
+    private_dns_resolver                  = "$${secondary_private_dns_resolver_enabled}"
+  }
+  hub_virtual_network = {
+    name                          = "$${secondary_virtual_network_name}"
+    address_space                 = ["$${secondary_hub_virtual_network_address_space}"]
+    routing_address_space         = ["$${secondary_hub_address_space}"]
+    route_table_name_firewall     = "$${secondary_route_table_firewall_name}"
+    route_table_name_user_subnets = "$${secondary_route_table_user_subnets_name}"
+    subnets                       = {}
+  }
+  firewall = {
+    subnet_address_prefix            = "$${secondary_firewall_subnet_address_prefix}"
+    management_subnet_address_prefix = "$${secondary_firewall_management_subnet_address_prefix}"
+    name                             = "$${secondary_firewall_name}"
+    default_ip_configuration = {
+      public_ip_config = {
+        name = "$${secondary_firewall_public_ip_name}"
+      }
+    }
+    management_ip_enabled = "$${secondary_firewall_management_ip_enabled}"
+    management_ip_configuration = {
+      public_ip_config = {
+        name = "$${secondary_firewall_management_public_ip_name}"
+      }
+    }
+  }
+  firewall_policy = {
+    name = "$${secondary_firewall_policy_name}"
+  }
+  virtual_network_gateways = {
+    subnet_address_prefix = "$${secondary_gateway_subnet_address_prefix}"
+    express_route = {
+      name                                  = "$${secondary_virtual_network_gateway_express_route_name}"
+      hosted_on_behalf_of_public_ip_enabled = "$${secondary_virtual_network_gateway_express_route_hobo_public_ip_enabled}"
+      ip_configurations = {
+        default = {
+          public_ip = {
+            name = "$${secondary_virtual_network_gateway_express_route_public_ip_name}"
+          }
+        }
+      }
+    }
+    vpn = {
+      name = "$${secondary_virtual_network_gateway_vpn_name}"
+      ip_configurations = {
+        active_active_1 = {
+          public_ip = {
+            name = "$${secondary_virtual_network_gateway_vpn_public_ip_name_1}"
+          }
+        }
+        active_active_2 = {
+          public_ip = {
+            name = "$${secondary_virtual_network_gateway_vpn_public_ip_name_2}"
+          }
+        }
+      }
+    }
+  }
+  private_dns_zones = {
+    parent_id = "$${dns_resource_group_id}"
+    private_link_private_dns_zones_regex_filter = {
+      enabled = true
+    }
+    auto_registration_zone_enabled = "$${secondary_private_dns_auto_registration_zone_enabled}"
+    auto_registration_zone_name    = "$${secondary_auto_registration_zone_name}"
+  }
+  private_dns_resolver = {
+    subnet_address_prefix = "$${secondary_private_dns_resolver_subnet_address_prefix}"
+    name                  = "$${secondary_private_dns_resolver_name}"
+  }
+  bastion = {
+    subnet_address_prefix = "$${secondary_bastion_subnet_address_prefix}"
+    name                  = "$${secondary_bastion_host_name}"
+    zones                 = []
+    bastion_public_ip = {
+      name  = "$${secondary_bastion_host_public_ip_name}"
+      zones = []
+    }
+  }
+}
+```
+
+**primaryとの違い**：
+
+- `starter_location_02`：西日本リージョン（セカンダリ）
+- `secondary_*`変数：セカンダリ用の変数名
+- 構造は`primary`と全く同じ
+
+**キーは何でもいい**：
+
+`primary`、`secondary`というキー名は任意。複数のHubを作る時に識別するため。`tokyo`、`osaka`とかでもOK。
 
 ---
 

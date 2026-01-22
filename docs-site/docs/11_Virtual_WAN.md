@@ -67,37 +67,80 @@ Virtual WANの構成要素を見ておきましょう：
 - **Routing Intent**: 全トラフィックをFirewall経由にできる
 - **Sidecar VNet**: Virtual HubにはサブネットがないのでBastion用に別VNet作成
 
-## Part 1: tfvarsでの基本設定
+## Part 1: 設定ファイル（platform-landing-zone.auto.tfvars）
 
-まず、`platform-landing-zone.auto.tfvars`でVirtual WAN型を有効にします。
+**重要な注意**：
+
+実際のplatform-landing-zone.auto.tfvarsでは**Virtual WAN用の設定はコメントアウトされています**。このプロジェクトはHub-and-Spoke構成を採用しているためです。
+
+Virtual WANを使う場合は、以下のように設定を変更します。
 
 ### connectivity_typeの設定
 
 ```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
-connectivity_type = "virtual_wan"
+# 現在の設定（Hub-and-Spoke）
+connectivity_type = "hub_and_spoke_vnet"
+
+# Virtual WANを使う場合は以下に変更
+# connectivity_type = "virtual_wan"
 ```
 
 **何してる？**
 
-- `hub_and_spoke_vnet`を指定するとHub-and-Spoke型（Chapter 10）
-- `virtual_wan`を指定するとVirtual WAN型（このChapter）
-- この値で[locals.tf](../../locals.tf)の`connectivity_virtual_wan_enabled`が決まる
+- `hub_and_spoke_vnet`：Hub-and-Spoke型（Chapter 10、現在の設定）
+- `virtual_wan`：Virtual WAN型（このChapter）
+- この値で[locals.tf](../locals.tf)の`connectivity_virtual_wan_enabled`が決まる
 
-### virtual_wan_settingsの設定
+### Virtual WAN用の設定（現在はコメントアウト）
 
-```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
+実際のファイルには**Virtual WAN用の設定は含まれていません**。Hub-and-Spoke用の設定（`connectivity_resource_groups`、`hub_and_spoke_networks_settings`、`hub_virtual_networks`）のみが記述されています。
+
+Virtual WANを使う場合は、以下の設定を追加する必要があります：
+
+```hcl title="platform-landing-zone.auto.tfvars（追加が必要な設定例）"
+# このプロジェクトには含まれていない設定例
 virtual_wan_settings = {
   virtual_wan = {
-    name                = "vwan-hub-japaneast-001"
-    resource_group_name = "rg-connectivity-vwan"
-    location            = "japaneast"
+    name                = "$${virtual_wan_name}"
+    resource_group_name = "$${virtual_wan_resource_group_name}"
+    location            = "$${starter_location_01}"
   }
   ddos_protection_plan = {
-    name                = "ddos-hub-japaneast-001"
-    location            = "japaneast"
-    resource_group_name = "rg-connectivity-ddos"
+    name                = "$${ddos_protection_plan_name}"
+    location            = "$${starter_location_01}"
+    resource_group_name = "$${ddos_resource_group_name}"
   }
 }
+
+virtual_hubs = {
+  primary = {
+    location = "$${starter_location_01}"
+    enabled_resources = {
+      firewall                              = "$${primary_firewall_enabled}"
+      firewall_policy                       = true
+      virtual_network_gateway_express_route = "$${primary_virtual_network_gateway_express_route_enabled}"
+      virtual_network_gateway_vpn           = "$${primary_virtual_network_gateway_vpn_enabled}"
+      sidecar_virtual_network               = "$${primary_bastion_enabled}"
+      bastion                               = "$${primary_bastion_enabled}"
+      private_dns_zones                     = "$${primary_private_dns_zones_enabled}"
+      private_dns_resolver                  = "$${primary_private_dns_resolver_enabled}"
+    }
+    hub = {
+      name           = "$${primary_virtual_hub_name}"
+      address_prefix = "$${primary_virtual_hub_address_prefix}"
+      hub_routing_preference                 = "ExpressRoute"
+      virtual_router_auto_scale_min_capacity = 2
+    }
+    # ... その他の詳細設定
+  }
+}
+```
+
+**注意**：
+
+- 上記は**例**です。実際のファイルには含まれていません
+- Virtual WANに切り替える場合は、`custom_replacements.names`にも対応する変数を追加する必要があります
+- このドキュメントでは、Virtual WANの構造を理解するために解説を続けます
 ```
 
 **何してる？**
@@ -157,8 +200,6 @@ virtual_hubs = {
 
 ## Part 2: main.connectivity.virtual.wan.tfの解説
 
-[main.connectivity.virtual.wan.tf](../../main.connectivity.virtual.wan.tf)を見てみましょう。
-
 ```hcl title="main.connectivity.virtual.wan.tf（全文）"
 module "virtual_wan" {
   source  = "Azure/avm-ptn-alz-connectivity-virtual-wan/azurerm"
@@ -197,8 +238,6 @@ module "virtual_wan" {
 - パラメータは全て[config-templatingモジュール](../../modules/config-templating/)で処理
 
 ### locals.tfでの有効化判定
-
-[locals.tf](../../locals.tf)の関連部分：
 
 ```hcl title="locals.tf（抜粋）"
 connectivity_virtual_wan_enabled = var.connectivity_type == local.const.connectivity.virtual_wan
