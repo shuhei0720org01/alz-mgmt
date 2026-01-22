@@ -128,6 +128,7 @@ nav:
     - 08. 管理グループとポリシー: 08_管理グループとポリシー.md
     - 08. 管理グループとポリシー（v2）: 08_管理グループとポリシーv2.md
     - 09. 管理リソース: 09_管理リソース.md
+    - 09. 管理リソース（v2）: 09_管理リソースv2.md
     - 10. Hub-and-Spoke: 10_Hub-and-Spoke.md
     - 11. Virtual WAN: 11_Virtual_WAN.md
   - GitHub Actions編:
