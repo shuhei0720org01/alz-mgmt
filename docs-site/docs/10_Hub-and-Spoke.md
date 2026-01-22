@@ -1585,6 +1585,98 @@ terraform apply
 
 ---
 
+## 練習問題
+
+理解度チェックです。
+
+### 問題1
+Hub-and-Spokeアーキテクチャで、「Hub」の役割は何ですか？
+
+### 問題2
+Azure FirewallのSKUを3つ挙げ、それぞれの特徴を簡単に説明してください。
+
+### 問題3
+Japan East/Westリージョンでデプロイする際、なぜ`zones = []`にする必要がありますか？
+
+### 問題4
+VPN GatewayとExpressRoute Gatewayの違いは何ですか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+Hubの役割は、**中央集約ポイント**として機能することです：
+
+**主な機能**：
+- すべてのトラフィックの集約・制御
+- Firewallでセキュリティ検査
+- On-premises接続の終端（VPN/ExpressRoute）
+- Spoke VNet間の通信を中継
+- 共通サービス（Bastion、DNS）の提供
+
+Spoke VNetは直接通信せず、必ずHub経由で通信します（Hub-and-Spokeの原則）。
+
+### 答え2
+Azure FirewallのSKU：
+
+**1. Basic**：
+- 月額：~5万円
+- スループット：最大250 Mbps
+- 用途：小規模・開発環境
+
+**2. Standard**：
+- 月額：~15万円
+- スループット：最大30 Gbps
+- 機能：脅威インテリジェンス、FQDNフィルタリング
+- 用途：本番環境（一般的）
+
+**3. Premium**：
+- 月額：~35万円
+- スループット：最大100 Gbps
+- 機能：TLS検査、IDPS、URL filtering
+- 用途：高セキュリティ要件の環境
+
+### 答え3
+Japan East/WestリージョンはAvailability Zones（AZ）をサポートしていないためです。
+
+**Availability Zonesとは**：
+- データセンターを物理的に分離したゾーン
+- 冗長性・高可用性を実現
+
+**Japan Eastで`zones = [1, 2, 3]`にすると**：
+```
+Error: Availability Zones are not supported in Japan East
+```
+
+**対処法**：
+```hcl
+zones = []  # 空配列にする
+```
+
+これでAZ機能を無効化し、通常のデプロイになります。
+
+### 答え4
+**VPN Gateway**：
+- **接続方法**：インターネット経由（暗号化）
+- **帯域幅**：最大10 Gbps
+- **月額コスト**：~2.7万円～
+- **用途**：拠点間VPN、リモートワーカー接続
+- **設定**：比較的簡単
+
+**ExpressRoute Gateway**：
+- **接続方法**：専用線（インターネット未経由）
+- **帯域幅**：最大100 Gbps
+- **月額コスト**：~5万円～ + 回線費用
+- **用途**：大容量・低レイテンシが必要な場合
+- **設定**：通信事業者との契約が必要
+
+**使い分け**：
+- コスト重視・小規模 → VPN Gateway
+- 帯域・品質重視・大規模 → ExpressRoute
+
+---
+
 **所要時間**: 60分
 
 **難易度**: ★★★★★

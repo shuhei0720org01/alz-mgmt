@@ -2363,6 +2363,129 @@ virtual_hubs = {
 
 ---
 
+## 練習問題
+
+理解度チェックです。
+
+### 問題1
+Virtual WANとHub-and-Spokeの主な違いを3つ挙げてください。
+
+### 問題2
+Virtual Hubのアドレス空間として推奨されるサイズは何ですか？また、その理由は？
+
+### 問題3
+Routing Intentの2つのルーティングポリシーは何ですか？
+
+### 問題4
+カスタムルートテーブルを使って本番環境と開発環境を分離する場合、どのように設定しますか？
+
+---
+
+## 練習問題の答え
+
+### 答え1
+Virtual WANとHub-and-Spokeの主な違い：
+
+**1. 管理方法**：
+- Hub-and-Spoke：手動管理（VNet、Peering等を自分で作成）
+- Virtual WAN：マネージドサービス（Microsoftが基盤を管理）
+
+**2. Hub間接続**：
+- Hub-and-Spoke：手動でVNet Peeringを設定
+- Virtual WAN：自動メッシュ接続（Microsoftバックボーン経由）
+
+**3. コスト**：
+- Hub-and-Spoke：~2-3万円/月～（小規模から開始可能）
+- Virtual WAN：~23万円/月～（基本料金が高い）
+
+**4. 規模**：
+- Hub-and-Spoke：小～中規模（~100 VNet）
+- Virtual WAN：大規模（100+ VNet、数千VPN接続）
+
+### 答え2
+Virtual Hubのアドレス空間として推奨されるのは **/23（512アドレス）** です。
+
+**理由**：
+- Azure Firewallが最大250個のIPアドレスを使用
+- VPN Gateway、ExpressRoute Gatewayもアドレスを消費
+- 将来の拡張に備えて余裕を持たせる
+
+**最小サイズ**：
+- /24（256アドレス）も可能だが、拡張性に制限
+
+**より大きなサイズ**：
+- /22以上も可能だが、IPアドレス空間を無駄遣い
+
+/23が**機能と効率のバランスが最適**です。
+
+### 答え3
+Routing Intentの2つのルーティングポリシー：
+
+**1. InternetTraffic**：
+- インターネット向けトラフィック（`0.0.0.0/0`）
+- Firewall経由でセキュリティ検査
+- 例：VNetからインターネットへの通信
+
+**2. PrivateTraffic**：
+- プライベートトラフィック（VNet間、On-premises）
+- Firewall経由でセキュリティ検査
+- 例：VNet間通信、VPN経由のOn-premises通信
+
+**使い分け**：
+- 両方設定：すべてのトラフィックがFirewall経由（最もセキュア）
+- InternetTrafficのみ：コスト削減（VNet間は直接通信）
+
+### 答え4
+カスタムルートテーブルで環境分離する手順：
+
+**ステップ1: ルートテーブル定義**：
+```hcl
+custom_route_tables = {
+  production = {
+    name   = "rt-production"
+    labels = ["production"]
+  }
+  development = {
+    name   = "rt-development"
+    labels = ["development"]
+  }
+}
+```
+
+**ステップ2: VNet接続に割り当て**：
+```hcl
+virtual_network_connections = {
+  prod_web = {
+    routing = {
+      associated_route_table_key = "production"  # このVNetは本番用
+      propagated_route_table = {
+        labels = ["production"]  # 本番環境にのみルート伝播
+      }
+    }
+  }
+  dev_web = {
+    routing = {
+      associated_route_table_key = "development"  # このVNetは開発用
+      propagated_route_table = {
+        labels = ["development"]  # 開発環境にのみルート伝播
+      }
+    }
+  }
+}
+```
+
+**結果**：
+- 本番VNet同士は通信可能
+- 開発VNet同士は通信可能
+- 本番↔開発の通信は**遮断**
+
+---
+
 以上で、Virtual WANの完全解説を終わります。公式モジュールの内部構造から実際の設定パターンまで、すべてを網羅しました。
 
 次のChapterでは、GitHub Actionsを使ったCI/CDパイプラインの構築を学びます。
+
+**所要時間**: 80分  
+**難易度**: ★★★★★  
+**前**: [10_Hub-and-Spoke.md](./10_Hub-and-Spoke.md)  
+**次**: [12_GitHub_Actions.md](./12_GitHub_Actions.md)
