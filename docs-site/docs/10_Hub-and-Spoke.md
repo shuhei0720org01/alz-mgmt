@@ -1581,7 +1581,7 @@ terraform apply
 - Japan regionは`zones = []`必須
 - コスト削減：不要なリソースは無効化
 
-次のChapterでは、Virtual WAN構成を見ていきます。Hub-and-Spokeのマネージド版で、より大規模な環境向けです。
+
 
 ---
 
@@ -1674,6 +1674,10 @@ zones = []  # 空配列にする
 **使い分け**：
 - コスト重視・小規模 → VPN Gateway
 - 帯域・品質重視・大規模 → ExpressRoute
+
+---
+
+次のChapterでは、Virtual WAN構成を見ていきます。Hub-and-Spokeのマネージド版で、より大規模な環境向けです。
 
 ---
 
