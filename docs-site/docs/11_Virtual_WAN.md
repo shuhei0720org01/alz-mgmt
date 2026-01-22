@@ -257,8 +257,6 @@ connectivity_virtual_wan_enabled = var.connectivity_type == local.const.connecti
 https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan
 
 
-![モジュールとドキュメントを並べて見る](img/スクリーンショット.png)
-
 
 ここからは公式のモジュールを開きながら見ていきましょう。
 
