@@ -1,15 +1,15 @@
 # 10. Hub-and-Spoke - ネットワークの中核
 
-## 8つの設計領域との対応
+!!! info "この章で学ぶこと"
+    Hub-and-Spokeネットワークの全体像を完全理解します：
 
-このChapterは以下の設計領域を実装します：
+    1. Hub-and-Spoke vs Virtual WANの比較
+    2. platform-landing-zone.auto.tfvarsの設定解説
+    3. main.connectivity.hub.and.spoke.virtual.network.tfの解説
+    4. Azure/avm-ptn-alz-connectivity-hub-and-spoke-vnet公式モジュール完全解説
+    5. Firewall、Bastion、VPN Gatewayの設定
+    6. 実践：Spoke VNetの追加方法
 
-- ✅ **4. Network Topology and Connectivity**（ネットワーク構成）
-- ✅ **5. Security**（セキュリティ - Firewallによる通信制御）
-
-→ Chapter 01で学んだ8つの設計領域を復習したい方は[01_基礎知識](./01_基礎知識.md)へ
-
----
 
 ## ネットワークアーキテクチャの選択
 

@@ -1,6 +1,14 @@
 # Chapter 11: Virtual WAN ネットワーク構成
 
-このChapterでは、Azure Virtual WANを使った大規模グローバルネットワーク構成について、実際のコードを見ながら理解していきましょう。
+!!! info "この章で学ぶこと"
+    Virtual WANの全体像を完全理解します：
+
+    1. Virtual WAN vs Hub-and-Spokeの比較
+    2. platform-landing-zone.auto.tfvarsの設定解説
+    3. main.connectivity.virtual.wan.tfの解説
+    4. Azure/avm-ptn-alz-connectivity-virtual-wan公式モジュール完全解説（9サブモジュール）
+    5. virtual_hubs変数の500+行構造解説
+    6. 実践パターン集（6パターン：最小構成～マルチリージョン）
 
 ## Virtual WANとHub-and-Spokeの違い
 
