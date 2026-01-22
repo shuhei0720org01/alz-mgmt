@@ -309,9 +309,9 @@ hub_virtual_networks = (merge({
 
 ## Part 3: 公式モジュールの内部構造
 
-**スクリーンショット挿入箇所**
+![スクリーンショット挿入箇所](img/スクリーンショット_PLACEHOLDER.png)
 
-※ここに「公式モジュールとドキュメントを並べて見る」スクリーンショット
+*※ここに「公式モジュールとドキュメントを並べて見る」スクリーンショットを挿入してください*
 
 ---
 
@@ -320,7 +320,6 @@ hub_virtual_networks = (merge({
 **GitHubリポジトリ**：
 
 https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-hub-and-spoke-vnet
-
 
 **Terraform Registry**：
 
