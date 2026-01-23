@@ -3,7 +3,9 @@
 ## やってみよう
 
 この章から実際にあなたの環境でterraformのランディングゾーンを作っていきましょう！
+
 こういうのはやってみて初めて理解できます！
+
 公式の手順（https://azure.github.io/Azure-Landing-Zones/bootstrap/）があるのですが、英語でわかりやすいので、できるだけわかりやすいようにかみ砕いて手順を説明していきます！
 
 ※Windows PCからの操作を想定しています。
@@ -50,16 +52,14 @@
 
 !!! tip "PowerShellを開きなおして、すべてインストールできたか確認しましょう"
     ```powershell
-    # PowerShell 7.4+ 起動して確認
-    pwsh
-    $PSVersionTable.PSVersion
-    
     # Azure CLI 2.55+
     az version
     
     # Git
     git --version
     ```
+    # PowerShell 7.4+ 起動して確認
+    pwsh
 
 ### Azure Subscriptions
 
@@ -162,298 +162,86 @@
 !!! danger "Rootアクセスについて"
     Bicep (AVM)を使用する場合、Root `/` レベルの `User Access Administrator` が必要です。詳細は[Root Accessドキュメント](https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/root-access/)を参照してください。
 
-### Version Control Systemの選択
+### GitHubの設定をしていきましょう
 
-GitHub、Azure DevOps、またはLocal File Systemを選択します。
+まず、GitHubアカウントが必要なので以下のURLから作りましょう。
 
-=== "GitHub（推奨）"
+https://github.com/
 
-    **必要なもの**:
-    
-    - GitHubアカウント
-    - 組織（Organization）またはPersonalアカウント
-    - Personal Access Token (PAT)
-    
-    **PATの作成**:
-    
-    1. GitHub → Settings → Developer settings
-    2. Personal access tokens → Tokens (classic)
-    3. Generate new token (classic)
-    4. Scopes:
-        - `repo` (full control)
-        - `workflow`
-        - `admin:org` (Organization使用時)
-    5. Generate token → トークンをコピー
+さらに、このハンズオンをするには、GitHubの組織アカウントが必要になります。
 
-=== "Azure DevOps"
+無料で作れるので安心してください。
 
-    **必要なもの**:
-    
-    - Azure DevOps組織
-    - Personal Access Token (PAT)
-    
-    **PATの作成**:
-    
-    1. Azure DevOps → User settings → Personal access tokens
-    2. + New Token
-    3. Scopes:
-        - Code: Read & write
-        - Build: Read & execute
-        - Service Connections: Read, query, & manage
-    4. Create → トークンをコピー
+以下のURLに接続してください。
 
-=== "Local File System"
+https://github.com/organizations/plan
 
-    **特徴**:
-    
-    - VCSなし（手動管理）
-    - テスト・学習用途
-    
-    **必要なもの**:
-    
-    - ローカルフォルダのみ
+フリーを選択して作成していきましょう。
 
-!!! tip "この教科書ではGitHubを使用"
-    以降の手順はGitHubを前提に説明します。Azure DevOpsも同様の手順で実行できます。
+![alt text](./img/image.png)
 
-### インターネットアクセス
+作成出来たらこんな画面になります
 
-プロキシ環境の場合の対処方法です。
+![alt text](./img/image2.png)
 
-=== "プロキシなし"
+次にgithubのアクセストークン（このリポジトリにランディングゾーンを作るため）を発行していきます。
 
-    通常のインターネット接続があればOKです。
+右上のユーザーアイコンをクリックして「Settings」をクリック
 
-=== "プロキシあり"
+![alt text](./img/image3.png)
 
-    **PowerShell設定**:
-    
-    ```powershell title="プロキシ設定"
-    $env:HTTP_PROXY = "http://proxy.example.com:8080"
-    $env:HTTPS_PROXY = "http://proxy.example.com:8080"
-    ```
-    
-    **Azure CLI設定**:
-    
-    ```bash title="Azure CLIプロキシ設定"
-    export HTTP_PROXY=http://proxy.example.com:8080
-    export HTTPS_PROXY=http://proxy.example.com:8080
-    
-    az config set proxy.http_proxy=http://proxy.example.com:8080
-    az config set proxy.https_proxy=http://proxy.example.com:8080
-    ```
+設定画面で一番下までスクロールして「Developer Settings」
 
-=== "プロキシ回避策"
+![alt text](./img/image5.png)
 
-    !!! tip "Azure VMを使う"
-        企業プロキシ環境の場合、一時的にAzure VMを立ててそこから実行するのも手です：
-        
-        1. Azure Portal → Virtual machines → Create
-        2. Ubuntu 22.04 LTSを選択
-        3. Standard B2s以上
-        4. PowerShell・Azure CLI・Gitをインストール
-        5. Bootstrapを実行
-        6. 完了後、VMを削除
+「Generate new token」をクリック
+
+![alt text](./img/image6.png)
+
+以下のように設定
+
+![alt text](./img/image7.png)
+
+下にスクロールして、「all repository」を選択
+
+→以下のRepositoriesに対するpermissionを追加して、全部Read and writeにする
+
+- Actions
+- Administration
+- Contents
+- Environment
+- Secrets
+- Variables
+- Workflows
+
+![alt text](./img/image8.png)
+
+つぎに、「Orgnizations」を選択して、以下の権限を追加しましょう。
+
+これも「Read and write」にします。
+
+![alt text](./img/image9.png)
+
+確認画面が出てくるので、下の画像と同じか確認して作りましょう！
+
+![alt text](./img/image10.png)
+
+トークンが表示されるので、忘れないようにコピーしてください。後で使います。
+
+※画面を閉じると二度と表示されないので忘れると作り直してください。
 
 ---
 
-## Part 2: Starter Moduleの選択
 
-### Starter Moduleとは
-
-Landing Zonesの初期構成テンプレートです。
-
-```text title="Starter Moduleの役割"
-Starter Module
-  ↓
-  初期設定（tfvars/parameters）が含まれたテンプレート
-  ↓
-  組織の要件に合わせてカスタマイズ
-  ↓
-  デプロイ
-```
-
-!!! info "Starter Moduleに含まれるもの"
-    - 管理グループ構造
-    - ポリシー定義・割り当て
-    - ネットワーク構成（Hub-and-Spoke or Virtual WAN）
-    - 管理リソース（Log Analytics等）
-
-### 利用可能なStarter Module一覧
-
-Terraformでは5つのStarter Moduleから選べます。
-
-=== "basic"
-
-    **特徴**: 最小構成
-    
-    - 管理グループのみ
-    - ポリシーなし
-    - ネットワークなし
-    
-    **用途**: テスト・学習用
-
-=== "hubnetworking"
-
-    **特徴**: Hub-and-Spoke + 管理リソース
-    
-    - 管理グループ
-    - ポリシー
-    - Hub VNet
-    - Log Analytics
-    
-    **用途**: 標準的な本番環境（推奨）
-
-=== "complete"
-
-    **特徴**: フル機能
-    
-    - 管理グループ
-    - ポリシー
-    - Hub VNet
-    - Log Analytics
-    - すべてのオプション機能
-    
-    **用途**: エンタープライズ本番環境
-
-=== "multi-region"
-
-    **特徴**: 複数リージョン対応
-    
-    - 複数リージョンのHub VNet
-    - リージョン間接続
-    
-    **用途**: グローバル展開
-
-=== "sovereignty"
-
-    **特徴**: 主権クラウド対応
-    
-    - Government Cloud対応
-    - コンプライアンス重視
-    
-    **用途**: 政府機関・規制業界
-
-!!! success "推奨: hubnetworking"
-    初めてのデプロイでは `hubnetworking` がおすすめです。必要な機能がバランスよく含まれています。
-
-### Hub-and-Spoke vs Virtual WAN
-
-ネットワークアーキテクチャの選択です。
-
-=== "Hub-and-Spoke"
-
-    ```text title="Hub-and-Spoke構成"
-    Hub VNet
-      ├── Firewall
-      ├── VPN Gateway
-      └── ExpressRoute Gateway
-    
-    Spoke VNets
-      ├── Spoke1 (App)
-      ├── Spoke2 (DB)
-      └── Spoke3 (Web)
-    
-    ピアリング接続でHub-Spokeを接続
-    ```
-    
-    **メリット**:
-    
-    - シンプル
-    - コスト効率が良い
-    - 小〜中規模に最適
-    
-    **デメリット**:
-    
-    - 手動でピアリング設定
-    - 大規模だと管理が煩雑
-
-=== "Virtual WAN"
-
-    ```text title="Virtual WAN構成"
-    Virtual WAN
-      └── Virtual Hub
-          ├── VPN Gateway
-          ├── ExpressRoute Gateway
-          └── Firewall
-    
-    Spoke VNets
-      ├── Spoke1 → 自動接続
-      ├── Spoke2 → 自動接続
-      └── Spoke3 → 自動接続
-    
-    Virtual WAN が自動でルーティング
-    ```
-    
-    **メリット**:
-    
-    - 自動ルーティング
-    - 大規模に対応
-    - グローバル接続
-    
-    **デメリット**:
-    
-    - 高コスト
-    - 複雑
-
-!!! tip "選び方"
-    - **小〜中規模（〜50 VNets）**: Hub-and-Spoke
-    - **大規模（50+ VNets）**: Virtual WAN
-    - **グローバル展開**: Virtual WAN
-    - **コスト重視**: Hub-and-Spoke
-
-### 要件に応じた選択方法
-
-自社の要件から選択します。
-
-```mermaid
-graph TD
-    A[要件を確認] --> B{本番環境?}
-    B -->|No| C[basic]
-    B -->|Yes| D{ネットワーク必要?}
-    D -->|No| E[basic]
-    D -->|Yes| F{規模は?}
-    F -->|小〜中| G[hubnetworking]
-    F -->|大| H{複数リージョン?}
-    H -->|No| I[complete]
-    H -->|Yes| J[multi-region]
-```
-
-**質問に答えて選択**:
-
-1. **本番環境ですか？**
-   - No → `basic`
-   - Yes → 次へ
-
-2. **ネットワークは必要ですか？**
-   - No → `basic`
-   - Yes → 次へ
-
-3. **何個のVNetを使いますか？**
-   - 〜50個 → `hubnetworking`（Hub-and-Spoke）
-   - 50個以上 → `complete` or `multi-region`（Virtual WAN）
-
-4. **複数リージョンに展開しますか？**
-   - No → `complete`
-   - Yes → `multi-region`
-
-!!! example "選択例"
-    **ケース1**: 学習用、ネットワーク不要
-    → `basic`
-    
-    **ケース2**: 本番環境、日本のみ、20個のVNet
-    → `hubnetworking`（Hub-and-Spoke）
-    
-    **ケース3**: 本番環境、グローバル展開、100個のVNet
-    → `multi-region`（Virtual WAN）
-
----
-
-## Part 3: Bootstrap環境のセットアップ
+## Part 2: Bootstrap環境のセットアップ
 
 ### ALZ PowerShell Moduleのインストール
 
 Bootstrapを実行するPowerShellモジュールをインストールします。
+
+```powershell title="pwsh7を起動"
+pwsh
+```
 
 ```powershell title="ALZ Moduleのインストール"
 # PowerShell 7.4+ で実行
@@ -469,7 +257,7 @@ Get-InstalledPSResource -Name ALZ
 ```text title="出力例"
 Name Version Prerelease Repository
 ---- ------- ---------- ----------
-ALZ  0.1.0              PSGallery
+ALZ  6.0.5              PSGallery
 ```
 
 !!! tip "アップデート方法"
@@ -478,7 +266,13 @@ ALZ  0.1.0              PSGallery
     Update-PSResource -Name ALZ
     ```
 
-### Interactive Modeの実行
+### 対話モードでやっていきましょう
+
+最初にaz loginでazureにログインしておきます。
+
+```
+az login
+```
 
 対話形式でBootstrap設定を行います。
 
@@ -489,153 +283,291 @@ Deploy-Accelerator
 
 **起動すると質問が始まります**：
 
+何個か質問が聞かれますが、全部そのままEnterでいいです。
+
 ```text title="Interactive Mode"
-Welcome to the Azure Landing Zone Accelerator!
+Checking the software requirements for the Accelerator...
 
-? Which version control system would you like to use?
-  > GitHub
-    Azure DevOps
-    Local File System
+Check Result Check Details
+------------ -------------
+Success      PowerShell version 7.5.4 is supported.
+Success      Git is installed.
+Success      Azure CLI is installed.
+Success      Azure CLI is logged in. Tenant ID: e2f04341-4f1f-480c-a5e4-42f590247b83, Subscription: subscription-mgmt (
+             348d4546-e26e-47c1-900d-c9f3339aea5e)
+Success      ALZ module is the latest version (6.0.5).
+Success      powershell-yaml module is installed but was not imported, now imported (version 0.4.12).
 
-? What is your GitHub organization or user name?
-  > shuhei0720org01
 
-? What is your GitHub Personal Access Token?
-  > ************************************
+No input configuration files provided. Let's set up the accelerator folder structure first...
+For more information, see: https://aka.ms/alz/acc/phase2
 
-? Which IaC tool would you like to use?
-  > Terraform
-    Bicep
+Enter the target folder path for the accelerator files (default: ~/accelerator):
+Target folder path:　←そのままenterでOK
+Select the Infrastructure as Code (IaC) type:
+  [1] terraform (Default)
+  [2] bicep
+Enter selection (1-2, default: 1): ←そのままenterでOK
 
-? Which starter module would you like to use?
-    basic
-  > hubnetworking
-    complete
-    multi-region
-    sovereignty
+Select the Version Control System:
+  [1] github (Default)
+  [2] azure-devops
+  [3] local
+Enter selection (1-3, default: 1): ←そのままenterでOK
+Select the Terraform scenario (see https://aka.ms/alz/acc/scenarios):
+  [1] 1 - Full Multi-Region - Hub and Spoke VNet (Default)
+  [2] 2 - Full Multi-Region - Virtual WAN
+  [3] 3 - Full Multi-Region NVA - Hub and Spoke VNet
+  [4] 4 - Full Multi-Region NVA - Virtual WAN
+  [5] 5 - Management Only
+  [6] 6 - Full Single-Region - Hub and Spoke VNet
+  [7] 7 - Full Single-Region - Virtual WAN
+  [8] 8 - Full Single-Region NVA - Hub and Spoke VNet
+  [9] 9 - Full Single-Region NVA - Virtual WAN
+Enter selection (1-9, default: 1): ←そのままenterでOK
+```
+以下のような質問になります。Y を入力してエンター
 
-...（続く）
+```
+Would you like to configure the input values interactively now? (Y/n):Y
+```
+リージョンが聞かれますので、japaneastの 27　を入力
+
+```
+Select region (1-61, 0 for manual entry, or press Enter for default):27
 ```
 
-### 各種パラメータの入力
+次に以下のように聞かれるので、そのままエンターを教えてください。
 
-Interactive Modeで入力する主要パラメータです。
+忘れた人は別のPowerShellを開いて「az account list --output table」を実行してください。
 
-=== "VCS設定"
+```
+[root_parent_management_group_id]
+  The ID of the parent management group under which the ALZ management group hierarchy will be created. See Decision 6 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-6---choose-a-parent-management-group
+  Required: Yes
+  Current value:
+  Available management groups:
+    [1] Tenant Root Group (9c3ef3df-9ca7-4dbe-885f-0887fe89e7a8)
+    [0] Enter manually
+    Press Enter to leave empty (uses Tenant Root Group)
+```
+そしたらmanagement用のサブスクリプションを選べと言われるので、どれかのサブスクリプションを選びます。
 
-    ```text
-    ? Which version control system would you like to use?
-    > GitHub
-    
-    ? What is your GitHub organization or user name?
-    > shuhei0720org01
-    
-    ? What is your GitHub Personal Access Token?
-    > ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    
-    ? What would you like to name your repository?
-    > alz-mgmt
-    
-    ? Do you want to create a private repository?
-    > Yes
-    ```
+```
+[subscription_ids]
+  The subscription IDs for the platform landing zone subscriptions
+  Help: https://aka.ms/alz/acc/phase0
 
-=== "IaC設定"
-
-    ```text
-    ? Which IaC tool would you like to use?
-    > Terraform
-    
-    ? Which starter module would you like to use?
-    > hubnetworking
-    
-    ? What is your preferred Azure region for the management resources?
-    > japaneast
-    
-    ? What is your preferred Azure region for the connectivity resources?
-    > japaneast
-    ```
-
-=== "Subscription設定"
-
-    ```text
-    ? What is your Management subscription ID?
-    > 11111111-1111-1111-1111-111111111111
-    
-    ? What is your Connectivity subscription ID?
-    > 22222222-2222-2222-2222-222222222222
-    
-    ? What is your Identity subscription ID?
-    > 33333333-3333-3333-3333-333333333333
-    ```
-
-=== "Management Group設定"
-
-    ```text
-    ? What is your root management group ID?
-    > alz
-    
-    ? What is your parent management group ID?
-    > Tenant Root Group
-    
-    ? Do you want to create the management group hierarchy?
-    > Yes
-    ```
-
-=== "承認者設定"
-
-    ```text
-    ? Do you want to configure apply approvers?
-    > Yes
-    
-    ? Enter the GitHub usernames of the apply approvers (comma separated):
-    > user1,user2
-    
-    ? Do you want to configure plan reviewers?
-    > No
-    ```
-
-!!! tip "設定のコツ"
-    - **Repository名**: 組織の命名規則に従う
-    - **Region**: 日本なら `japaneast` が一般的
-    - **Approvers**: 必ず信頼できる人を指定
-
-### Bootstrap実行
-
-すべての質問に答えると、Bootstrapが実行されます。
-
-```text title="Bootstrap実行中"
-Starting Bootstrap...
-
-✓ Creating GitHub repository: alz-mgmt
-✓ Creating Azure resource group: alz-bootstrap-rg
-✓ Creating Storage Account for Terraform state: stoalzmgmt001
-✓ Creating Managed Identity: alz-plan-identity
-✓ Creating Managed Identity: alz-apply-identity
-✓ Creating Federated Credentials
-✓ Assigning permissions to Managed Identities
-✓ Creating GitHub repository: alz-mgmt-templates
-✓ Uploading workflow templates
-✓ Creating GitHub environments: alz-mgmt-plan, alz-mgmt-apply
-✓ Setting environment variables
-✓ Setting branch protection rules
-
-Bootstrap completed successfully!
-
-Repository: https://github.com/shuhei0720org01/alz-mgmt
-Templates: https://github.com/shuhei0720org01/alz-mgmt-templates
-
-Next steps:
-1. Review the generated code in your repository
-2. Make any necessary customizations
-3. Trigger the CI/CD pipeline
+  [management]
+    The subscription ID for the Management subscription where logging, monitoring, and automation resources will be deployed
+    Required: Yes
+    Format: GUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    Current value: <management-subscription-id> (placeholder - requires input)
+    Available subscriptions:
+      [1] subscription-hub 
+      [2] subscription-spoke-a 
+      [3] subscription-spoke-b 
+      [4] subscription-spoke-e 
+      [0] Enter manually
+    Select subscription (1-4, 0 for manual entry, or press Enter for default):1 ←数字を入力
 ```
 
-わかりますか？Bootstrapが自動的にすべての設定を行ってくれます。
+これを4回繰り返すので、それぞれ違うサブスクリプションを選びましょう。
 
----
+すると、次にブートストラップ用のサブスクリプションを選べと言われるので、一番最初に選んだサブスクリプションの番号を入力しましょう。
 
-## Part 4: Phase 1デプロイ実行
+```
+[bootstrap_subscription_id]
+  The subscription ID where bootstrap resources will be created. See Decision 8 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-8---choose-the-bootstrap-subscription
+  Required: Yes
+  Format: GUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+  Current value:
+  Available subscriptions:
+    [1] subscription-hub (cbabd475-c37a-46b7-94c9-618f0fd9da01)
+    [2] subscription-spoke-a (23f1ec72-2c33-47f8-ab80-599f216cb56c)
+    [3] subscription-spoke-b (2f0010a8-8077-437a-901c-aababe33a20c)
+    [4] subscription-spoke-e (ccc19b5e-07dc-45c5-9117-d1386759ee58)
+    [0] Enter manually
+  Select subscription (1-4, 0 for manual entry, or press Enter for default): 1 ←一番最初に選んだのと同じ
+  ```
+
+次にサービス名を聞かれますが、そのままエンターでOK。
+
+  ```
+[service_name]
+  A short name identifier for the service, used in resource naming (e.g., 'alz'). See Decision 9 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
+  Required: Yes
+  Current value: alz
+  Enter value (default: alz):
+  ```
+
+  次もエンターでOK
+  ```
+  [environment_name]
+  The environment name used in resource naming (e.g., 'mgmt', 'prod'). See Decision 9 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
+  Required: Yes
+  Current value: mgmt
+  Enter value (default: mgmt):
+  ```
+
+  次もエンターでOK
+
+  ```
+  [postfix_number]
+  A numeric postfix for resource naming to ensure uniqueness. See Decision 9 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
+  Required: Yes
+  Format: Integer number
+  Current value: 1
+  Enter value (default: 1):
+  ```
+
+  次に、githubセルフホステッドランナーを使うかどうか聞かれますが、今回いらないので「false」でエンター
+
+  ```
+  [use_self_hosted_runners]
+  Whether to deploy self-hosted GitHub Actions runners in Azure instead of using GitHub-hosted runners. See Decision 10 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-10---choose-the-bootstrap-networking
+  Required: Yes
+  Format: true or false
+  Current value: true
+  Enter value (default: true):false ←falseを入力
+  ```
+
+  次はそのままエンター
+
+  ```
+  [use_private_networking]
+  Whether to use private networking for the bootstrap resources. When enabled, resources will use private endpoints and be isolated from the public internet. See Decision 10 in the planning phase.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-10---choose-the-bootstrap-networking
+  Required: Yes
+  Format: true or false
+  Current value: true
+  Enter value (default: true):
+  ```
+
+  次はgithubのトークンを求められるので、さっきメモっておいたトークンを貼りましょう。
+　※忘れた人はもう一回発行してください。
+
+```
+[github_personal_access_token]
+  A GitHub Personal Access Token (PAT) with repo and workflow scopes for creating and managing the repository. Can also be supplied via environment variable TF_VAR_github_personal_access_token.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/github/
+  Required: Yes
+  Current value: <to***-1>
+  Enter value: ←トークンを貼り付け
+
+```
+
+次はそのままエンター
+
+```
+[github_runners_personal_access_token]
+  A GitHub Personal Access Token (PAT) for registering self-hosted runners. Can also be supplied via environment variable TF_VAR_github_runners_personal_access_token.
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/github/
+  Current value: <to***-2>
+  Enter value:
+```
+
+次にgithubの組織の名前を聞かれるので、自分で作ったgithub組織の名前を入力してください。
+
+```
+[github_organization_name]
+  The name of your GitHub organization or username where the repository will be created
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/github/
+  Required: Yes
+  Current value: <github-organization> (placeholder - requires input)
+  Enter value: ←github組織の名前
+
+```
+
+次は、最初に作成した自分のgithubのユーザー名またはメールアドレスを入力してください。
+
+```
+[apply_approvers]
+  List of GitHub usernames or email addresses who can approve Terraform apply operations in the GitHub Actions workflow
+  Help: https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/github/
+  Format: Comma-separated list of values
+  Current value: <email-address> (contains placeholders - requires input)
+  Enter values (comma-separated):　←githubユーザー名を入力
+
+```
+
+次のようになるのでYを押しましょう。すると、エディタが開いて、入力した内容が確認できます。
+
+```
+Sensitive values have been set as environment variables:
+  github_personal_access_token -> TF_VAR_github_personal_access_token
+
+These environment variables are set for the current process only.
+The config file contains placeholders indicating the values are set via environment variables.
+
+Would you like to open the config folder in VS Code? (Y/n):Y ←Yを入力
+```
+そしたら「inputs.yaml」にこれまで入力してきた内容が書いてあるので確認しましょう！
+
+そして、これまでさんざん見てきた「platform-landing-zone.tfvars」がいよいよ登場です！
+
+ここでいろいろ設定できます!が、今回は必須のところだけ設定しましょう！
+
+まず、「starter_locations」を下記のように設定しましょう。
+
+```
+starter_locations = ["japaneast", "japanwest"]
+```
+
+次に、「defender_email_security_contact"」に以下のように自分のメアドを設定しましょう。
+
+```
+defender_email_security_contact = "replace_me@replace_me.com"
+```
+
+最後に一番下の方の「bastion」で以下のように設定しましょう。
+
+二か所にzones = [] を追加してください。
+
+```
+bastion = {
+      zones = [] # ←追加
+      subnet_address_prefix = "$${secondary_bastion_subnet_address_prefix}"
+      name                  = "$${secondary_bastion_host_name}"
+      bastion_public_ip = {
+        zones = [] # ←追加
+        name = "$${secondary_bastion_host_public_ip_name}"
+      }
+    }
+```
+追加し終わったら保存してエディタを閉じましょう！
+
+そして先ほどのPowerShellに戻ると、以下のように表示されているので「yes」を入力しましょう。
+```
+Have you checked and updated the configuration files? Enter 'yes' to continue with deployment, or 'no' to exit and configure later:
+```
+
+こんなのが表示されたらyを入力しましょう。
+
+```
+Upgrading bootstrap module from  to v6.1.8
+Do you want to proceed with the upgrade? (y/n):
+```
+
+続けてyを入力
+
+```
+Do you want to proceed with the upgrade? (y/n):
+```
+
+そうしたらスクリプトが動作し始めます！
+
+あなたが作成したgithubの組織を確認してみてください。コードがどんどん追加されていきます。
+
+
+
+## Part 3: Phase 1デプロイ実行
 
 ### State Storage作成
 
@@ -889,21 +821,13 @@ Bootstrap完了後、正しく設定されているか確認します。
 - Owner権限の確認
 - Version Control Systemの選択（GitHub推奨）
 
-### ✅ Part 2: Starter Moduleの選択
-
-- Starter Moduleとは
-- 5種類のStarter Module（basic、hubnetworking、complete、multi-region、sovereignty）
-- Hub-and-Spoke vs Virtual WAN
-- 要件に応じた選択方法
-
-### ✅ Part 3: Bootstrap環境のセットアップ
+### ✅ Part 2: Bootstrap環境のセットアップ
 
 - ALZ PowerShell Moduleのインストール
 - Interactive Modeの実行
-- 各種パラメータの入力
 - Bootstrap実行
 
-### ✅ Part 4: Phase 1デプロイ実行
+### ✅ Part 3: Phase 1デプロイ実行
 
 - State Storage作成
 - Managed Identity作成
