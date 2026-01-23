@@ -385,6 +385,7 @@ jobs:
 ```yaml
 uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
 ```
+
 - `shuhei0720org01/alz-mgmt-templates`: リポジトリ名
 - `.github/workflows/ci-template.yaml`: テンプレートファイルのパス
 - `@main`: ブランチ指定（mainブランチの最新版を使用）
@@ -405,6 +406,7 @@ with:
   root_module_folder_relative_path: '.'
   terraform_cli_version: ${{ inputs.terraform_cli_version }}
 ```
+
 - `root_module_folder_relative_path`: Terraformコードの場所（ルートディレクトリ）
 - `terraform_cli_version`: 使用するTerraformのバージョン
 

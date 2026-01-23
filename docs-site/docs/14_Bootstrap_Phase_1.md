@@ -1,14 +1,12 @@
 # 14. Bootstrap Phase 1 - 準備とBootstrap環境のセットアップ
 
-!!! info "この章で学ぶこと"
-    Azure公式Bootstrap手順のPhase 1を実践します：
+## やってみよう
 
-    1. 前提条件の準備
-    2. Starter Moduleの選択
-    3. Bootstrap環境のセットアップ
-    4. Phase 1デプロイ実行
+この章から実際にあなたの環境でterraformのランディングゾーンを作っていきましょう！
+こういうのはやってみて初めて理解できます！
+公式の手順（https://azure.github.io/Azure-Landing-Zones/bootstrap/）があるのですが、英語でわかりやすいので、できるだけわかりやすいようにかみ砕いて手順を説明していきます！
 
-    この章を読めば、Landing Zonesをデプロイする準備が整います。
+※Windows PCからの操作を想定しています。
 
 ---
 
@@ -16,94 +14,44 @@
 
 ### 必要なツール
 
-まず、必要なツールをインストールします。
+まず、必要なツールをインストールします。これらのツールは必須です！
 
 === "PowerShell 7.4+"
 
-    **Windows**:
+    PowerShell7をインストールします。
     
     ```powershell title="PowerShellでインストール"
     winget install Microsoft.PowerShell
     ```
+
+    PowerShellを開きなおしてください。そして以下を実行
     
-    **macOS**:
-    
-    ```bash title="Homebrewでインストール"
-    brew install powershell
+    ```powershell title="Powershell7を起動"
+    pwsh
     ```
-    
-    **Linux**:
-    
-    ```bash title="aptでインストール（Ubuntu/Debian）"
-    sudo apt-get update
-    sudo apt-get install -y powershell
-    ```
-    
-    **確認**:
-    
-    ```powershell
-    $PSVersionTable.PSVersion
-    # 7.4.0以上であればOK
-    ```
+
 
 === "Azure CLI 2.55+"
 
-    **Windows**:
+    Azure CLIをインストールします。
     
-    ```powershell title="MSIインストーラー"
-    # https://aka.ms/installazurecliwindows
-    # からダウンロードしてインストール
-    ```
+    https://aka.ms/installazurecliwindows
+    からインストーラーをダウンロードしてそのままインストールしてください。
     
-    **macOS**:
-    
-    ```bash title="Homebrewでインストール"
-    brew update && brew install azure-cli
-    ```
-    
-    **Linux**:
-    
-    ```bash title="スクリプトでインストール"
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-    ```
-    
-    **確認**:
-    
-    ```bash
-    az version
-    # "azure-cli": "2.55.0" 以上であればOK
-    ```
 
 === "Git"
 
-    **Windows**:
+    Gitをインストールします。
     
     ```powershell title="Git for Windows"
     winget install Git.Git
     ```
-    
-    **macOS**:
-    
-    ```bash title="Homebrewでインストール"
-    brew install git
-    ```
-    
-    **Linux**:
-    
-    ```bash title="aptでインストール"
-    sudo apt-get install git
-    ```
-    
-    **確認**:
-    
-    ```bash
-    git --version
-    # git version 2.x.x であればOK
-    ```
 
-!!! tip "すべてインストールできたか確認"
+
+!!! tip "PowerShellを開きなおして、すべてインストールできたか確認しましょう"
     ```powershell
-    # PowerShell 7.4+
+    # PowerShell 7.4+ 起動して確認
+    pwsh
     $PSVersionTable.PSVersion
     
     # Azure CLI 2.55+
@@ -128,16 +76,6 @@
 
 === "Subscriptionの作成"
 
-    **Enterprise Agreement (EA)の場合**:
-    
-    ```bash title="EA Subscriptionの作成"
-    az account create \
-      --offer-type MS-AZR-0017P \
-      --display-name "ALZ-Management" \
-      --enrollment-account-name <enrollment-account-name>
-    ```
-    
-    **Microsoft Customer Agreement (MCA)の場合**:
     
     Azureポータルから作成：
     
@@ -147,6 +85,8 @@
     4. Subscription名を入力（例：ALZ-Management）
     5. Billing accountを選択
     6. "Create" をクリック
+
+    ※個人契約の場合、1日に1個しかサブスクリプションを作れないかもしれません
 
 === "Subscription IDの確認"
 
