@@ -256,34 +256,74 @@ connectivity_virtual_wan_enabled = var.connectivity_type == local.const.connecti
 
 https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan
 
-
-
 ここからは公式のモジュールを開きながら見ていきましょう。
 
 ### モジュール全体の構造
 
-Virtual WANモジュールは以下の構成になっています：
+Virtual WANモジュール（v0.13.5）は以下の構成になっています：
 
 ```
 terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/
-├── main.tf                     # Virtual WAN本体とVirtual Hub
-├── main.firewall.tf            # Azure Firewall統合
-├── main.express-route-gateway.tf  # ExpressRoute Gateway
-├── main.vpn-gateway.tf         # Site-to-Site VPN Gateway
-├── main.p2s-vpn-gateway.tf     # Point-to-Site VPN Gateway
-├── main.network.tf             # VNet接続とRouting Intent
-├── variables.tf                # 入力変数定義
-├── outputs.tf                  # 出力定義
-├── locals.tf                   # ローカル変数処理
-└── modules/                    # サブモジュール
-    ├── virtual-wan/            # Virtual WANコア機能
-    ├── virtual-hub/            # Virtual Hub作成
-    ├── firewall/               # Firewall作成
-    ├── virtual-network-connection/  # VNet接続
-    ├── expressroute-gateway/   # ExpressRoute Gateway作成
-    ├── site-to-site-gateway/   # S2S VPN Gateway作成
-    └── (他のサブモジュール)
+├── modules/
+│   └── virtual-wan/                # Virtual WANコアモジュール
+│       ├── main.tf                 # Virtual WAN本体作成
+│       ├── main.express-route-gateway.tf  # ExpressRoute Gateway
+│       ├── main.firewall.tf        # Azure Firewall統合
+│       ├── main.network.tf         # VNet接続とRouting Intent
+│       ├── main.p2s-vpn-gateway.tf # Point-to-Site VPN Gateway
+│       ├── main.vpn-gateway.tf     # Site-to-Site VPN Gateway
+│       ├── locals.tf                # ローカル変数処理
+│       ├── variables.tf             # 入力変数定義
+│       ├── outputs.tf               # 出力定義
+│       ├── terraform.tf             # Provider要件
+│       └── README.md
+│
+├── modules/virtual-hub/            # Virtual Hub作成サブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/firewall/               # Firewall作成サブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/virtual-network-connection/  # VNet接続サブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/expressroute-gateway/   # ExpressRoute Gatewayサブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/expressroute-gateway-connection/  # ER接続サブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/site-to-site-gateway/   # S2S VPN Gatewayサブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── modules/site-to-site-vpn-site/  # VPN Siteサブモジュール
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+└── modules/site-to-site-gateway-connection/  # VPN接続サブモジュール
+    ├── main.tf
+    ├── variables.tf
+    └── outputs.tf
 ```
+
+**何してる？**
+
+メインモジュール（modules/virtual-wan/）が中心で、8つのサブモジュールを組み合わせてVirtual WAN環境を構築してる：
+
+1. **virtual-hub**: Virtual Hub作成
+2. **firewall**: Azure Firewall作成
+3. **virtual-network-connection**: Spoke VNet接続
+4. **expressroute-gateway**: ExpressRoute Gateway作成
+5. **expressroute-gateway-connection**: ExpressRoute回線接続
+6. **site-to-site-gateway**: S2S VPN Gateway作成
+7. **site-to-site-vpn-site**: VPN Site定義
+8. **site-to-site-gateway-connection**: VPN接続
 
 ### 作成されるリソース一覧
 
@@ -312,22 +352,19 @@ terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/
 **VNet接続:**
 
 - `azurerm_virtual_hub_connection` - Spoke VNetとVirtual Hubの接続
-- `azurerm_virtual_network` - Sidecar VNet（Bastion用）
-- `azurerm_bastion_host` - Azure Bastion（Sidecar VNet内）
 
 **その他:**
 
 - `azurerm_resource_group` - リソースグループ（オプション）
-- `azurerm_private_dns_zone` - Private DNS Zone（オプション）
-- `azurerm_private_dns_resolver` - Private DNS Resolver（オプション）
+- `azurerm_vpn_server_configuration` - P2S VPN Server Configuration
 
-### main.tf: Virtual WAN本体の作成
+### modules/virtual-wan/main.tf: Virtual WAN本体の作成
 
-[modules/virtual-wan/main.tf](https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/blob/main/modules/virtual-wan/main.tf)の主要部分を見ていきます。
+実際のv0.13.5のmain.tfを見ていきます。
 
-#### リソースグループ作成（オプション）
+#### 1. リソースグループ作成（オプション）
 
-```hcl
+```tf title="modules/virtual-wan/main.tf（1/8）"
 resource "azurerm_resource_group" "rg" {
   count = var.create_resource_group ? 1 : 0
 
@@ -343,13 +380,19 @@ locals {
 
 **何してる？**
 
-- `create_resource_group = true`の時だけリソースグループ作成
-- 既存のリソースグループを使う場合は`false`にする
-- locals.resource_group_nameで作成/既存を統一的に扱う
+リソースグループの作成を制御してる：
 
-#### Virtual WAN本体の作成
+- `count = var.create_resource_group ? 1 : 0`：true時のみ作成
+- `try(merge(...))`：resource_group_tagsとtagsを安全にマージ
+- `locals.resource_group_name`：作成/既存を統一的に扱う
 
-```hcl
+**使い分け**：
+- `create_resource_group = true`：新規作成
+- `create_resource_group = false`：既存リソースグループ使用
+
+#### 2. Virtual WAN本体の作成
+
+```tf title="modules/virtual-wan/main.tf（2/8）"
 resource "azurerm_virtual_wan" "virtual_wan" {
   location                          = var.location
   name                              = var.virtual_wan_name
@@ -364,16 +407,26 @@ resource "azurerm_virtual_wan" "virtual_wan" {
 
 **何してる？**
 
-- **Virtual WAN**: グローバルで1つの仮想WANリソース
-- **allow_branch_to_branch_traffic**: ブランチ拠点間の通信を許可（デフォルトtrue）
-- **disable_vpn_encryption**: VPN暗号化を無効化（デフォルトfalse = 暗号化有効）
-- **type**: `Standard`（推奨）または`Basic`
-  - Basic: VPN Gatewayのみ、Hub間ルーティングなし
-  - Standard: すべての機能が使える
+Virtual WAN本体を作成してる。グローバルで1つのリソース。
 
-#### Virtual Hubの作成（サブモジュール呼び出し）
+**主要パラメータ**：
 
-```hcl
+- **allow_branch_to_branch_traffic**: ブランチ拠点間の通信許可（デフォルトtrue）
+  - true: VPN拠点間で直接通信可能
+  - false: 拠点間は遮断（Hubのみ経由可能）
+- **disable_vpn_encryption**: VPN暗号化無効化（デフォルトfalse = 暗号化有効）
+- **office365_local_breakout_category**: Office365トラフィックの最適化
+  - `None`: 最適化なし
+  - `Optimize`: Optimizeカテゴリのみ
+  - `OptimizeAndAllow`: Optimize + Allowカテゴリ
+  - `All`: 全カテゴリ
+- **type**: Virtual WANのSKU
+  - `Basic`: VPN Gatewayのみ、Hub間ルーティングなし
+  - `Standard`: 全機能（ExpressRoute、Hub間ルーティング含む）
+
+#### 3. Virtual Hubの作成（サブモジュール呼び出し）
+
+```tf title="modules/virtual-wan/main.tf（3/8）"
 module "virtual_hubs" {
   source = "../virtual-hub"
 
@@ -395,19 +448,51 @@ module "virtual_hubs" {
 
 **何してる？**
 
-- **virtual-hubサブモジュール**を呼び出してVirtual Hub作成
-- **for_each**: 複数のHubを作成可能（東日本、西日本など）
-- **virtual_wan_id**: 親のVirtual WAN IDを渡す
-- **address_prefix**: /23推奨（512 IPアドレス）
-- **hub_routing_preference**: ルーティング優先順位
-  - `ExpressRoute`: ExpressRoute優先
+サブモジュール`virtual-hub`を呼び出してVirtual Hub作成してる。
+
+**ポイント**：
+
+- `for_each = local.virtual_hubs`：複数Hub作成可能（東日本、西日本等）
+- `virtual_wan_id`：親のVirtual WAN IDを渡す
+- `address_prefix`：/23推奨（512 IPアドレス）
+- `hub_routing_preference`：ルーティング優先順位
+  - `ExpressRoute`: ExpressRoute優先（デフォルト）
   - `VpnGateway`: VPN Gateway優先
   - `ASPath`: AS Pathの長さで判断
-- **virtual_router_auto_scale_min_capacity**: 最小Capacity Unit（2～50）
+- `virtual_router_auto_scale_min_capacity`：最小Capacity Unit（2～50）
+  - 2: 最小構成（~23万円/月）
+  - 3-10: 中規模
+  - 10+: 大規模
 
-#### Virtual Hub Route Tableの作成
+**modules/virtual-hub/main.tfの実装**：
 
-```hcl
+```tf title="modules/virtual-hub/main.tf"
+resource "azurerm_virtual_hub" "virtual_hub" {
+  for_each = var.virtual_hubs != null ? var.virtual_hubs : {}
+
+  location                               = each.value.location
+  name                                   = each.value.name
+  resource_group_name                    = each.value.resource_group_name
+  address_prefix                         = each.value.address_prefix
+  hub_routing_preference                 = each.value.hub_routing_preference
+  sku                                    = each.value.sku
+  tags                                   = each.value.tags
+  virtual_router_auto_scale_min_capacity = each.value.virtual_router_auto_scale_min_capacity
+  virtual_wan_id                         = each.value.virtual_wan_id
+}
+```
+
+**何してる？**
+
+Azure Virtual Hubリソースを作成してる。
+
+- `for_each`：複数Hub対応
+- `virtual_wan_id`：親Virtual WANと紐付け
+- `sku`：通常nullでOK（自動決定）
+
+#### 4. Virtual Hub Route Tableの作成
+
+```tf title="modules/virtual-wan/main.tf（4/8）"
 resource "azurerm_virtual_hub_route_table" "virtual_hub_route_table" {
   for_each = var.virtual_hub_route_tables
 
@@ -431,240 +516,34 @@ resource "azurerm_virtual_hub_route_table" "virtual_hub_route_table" {
 
 **何してる？**
 
-- **カスタムルートテーブル**: デフォルトの`defaultRouteTable`以外のルートテーブル作成
+カスタムルートテーブルを作成してる。
+
+**デフォルトルートテーブル以外の用途**：
+
+- 本番/開発環境の分離
+- 特定VNetへの静的ルート追加
+- セキュリティポリシーの分離
+
+**主要パラメータ**：
+
 - **labels**: ラベルで分類（例: `["production", "dev"]`）
 - **routes**: 静的ルート定義
   - `destinations`: 宛先CIDR（例: `["10.1.0.0/16"]`）
   - `destinations_type`: `CIDR`、`ResourceId`、`Service`
   - `next_hop`: 次ホップ（VNet接続IDやFirewall ID）
-- **用途**: 環境ごとにルーティングを分離（本番/開発など）
+  - `next_hop_type`: `ResourceId`（固定）
 
-### main.firewall.tf: Azure Firewallの統合
+**try()関数の役割**：
 
-```hcl
-module "firewalls" {
-  source = "../firewall"
-
-  diagnostic_settings = var.diagnostic_settings_azure_firewall
-  firewalls = {
-    for key, value in var.firewalls : key => {
-      location             = module.virtual_hubs.resource_object[value.virtual_hub_key].location
-      name                 = value.name
-      resource_group_name  = module.virtual_hubs.resource_object[value.virtual_hub_key].resource_group
-      sku_name             = value.sku_name
-      sku_tier             = value.sku_tier
-      firewall_policy_id   = value.firewall_policy_id
-      tags                 = value.tags
-      virtual_hub_id       = module.virtual_hubs.resource_object[value.virtual_hub_key].id
-      vhub_public_ip_count = value.vhub_public_ip_count
-      zones                = value.zones
-    }
-  }
-}
+```tf
+next_hop = try(module.virtual_network_connections.resource_object[route.value.vnet_connection_key].id, route.value.next_hop)
 ```
 
-**何してる？**
+VNet接続キーが指定されてればそのIDを使う。なければ直接指定されたnext_hopを使う。
 
-- **firewallサブモジュール**呼び出し
-- **sku_name**: `AZFW_Hub`（Virtual WAN用）固定
-- **sku_tier**: `Basic`、`Standard`、`Premium`
-  - Basic: 基本的なフィルタリング（~5万円/月）
-  - Standard: 脅威インテリジェンス付き（~15万円/月）
-  - Premium: TLS Inspection、IDPSなど（~30万円/月）
-- **firewall_policy_id**: Firewall PolicyのリソースID（必須）
-- **vhub_public_ip_count**: Public IP数（1～100、デフォルト1）
-- **zones**: Availability Zones（例: `[1, 2, 3]`）
+#### 5. Point-to-Site VPN Gateway
 
-**modules/firewall/main.tf**の実装：
-
-```hcl
-resource "azurerm_firewall" "fw" {
-  for_each = var.firewalls != null ? var.firewalls : {}
-
-  location            = each.value.location
-  name                = each.value.name
-  resource_group_name = each.value.resource_group_name
-  sku_name            = each.value.sku_name
-  sku_tier            = each.value.sku_tier
-  firewall_policy_id  = each.value.firewall_policy_id
-  tags                = try(each.value.tags, {})
-  zones               = each.value.zones
-
-  virtual_hub {
-    virtual_hub_id  = each.value.virtual_hub_id
-    public_ip_count = each.value.vhub_public_ip_count
-  }
-}
-```
-
-**何してる？**
-
-- **virtual_hubブロック**: Virtual WANモード専用の設定
-- **virtual_hub_id**: 配置するVirtual Hub ID
-- **public_ip_count**: Public IP数（スループットに影響）
-  - 1 IP = ~30 Gbps
-  - 複数IPで負荷分散
-
-### main.express-route-gateway.tf: ExpressRoute Gateway
-
-```hcl
-module "express_route_gateways" {
-  source = "../expressroute-gateway"
-
-  expressroute_gateways = {
-    for key, gw in local.expressroute_gateways : key => {
-      name                          = gw.name
-      resource_group_name           = module.virtual_hubs.resource_object[gw.virtual_hub_key].resource_group
-      virtual_hub_id                = module.virtual_hubs.resource_object[gw.virtual_hub_key].id
-      location                      = module.virtual_hubs.resource_object[gw.virtual_hub_key].location
-      scale_units                   = gw.scale_units
-      allow_non_virtual_wan_traffic = gw.allow_non_virtual_wan_traffic
-      tags                          = gw.tags
-    }
-  }
-}
-```
-
-**何してる？**
-
-- **expressroute-gatewayサブモジュール**呼び出し
-- **scale_units**: スケールユニット（1～20）
-  - 1 unit = ~2 Gbps、~2.7万円/月
-  - 10 unit = ~10 Gbps、~27万円/月
-- **allow_non_virtual_wan_traffic**: Virtual WAN外のトラフィックを許可（デフォルトfalse）
-
-**ExpressRoute回線接続**（別リソース）：
-
-```hcl
-module "er_connections" {
-  source = "../expressroute-gateway-connection"
-
-  er_circuit_connections = {
-    for key, er_conn in local.er_circuit_connections : key => {
-      name                                 = er_conn.name
-      express_route_gateway_id             = module.express_route_gateways.resource_object[er_conn.express_route_gateway_key].id
-      express_route_circuit_peering_id     = er_conn.express_route_circuit_peering_id
-      authorization_key                    = er_conn.authorization_key
-      enable_internet_security             = er_conn.enable_internet_security
-      express_route_gateway_bypass_enabled = er_conn.express_route_gateway_bypass_enabled
-      routing_weight                       = er_conn.routing_weight
-      routing                              = er_conn.routing
-    }
-  }
-}
-```
-
-**何してる？**
-
-- **express_route_circuit_peering_id**: ExpressRoute回線のPeering ID
-- **authorization_key**: 回線の認証キー（別サブスクリプションの場合）
-- **routing_weight**: ルーティング重み付け（0～32000）
-
-### main.vpn-gateway.tf: Site-to-Site VPN Gateway
-
-```hcl
-module "vpn_gateways" {
-  source = "../site-to-site-gateway"
-
-  vpn_gateways = {
-    for key, gw in local.vpn_gateways : key => {
-      name                                  = gw.name
-      location                              = module.virtual_hubs.resource_object[gw.virtual_hub_key].location
-      resource_group_name                   = module.virtual_hubs.resource_object[gw.virtual_hub_key].resource_group
-      virtual_hub_id                        = module.virtual_hubs.resource_object[gw.virtual_hub_key].id
-      bgp_route_translation_for_nat_enabled = gw.bgp_route_translation_for_nat_enabled
-      bgp_settings                          = gw.bgp_settings
-      routing_preference                    = gw.routing_preference
-      scale_unit                            = gw.scale_unit
-      tags                                  = gw.tags
-    }
-  }
-}
-```
-
-**何してる？**
-
-- **site-to-site-gatewayサブモジュール**呼び出し
-- **scale_unit**: スケールユニット（1～20）
-  - 1 unit = ~500 Mbps、~2.7万円/月
-  - 10 unit = ~5 Gbps、~27万円/月
-  - 20 unit = ~10 Gbps、~54万円/月
-- **bgp_settings**: BGP設定
-  - `asn`: AS番号（64512～65534はプライベートAS）
-  - `peer_weight`: ピアの重み付け（0～100）
-  - `instance_0/1_bgp_peering_address`: カスタムBGPアドレス
-
-**VPN Site定義**（別リソース）：
-
-```hcl
-module "vpn_sites" {
-  source = "../vpn-site"
-
-  vpn_sites = {
-    for key, site in local.vpn_sites : key => {
-      name            = site.name
-      location        = module.virtual_hubs.resource_object[site.virtual_hub_key].location
-      resource_group_name = module.virtual_hubs.resource_object[site.virtual_hub_key].resource_group
-      virtual_wan_id  = azurerm_virtual_wan.virtual_wan.id
-      address_cidrs   = site.address_cidrs
-      links           = site.links
-      device_vendor   = site.device_vendor
-      device_model    = site.device_model
-      o365_policy     = site.o365_policy
-      tags            = site.tags
-    }
-  }
-}
-```
-
-**何してる？**
-
-- **VPN Site**: On-premises拠点の定義
-- **address_cidrs**: 拠点のIPアドレス範囲（例: `["192.168.1.0/24"]`）
-- **links**: VPN接続リンク設定
-  - `name`: リンク名
-  - `ip_address`: 拠点のPublic IP
-  - `bgp`: BGP設定（オプション）
-    - `asn`: 拠点のAS番号
-    - `peering_address`: BGPピアリングアドレス
-
-### main.p2s-vpn-gateway.tf: Point-to-Site VPN Gateway
-
-```hcl
-resource "azurerm_point_to_site_vpn_gateway" "p2s_gateway" {
-  for_each = local.p2s_gateways != null ? local.p2s_gateways : {}
-
-  location                        = module.virtual_hubs.resource_object[each.value.virtual_hub_key].location
-  name                            = each.value.name
-  resource_group_name             = module.virtual_hubs.resource_object[each.value.virtual_hub_key].resource_group
-  virtual_hub_id                  = module.virtual_hubs.resource_object[each.value.virtual_hub_key].id
-  vpn_server_configuration_id     = azurerm_vpn_server_configuration.p2s_gateway_vpn_server_configuration[each.value.p2s_gateway_vpn_server_configuration_key].id
-  scale_unit                      = each.value.scale_unit
-  dns_servers                     = each.value.dns_servers
-  tags                            = each.value.tags
-
-  connection_configuration {
-    name = each.value.connection_configuration.name
-
-    vpn_client_address_pool {
-      address_prefixes = each.value.connection_configuration.vpn_client_address_pool.address_prefixes
-    }
-  }
-}
-```
-
-**何してる？**
-
-- **Point-to-Site VPN**: リモートワーカー向けVPN
-- **vpn_server_configuration_id**: VPN Server Configuration ID（認証設定）
-- **scale_unit**: スケールユニット（1～20）
-  - 1 unit = ~500 Mbps、約2.7万円/月
-- **vpn_client_address_pool**: クライアントに割り当てるIPアドレスプール
-  - 例: `["172.16.0.0/24"]`（256クライアント）
-
-**VPN Server Configuration**（認証設定）：
-
-```hcl
+```tf title="modules/virtual-wan/main.tf（5/8）"
 resource "azurerm_vpn_server_configuration" "p2s_gateway_vpn_server_configuration" {
   for_each = var.p2s_gateway_vpn_server_configurations != null ? var.p2s_gateway_vpn_server_configurations : {}
 
@@ -690,21 +569,403 @@ resource "azurerm_vpn_server_configuration" "p2s_gateway_vpn_server_configuratio
     }
   }
 }
+
+resource "azurerm_point_to_site_vpn_gateway" "p2s_gateway" {
+  for_each = local.p2s_gateways != null ? local.p2s_gateways : {}
+
+  location                        = module.virtual_hubs.resource_object[each.value.virtual_hub_key].location
+  name                            = each.value.name
+  resource_group_name             = module.virtual_hubs.resource_object[each.value.virtual_hub_key].resource_group
+  virtual_hub_id                  = module.virtual_hubs.resource_object[each.value.virtual_hub_key].id
+  vpn_server_configuration_id     = azurerm_vpn_server_configuration.p2s_gateway_vpn_server_configuration[each.value.p2s_gateway_vpn_server_configuration_key].id
+  scale_unit                      = each.value.scale_unit
+  dns_servers                     = each.value.dns_servers
+  tags                            = each.value.tags
+
+  connection_configuration {
+    name = each.value.connection_configuration.name
+
+    vpn_client_address_pool {
+      address_prefixes = each.value.connection_configuration.vpn_client_address_pool.address_prefixes
+    }
+  }
+}
 ```
 
 **何してる？**
 
-- **vpn_authentication_types**: 認証方式
-  - `Certificate`: 証明書認証
-  - `AAD`: Azure AD認証
-- **client_root_certificate**: ルート証明書（証明書認証の場合）
-- **azure_active_directory_authentication**: Azure AD設定（AAD認証の場合）
+Point-to-Site VPN Gateway（リモートワーカー向けVPN）を作成してる。
 
-### main.network.tf: VNet接続とRouting Intent
+**2つのリソース**：
 
-#### VNet接続
+1. **vpn_server_configuration**: 認証設定
+2. **point_to_site_vpn_gateway**: Gateway本体
 
-```hcl
+**認証方式（vpn_authentication_types）**：
+
+- `Certificate`: 証明書認証
+  - `client_root_certificate`ブロックで証明書指定
+- `AAD`: Azure AD認証
+  - `azure_active_directory_authentication`ブロックでAAD設定
+
+**scale_unit**：
+
+- 1 unit = ~500 Mbps、~2.7万円/月
+- 同時接続数はscale_unitに比例
+
+**vpn_client_address_pool**：
+
+リモートクライアントに割り当てるIPアドレス範囲。例：`["172.16.0.0/24"]`で256クライアント。
+
+### modules/virtual-wan/main.express-route-gateway.tf: ExpressRoute Gateway
+
+```tf title="modules/virtual-wan/main.express-route-gateway.tf"
+module "express_route_gateways" {
+  source = "../expressroute-gateway"
+
+  expressroute_gateways = {
+    for key, gw in local.expressroute_gateways : key => {
+      name                          = gw.name
+      resource_group_name           = module.virtual_hubs.resource_object[gw.virtual_hub_key].resource_group
+      virtual_hub_id                = module.virtual_hubs.resource_object[gw.virtual_hub_key].id
+      location                      = module.virtual_hubs.resource_object[gw.virtual_hub_key].location
+      scale_units                   = gw.scale_units
+      allow_non_virtual_wan_traffic = gw.allow_non_virtual_wan_traffic
+      tags                          = gw.tags
+    }
+  }
+}
+
+module "er_connections" {
+  source = "../expressroute-gateway-connection"
+
+  er_circuit_connections = {
+    for key, er_conn in local.er_circuit_connections : key => {
+      name                                 = er_conn.name
+      express_route_gateway_id             = module.express_route_gateways.resource_object[er_conn.express_route_gateway_key].id
+      express_route_circuit_peering_id     = er_conn.express_route_circuit_peering_id
+      authorization_key                    = er_conn.authorization_key
+      enable_internet_security             = er_conn.enable_internet_security
+      express_route_gateway_bypass_enabled = er_conn.express_route_gateway_bypass_enabled
+      routing_weight                       = er_conn.routing_weight
+      routing                              = er_conn.routing
+    }
+  }
+}
+```
+
+**何してる？**
+
+ExpressRoute Gateway（専用線接続用）を2ステップで作成してる：
+
+1. **express_route_gateways**サブモジュール：Gateway本体作成
+2. **er_connections**サブモジュール：ExpressRoute回線接続
+
+**expressroute-gatewayサブモジュール**：
+
+```tf title="modules/expressroute-gateway/main.tf"
+resource "azurerm_express_route_gateway" "express_route_gateway" {
+  for_each = var.expressroute_gateways != null && length(var.expressroute_gateways) > 0 ? var.expressroute_gateways : {}
+
+  location                      = each.value.location
+  name                          = each.value.name
+  resource_group_name           = each.value.resource_group_name
+  scale_units                   = each.value.scale_units
+  virtual_hub_id                = each.value.virtual_hub_id
+  allow_non_virtual_wan_traffic = each.value.allow_non_virtual_wan_traffic
+  tags                          = try(each.value.tags, {})
+}
+```
+
+**何してる？**
+
+Azure ExpressRoute Gatewayリソースを作成してる。
+
+**scale_units**：
+
+- 1 unit = ~2 Gbps、~2.7万円/月
+- 10 unit = ~10 Gbps、~27万円/月
+- 最大20ユニット（~20 Gbps）
+
+**allow_non_virtual_wan_traffic**：
+
+Virtual WAN外（通常のVNet）からのトラフィックを許可（デフォルトfalse）。
+
+**er_connections設定**：
+
+- **express_route_circuit_peering_id**: ExpressRoute回線のPeering ID
+- **authorization_key**: 回線の認証キー（別サブスクリプションの場合）
+- **routing_weight**: ルーティング重み付け（0～32000）
+- **enable_internet_security**: インターネット向けトラフィックをFirewall経由
+- **express_route_gateway_bypass_enabled**: FastPath有効化（低レイテンシ）
+
+### modules/virtual-wan/main.vpn-gateway.tf: Site-to-Site VPN Gateway
+
+```tf title="modules/virtual-wan/main.vpn-gateway.tf（抜粋）"
+module "vpn_gateways" {
+  source = "../site-to-site-gateway"
+
+  vpn_gateways = {
+    for key, gw in local.vpn_gateways : key => {
+      name                                  = gw.name
+      location                              = module.virtual_hubs.resource_object[gw.virtual_hub_key].location
+      resource_group_name                   = module.virtual_hubs.resource_object[gw.virtual_hub_key].resource_group
+      virtual_hub_id                        = module.virtual_hubs.resource_object[gw.virtual_hub_key].id
+      bgp_route_translation_for_nat_enabled = gw.bgp_route_translation_for_nat_enabled
+      bgp_settings                          = gw.bgp_settings
+      routing_preference                    = gw.routing_preference
+      scale_unit                            = gw.scale_unit
+      tags                                  = gw.tags
+    }
+  }
+}
+
+module "vpn_sites" {
+  source = "../site-to-site-vpn-site"
+
+  vpn_sites = {
+    for key, site in local.vpn_sites : key => {
+      name                = site.name
+      location            = module.virtual_hubs.resource_object[site.virtual_hub_key].location
+      resource_group_name = module.virtual_hubs.resource_object[site.virtual_hub_key].resource_group
+      virtual_wan_id      = azurerm_virtual_wan.virtual_wan.id
+      address_cidrs       = site.address_cidrs
+      links               = site.links
+      device_vendor       = site.device_vendor
+      device_model        = site.device_model
+      o365_policy         = site.o365_policy
+      tags                = site.tags
+    }
+  }
+}
+
+module "vpn_site_connections" {
+  source = "../site-to-site-gateway-connection"
+
+  vpn_site_connections = {
+    for key, conn in local.vpn_site_connections : key => {
+      name                      = conn.name
+      vpn_gateway_id            = module.vpn_gateways.resource_object[conn.vpn_gateway_key].id
+      remote_vpn_site_id        = module.vpn_sites.resource_object[conn.remote_vpn_site_key].id
+      internet_security_enabled = conn.internet_security_enabled
+      vpn_links                 = conn.vpn_links
+      routing                   = conn.routing
+      traffic_selector_policy   = conn.traffic_selector_policy
+    }
+  }
+}
+```
+
+**何してる？**
+
+Site-to-Site VPN Gateway（拠点間VPN）を3ステップで作成してる：
+
+1. **vpn_gateways**サブモジュール：VPN Gateway本体作成
+2. **vpn_sites**サブモジュール：On-premises拠点定義
+3. **vpn_site_connections**サブモジュール：VPN接続確立
+
+**site-to-site-gatewayサブモジュール（VPN Gateway本体）**：
+
+```tf title="modules/site-to-site-gateway/main.tf（抜粋）"
+resource "azurerm_vpn_gateway" "vpn_gateway" {
+  for_each = var.vpn_gateways != null && length(var.vpn_gateways) > 0 ? var.vpn_gateways : {}
+
+  location                              = each.value.location
+  name                                  = each.value.name
+  resource_group_name                   = each.value.resource_group_name
+  virtual_hub_id                        = each.value.virtual_hub_id
+  bgp_route_translation_for_nat_enabled = each.value.bgp_route_translation_for_nat_enabled
+  routing_preference                    = each.value.routing_preference
+  scale_unit                            = each.value.scale_unit
+  tags                                  = try(each.value.tags, {})
+
+  dynamic "bgp_settings" {
+    for_each = each.value.bgp_settings != null ? [each.value.bgp_settings] : []
+    content {
+      asn         = bgp_settings.value.asn
+      peer_weight = bgp_settings.value.peer_weight
+
+      dynamic "instance_0_bgp_peering_address" {
+        for_each = bgp_settings.value.instance_0_bgp_peering_address != null ? [bgp_settings.value.instance_0_bgp_peering_address] : []
+        content {
+          custom_ips = instance_0_bgp_peering_address.value.custom_ips
+        }
+      }
+
+      dynamic "instance_1_bgp_peering_address" {
+        for_each = bgp_settings.value.instance_1_bgp_peering_address != null ? [bgp_settings.value.instance_1_bgp_peering_address] : []
+        content {
+          custom_ips = instance_1_bgp_peering_address.value.custom_ips
+        }
+      }
+    }
+  }
+}
+```
+
+**何してる？**
+
+Azure VPN Gatewayリソースを作成してる。
+
+**scale_unit**：
+
+- 1 unit = ~500 Mbps、~2.7万円/月
+- 10 unit = ~5 Gbps、~27万円/月
+- 20 unit = ~10 Gbps、~54万円/月
+
+**bgp_settings**：
+
+- `asn`: Azure側のAS番号（デフォルト65515、64512～65534はプライベートAS）
+- `peer_weight`: BGPピアの重み付け（0～100）
+- `instance_0/1_bgp_peering_address`: カスタムBGPアドレス（Active-Active構成時）
+
+**site-to-site-vpn-siteサブモジュール（VPN Site定義）**：
+
+```tf title="modules/site-to-site-vpn-site/main.tf（抜粋）"
+resource "azurerm_vpn_site" "vpn_site" {
+  for_each = var.vpn_sites != null && length(var.vpn_sites) > 0 ? var.vpn_sites : {}
+
+  location            = each.value.location
+  name                = each.value.name
+  resource_group_name = each.value.resource_group_name
+  virtual_wan_id      = each.value.virtual_wan_id
+  address_cidrs       = each.value.address_cidrs
+  device_model        = each.value.device_model
+  device_vendor       = each.value.device_vendor
+  tags                = try(each.value.tags, {})
+
+  dynamic "link" {
+    for_each = each.value.links
+    content {
+      name          = link.value.name
+      fqdn          = link.value.fqdn
+      ip_address    = link.value.ip_address
+      provider_name = link.value.provider_name
+      speed_in_mbps = link.value.speed_in_mbps
+
+      dynamic "bgp" {
+        for_each = link.value.bgp != null ? [link.value.bgp] : []
+        content {
+          asn             = bgp.value.asn
+          peering_address = bgp.value.peering_address
+        }
+      }
+    }
+  }
+
+  dynamic "o365_policy" {
+    for_each = each.value.o365_policy != null ? [each.value.o365_policy] : []
+    content {
+      dynamic "traffic_category" {
+        for_each = o365_policy.value.traffic_category != null ? [o365_policy.value.traffic_category] : []
+        content {
+          allow_endpoint_enabled    = traffic_category.value.allow_endpoint_enabled
+          default_endpoint_enabled  = traffic_category.value.default_endpoint_enabled
+          optimize_endpoint_enabled = traffic_category.value.optimize_endpoint_enabled
+        }
+      }
+    }
+  }
+}
+```
+
+**何してる？**
+
+On-premises拠点の定義を作成してる。
+
+**VPN Site設定**：
+
+- **address_cidrs**: 拠点のIPアドレス範囲（例: `["192.168.1.0/24"]`）
+- **device_vendor**: VPN機器ベンダー（例: `"Cisco"`）
+- **device_model**: VPN機器モデル（例: `"ASA"`）
+
+**links設定**（VPN接続リンク）：
+
+- **name**: リンク名（Primary/Secondaryで冗長化）
+- **ip_address**: 拠点のPublic IP
+- **speed_in_mbps**: 回線速度（例: `100`）
+- **bgp**: BGP設定（オプション）
+  - `asn`: 拠点のAS番号
+  - `peering_address`: BGPピアリングアドレス
+
+### modules/virtual-wan/main.firewall.tf: Azure Firewallの統合
+
+```tf title="modules/virtual-wan/main.firewall.tf"
+module "firewalls" {
+  source = "../firewall"
+
+  diagnostic_settings = var.diagnostic_settings_azure_firewall
+  firewalls = {
+    for key, value in var.firewalls : key => {
+      location             = module.virtual_hubs.resource_object[value.virtual_hub_key].location
+      name                 = value.name
+      resource_group_name  = module.virtual_hubs.resource_object[value.virtual_hub_key].resource_group
+      sku_name             = value.sku_name
+      sku_tier             = value.sku_tier
+      firewall_policy_id   = value.firewall_policy_id
+      tags                 = value.tags
+      virtual_hub_id       = module.virtual_hubs.resource_object[value.virtual_hub_key].id
+      vhub_public_ip_count = value.vhub_public_ip_count
+      zones                = value.zones
+    }
+  }
+}
+```
+
+**何してる？**
+
+Azure Firewallをサブモジュール経由で作成してる。
+
+**modules/firewall/main.tfの実装**：
+
+```tf title="modules/firewall/main.tf"
+resource "azurerm_firewall" "fw" {
+  for_each = var.firewalls != null ? var.firewalls : {}
+
+  location            = each.value.location
+  name                = each.value.name
+  resource_group_name = each.value.resource_group_name
+  sku_name            = each.value.sku_name
+  sku_tier            = each.value.sku_tier
+  firewall_policy_id  = each.value.firewall_policy_id
+  tags                = try(each.value.tags, {})
+  zones               = each.value.zones
+
+  virtual_hub {
+    virtual_hub_id  = each.value.virtual_hub_id
+    public_ip_count = each.value.vhub_public_ip_count
+  }
+}
+```
+
+**何してる？**
+
+Azure Firewallリソースを作成してる。
+
+**sku_name / sku_tier**：
+
+- **sku_name**: `AZFW_Hub`（Virtual WAN用、固定）
+- **sku_tier**: 3種類
+  - `Basic`: 基本的なフィルタリング（~5万円/月）
+  - `Standard`: 脅威インテリジェンス付き（~15万円/月）
+  - `Premium`: TLS Inspection、IDPSなど（~30万円/月）
+
+**virtual_hubブロック**：
+
+Virtual WANモード専用の設定：
+
+- **virtual_hub_id**: 配置するVirtual Hub ID
+- **public_ip_count**: Public IP数（1～100）
+  - 1 IP = ~30 Gbps
+  - 複数IPで負荷分散
+
+**zones**：
+
+Availability Zones（例: `[1, 2, 3]`）でゾーン冗長性を実現。
+
+### modules/virtual-wan/main.network.tf: VNet接続とRouting Intent
+
+```tf title="modules/virtual-wan/main.network.tf"
 module "virtual_network_connections" {
   source = "../virtual-network-connection"
 
@@ -729,25 +990,35 @@ module "virtual_network_connections" {
     }
   }
 }
+
+resource "azurerm_virtual_hub_routing_intent" "routing_intent" {
+  for_each = local.routing_intents != null ? local.routing_intents : {}
+
+  name           = each.value.name
+  virtual_hub_id = module.virtual_hubs.resource_object[each.value.virtual_hub_key].id
+
+  dynamic "routing_policy" {
+    for_each = each.value.routing_policies
+
+    content {
+      destinations = routing_policy.value.destinations
+      name         = routing_policy.value.name
+      next_hop     = module.firewalls.resource_object[routing_policy.value.next_hop_firewall_key].id
+    }
+  }
+}
 ```
 
 **何してる？**
 
-- **virtual-network-connectionサブモジュール**呼び出し
-- **remote_virtual_network_id**: 接続するSpoke VNetのリソースID
-- **internet_security_enabled**: インターネット向けトラフィックをFirewall経由にする（デフォルトfalse）
-- **routing**: ルーティング設定
-  - **associated_route_table_id**: 関連付けるルートテーブルID（デフォルトは`defaultRouteTable`）
-  - **propagated_route_table**: ルート伝播先
-    - `route_table_ids`: 伝播先ルートテーブルIDリスト
-    - `labels`: 伝播先ラベル（例: `["production"]`）
-  - **static_vnet_route**: 静的ルート追加
-    - `address_prefixes`: 宛先CIDR
-    - `next_hop_ip_address`: 次ホップIP（NVAなど）
+2つの主要機能を実装してる：
 
-**modules/virtual-network-connection/main.tf**の実装：
+1. **VNet接続**：Spoke VNetをVirtual Hubに接続
+2. **Routing Intent**：全トラフィックをFirewall経由にする
 
-```hcl
+**virtual-network-connectionサブモジュール**：
+
+```tf title="modules/virtual-network-connection/main.tf"
 resource "azurerm_virtual_hub_connection" "vnet_connection" {
   for_each = var.virtual_network_connections != null ? var.virtual_network_connections : {}
 
@@ -787,44 +1058,32 @@ resource "azurerm_virtual_hub_connection" "vnet_connection" {
 
 **何してる？**
 
-- **azurerm_virtual_hub_connection**: VNet接続リソース
-- **dynamic "routing"**: ルーティング設定（オプション）
-- **dynamic "propagated_route_table"**: ルート伝播設定（オプション）
-- **dynamic "static_vnet_route"**: 静的ルート（オプション）
+Spoke VNetをVirtual Hubに接続してる。
 
-#### Routing Intent
+**主要パラメータ**：
 
-```hcl
-resource "azurerm_virtual_hub_routing_intent" "routing_intent" {
-  for_each = local.routing_intents != null ? local.routing_intents : {}
+- **remote_virtual_network_id**: 接続するSpoke VNetのリソースID
+- **internet_security_enabled**: インターネット向けトラフィックをFirewall経由（デフォルトfalse）
+- **routing**: ルーティング設定
+  - **associated_route_table_id**: 関連付けるルートテーブルID（デフォルト`defaultRouteTable`）
+  - **propagated_route_table**: ルート伝播先
+    - `route_table_ids`: 伝播先ルートテーブルIDリスト
+    - `labels`: 伝播先ラベル（例: `["production"]`）
+  - **static_vnet_route**: 静的ルート
+    - `address_prefixes`: 宛先CIDR
+    - `next_hop_ip_address`: 次ホップIP（NVAなど）
 
-  name           = each.value.name
-  virtual_hub_id = module.virtual_hubs.resource_object[each.value.virtual_hub_key].id
+**Routing Intent設定**：
 
-  dynamic "routing_policy" {
-    for_each = each.value.routing_policies
+- **routing_policies**: ルーティングポリシーのリスト
+- **destinations**: トラフィックタイプ
+  - `Internet`: インターネット向けトラフィック
+  - `PrivateTraffic`: プライベートトラフィック（VNet間、On-premises）
+- **next_hop**: 次ホップ（Firewall ID）
 
-    content {
-      destinations = routing_policy.value.destinations
-      name         = routing_policy.value.name
-      next_hop     = module.firewalls.resource_object[routing_policy.value.next_hop_firewall_key].id
-    }
-  }
-}
-```
+**具体例**：
 
-**何してる？**
-
-- **Routing Intent**: 全トラフィックをFirewall経由にする設定
-- **routing_policies**: ルーティングポリシー
-  - **destinations**: 対象トラフィック
-    - `Internet`: インターネット向けトラフィック
-    - `PrivateTraffic`: プライベートトラフィック（VNet間、On-premises）
-  - **next_hop**: 次ホップ（Firewall ID）
-
-**具体例**:
-
-```hcl
+```tf
 routing_intents = {
   primary = {
     name            = "routing-intent-primary"
@@ -845,17 +1104,15 @@ routing_intents = {
 }
 ```
 
-**何してる？**
+すべてのインターネット向けトラフィックとプライベートトラフィックをFirewall経由にして、全トラフィックをFirewallで検査できる。
 
-- すべてのインターネット向けトラフィックをFirewall経由
-- すべてのプライベートトラフィック（VNet間、On-premises）もFirewall経由
-- これで**全トラフィックをFirewallで検査**できる
+### modules/virtual-wan/locals.tf: データ変換処理
 
-### locals.tf: データ変換処理
+実際のv0.13.5のlocals.tfの主要部分を見ていきます。
 
-[modules/virtual-wan/locals.tf](https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/blob/main/modules/virtual-wan/locals.tf)の主要部分：
+#### ExpressRoute関連の変換
 
-```hcl
+```tf title="modules/virtual-wan/locals.tf（1/4）"
 locals {
   er_circuit_connections = var.er_circuit_connections != null ? {
     for key, er_conn in var.er_circuit_connections : key => {
@@ -884,12 +1141,15 @@ locals {
 
 **何してる？**
 
-- **try()関数**: オプション値の安全な取得
-  - 値が存在しなければnull
-  - エラーにならない
-- **タグのマージ**: 個別タグがなければグローバルタグを使う
+ExpressRoute Gateway設定を正規化してる：
 
-```hcl
+- **try()関数**: オプション値を安全に取得（存在しなければnull）
+- **タグのマージ**: 個別タグがなければグローバルタグを使う
+- **nullチェック**: 変数がnullなら全体をnullにする
+
+#### Virtual Hub・Routing Intentの変換
+
+```tf title="modules/virtual-wan/locals.tf（2/4）"
 locals {
   routing_intents = {
     for key, intent in var.routing_intents : key => {
@@ -900,7 +1160,8 @@ locals {
           name                  = routing_policy.name
           destinations          = routing_policy.destinations
           next_hop_firewall_key = routing_policy.next_hop_firewall_key
-      }]
+        }
+      ]
     }
   }
 
@@ -921,12 +1182,15 @@ locals {
 
 **何してる？**
 
-- **routing_intents**: Routing Intent設定の正規化
-- **virtual_hubs**: Virtual Hub設定の正規化
-  - デフォルト値の適用
-  - タグのマージ
+Virtual HubとRouting Intent設定を正規化してる：
 
-```hcl
+- **routing_intents**: Routing Intentポリシーをリスト化
+- **virtual_hubs**: Virtual Hub設定にデフォルト値を適用
+- **try()関数**: オプション値の安全な取得
+
+#### VPN Gateway・VPN Siteの変換
+
+```tf title="modules/virtual-wan/locals.tf（3/4）"
 locals {
   vpn_gateways = var.vpn_gateways != null ? {
     for key, gw in var.vpn_gateways : key => {
@@ -952,22 +1216,59 @@ locals {
       tags            = try(site.tags, null) == null ? var.tags : site.tags
     }
   } : null
+
+  vpn_site_connections = var.vpn_site_connections != null ? {
+    for key, conn in var.vpn_site_connections : key => {
+      name                      = conn.name
+      vpn_gateway_key           = conn.vpn_gateway_key
+      remote_vpn_site_key       = conn.remote_vpn_site_key
+      internet_security_enabled = conn.internet_security_enabled
+      vpn_links                 = conn.vpn_links
+      routing                   = conn.routing
+      traffic_selector_policy   = try(conn.traffic_selector_policy, null)
+    }
+  } : null
 }
 ```
 
 **何してる？**
 
-- **vpn_gateways**: VPN Gateway設定の正規化
-- **vpn_sites**: VPN Site設定の正規化
-- nullチェックで安全に処理
+VPN関連設定を正規化してる：
 
-### variables.tf: 入力変数定義
+- **vpn_gateways**: VPN Gateway設定
+- **vpn_sites**: VPN Site定義
+- **vpn_site_connections**: VPN接続設定
+- すべてnullチェックとタグマージを実施
 
-[modules/virtual-wan/variables.tf](https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/blob/main/modules/virtual-wan/variables.tf)の主要部分：
+#### Point-to-Site VPN Gatewayの変換
 
-#### 必須変数
+```tf title="modules/virtual-wan/locals.tf（4/4）"
+locals {
+  p2s_gateways = var.p2s_gateways != null ? {
+    for key, gw in var.p2s_gateways : key => {
+      name                                      = gw.name
+      virtual_hub_key                           = gw.virtual_hub_key
+      p2s_gateway_vpn_server_configuration_key  = gw.p2s_gateway_vpn_server_configuration_key
+      scale_unit                                = gw.scale_unit
+      dns_servers                               = gw.dns_servers
+      connection_configuration                  = gw.connection_configuration
+      tags                                      = try(gw.tags, null) == null ? var.tags : gw.tags
+    }
+  } : null
+}
+```
 
-```hcl
+**何してる？**
+
+Point-to-Site VPN Gateway設定を正規化してる。タグマージを含む。
+
+### modules/virtual-wan/variables.tf: 入力変数定義
+
+実際のv0.13.5のvariables.tfを見ていきます。
+
+#### 必須変数（Virtual WAN基本設定）
+
+```tf title="modules/virtual-wan/variables.tf（1/8）"
 variable "location" {
   type        = string
   description = "The Virtual WAN location."
@@ -995,18 +1296,39 @@ variable "virtual_wan_name" {
     error_message = "Virtual WAN name must be between 1 and 80 characters."
   }
 }
+
+variable "create_resource_group" {
+  type        = bool
+  default     = false
+  description = "Whether to create a new resource group or use an existing one."
+}
+
+variable "type" {
+  type        = string
+  default     = "Standard"
+  description = "The Virtual WAN type. Possible values are: `Standard` (supports ExpressRoute, S2S VPN, Hub-to-Hub routing), or `Basic` (only S2S VPN, no Hub-to-Hub routing)."
+
+  validation {
+    condition     = contains(["Standard", "Basic"], var.type)
+    error_message = "Type must be 'Standard' or 'Basic'."
+  }
+}
 ```
 
 **何してる？**
 
+Virtual WAN基本設定の変数定義：
+
 - **location**: Virtual WANのメインリージョン
-- **resource_group_name**: リソースグループ名
-- **virtual_wan_name**: Virtual WAN名
-- **validation**: 入力値の検証（文字数制限など）
+- **resource_group_name**: リソースグループ名（1～90文字）
+- **virtual_wan_name**: Virtual WAN名（1～80文字）
+- **create_resource_group**: リソースグループ作成フラグ（デフォルトfalse）
+- **type**: Virtual WANのSKU（`Standard`/`Basic`、デフォルト`Standard`）
+- **validation**: 入力値検証（文字数制限やEnum値チェック）
 
 #### Virtual Hubs変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（2/8）"
 variable "virtual_hubs" {
   type = map(object({
     name                                   = string
@@ -1036,15 +1358,16 @@ DESCRIPTION
 
 **何してる？**
 
-- **map(object(...))**: 複数のVirtual Hubを定義できる（キーは任意）
-- **optional()**: オプション値とデフォルト値
+Virtual Hub設定の変数定義：
+
+- **map(object(...))**: 複数のVirtual Hubを定義可能
 - **address_prefix**: /23推奨（512 IPアドレス）
-- **hub_routing_preference**: ルーティング優先順位
-- **virtual_router_auto_scale_min_capacity**: 最小Capacity Unit（2～50）
+- **hub_routing_preference**: ルーティング優先順位（ExpressRoute/ASPath/VpnGateway）
+- **virtual_router_auto_scale_min_capacity**: 最小Capacity Unit（2～50、デフォルト2）
 
 #### Firewall変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（3/8）"
 variable "firewalls" {
   type = map(object({
     virtual_hub_key      = string
@@ -1074,18 +1397,17 @@ DESCRIPTION
 
 **何してる？**
 
-- **virtual_hub_key**: 配置するVirtual HubのキーDESCRIPTION
+Azure Firewall設定の変数定義：
+
+- **virtual_hub_key**: 配置するVirtual Hubのキー
 - **sku_name**: `AZFW_Hub`固定（Virtual WAN用）
-- **sku_tier**: 3種類のティア
-  - `Basic`: 基本機能のみ
-  - `Standard`: 脅威インテリジェンス
-  - `Premium`: TLS Inspection、IDPS
-- **zones**: Availability Zones（`[1, 2, 3]`がデフォルト）
+- **sku_tier**: Basic/Standard/Premium
+- **zones**: Availability Zones（デフォルト`[1, 2, 3]`）
 - **vhub_public_ip_count**: Public IP数（1～100）
 
 #### ExpressRoute Gateway変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（4/8）"
 variable "expressroute_gateways" {
   type = map(object({
     name                          = string
@@ -1109,14 +1431,15 @@ DESCRIPTION
 
 **何してる？**
 
-- **scale_units**: スケールユニット（1～20）
+ExpressRoute Gateway設定の変数定義：
+
+- **scale_units**: スケールユニット（1～20、デフォルト1）
   - 1 unit = ~2 Gbps
-  - スループット要件に応じて増減
-- **allow_non_virtual_wan_traffic**: Virtual WAN外のトラフィックを許可
+- **allow_non_virtual_wan_traffic**: Virtual WAN外のトラフィック許可（デフォルトfalse）
 
 #### VPN Gateway変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（5/8）"
 variable "vpn_gateways" {
   type = map(object({
     name                                  = string
@@ -1153,19 +1476,19 @@ DESCRIPTION
 
 **何してる？**
 
+VPN Gateway設定の変数定義：
+
 - **scale_unit**: スケールユニット（1～20）
   - 1 unit = ~500 Mbps
 - **bgp_settings**: BGP設定
   - `asn`: AS番号（64512～65534はプライベートAS）
   - `peer_weight`: ピアの重み付け
   - `instance_0/1_bgp_peering_address`: カスタムBGPアドレス
-- **routing_preference**: ルーティング優先順位
-  - `Microsoft Network`: Microsoftネットワーク経由（デフォルト）
-  - `Internet`: インターネット経由
+- **routing_preference**: Microsoft Network/Internet
 
 #### VNet接続変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（6/8）"
 variable "virtual_network_connections" {
   type = map(object({
     name                      = string
@@ -1203,8 +1526,10 @@ DESCRIPTION
 
 **何してる？**
 
+VNet接続設定の変数定義：
+
 - **remote_virtual_network_id**: 接続するSpoke VNetのリソースID
-- **internet_security_enabled**: インターネット向けトラフィックをFirewall経由にする
+- **internet_security_enabled**: インターネット向けトラフィックをFirewall経由
 - **routing**: ルーティング設定
   - `associated_route_table_id`: 関連付けるルートテーブルID
   - `propagated_route_table`: ルート伝播先
@@ -1212,7 +1537,7 @@ DESCRIPTION
 
 #### Routing Intent変数
 
-```hcl
+```tf title="modules/virtual-wan/variables.tf（7/8）"
 variable "routing_intents" {
   type = map(object({
     name            = string
@@ -1239,17 +1564,49 @@ DESCRIPTION
 
 **何してる？**
 
+Routing Intent設定の変数定義：
+
 - **routing_policies**: ルーティングポリシーのリスト
-- **destinations**: トラフィックタイプ
-  - `Internet`: インターネット向け
-  - `PrivateTraffic`: プライベート（VNet間、On-premises）
-- **next_hop_firewall_key**: Firewallのキー（複数Firewall対応）
+- **destinations**: Internet/PrivateTraffic
+- **next_hop_firewall_key**: Firewallのキー
 
-### outputs.tf: 出力定義
+#### タグ変数
 
-[modules/virtual-wan/outputs.standard.tf](https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-virtual-wan/blob/main/modules/virtual-wan/outputs.standard.tf)の主要部分：
+```tf title="modules/virtual-wan/variables.tf（8/8）"
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional tags to apply to all resources."
+}
 
-```hcl
+variable "virtual_wan_tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional tags specific to the Virtual WAN resource."
+}
+
+variable "resource_group_tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional tags specific to the resource group."
+}
+```
+
+**何してる？**
+
+タグ変数の定義：
+
+- **tags**: 全リソースに適用するグローバルタグ
+- **virtual_wan_tags**: Virtual WAN専用タグ
+- **resource_group_tags**: リソースグループ専用タグ
+
+### modules/virtual-wan/outputs.tf: 出力定義
+
+実際のv0.13.5のoutputs.tfを見ていきます。
+
+#### Firewall出力
+
+```tf title="modules/virtual-wan/outputs.tf（1/5）"
 output "firewall_private_ip_address" {
   description = "A map of Azure Firewall private IP address."
   value       = module.firewalls.private_ip_address
@@ -1274,16 +1631,30 @@ output "firewall_resource_names" {
   description = "A map of Azure Firewall resource names."
   value       = module.firewalls.resource_names
 }
+
+output "firewall_ip_addresses" {
+  description = "Azure Firewall IP addresses."
+  value = var.firewalls != null ? { for key, value in module.firewalls.resource_object : key => {
+    firewall_key        = key
+    private_ip_address  = module.firewalls.resource_object[key].virtual_hub[0].private_ip_address
+    public_ip_addresses = module.firewalls.resource_object[key].virtual_hub[0].public_ip_addresses
+  } } : null
+}
 ```
 
 **何してる？**
 
-- **firewall_private_ip_address**: Firewall のPrivate IPアドレス
-- **firewall_public_ip_addresses**: FirewallのPublic IPアドレス（リスト）
-- **firewall_resource_ids**: FirewallのリソースIDマップ
-- **Hub Key別の出力**: Virtual Hub単位でFirewall情報を取得できる
+Azure Firewall情報の出力：
 
-```hcl
+- **firewall_private_ip_address**: Firewall Private IPマップ
+- **firewall_private_ip_address_by_hub_key**: Hub Key別Private IP
+- **firewall_public_ip_addresses**: Firewall Public IPリスト
+- **firewall_resource_ids**: FirewallリソースIDマップ
+- **firewall_ip_addresses**: 統合IP情報（Private + Publicリスト）
+
+#### Virtual WAN・Virtual Hub出力
+
+```tf title="modules/virtual-wan/outputs.tf（2/5）"
 output "resource_id" {
   description = "Virtual WAN ID"
   value       = azurerm_virtual_wan.virtual_wan.id
@@ -1302,29 +1673,15 @@ output "virtual_hub_resource_names" {
 
 **何してる？**
 
+Virtual WAN・Hub情報の出力：
+
 - **resource_id**: Virtual WANのリソースID
-- **virtual_hub_resource_ids**: Virtual HubのリソースIDマップ
-- **virtual_hub_resource_names**: Virtual Hubの名前マップ
+- **virtual_hub_resource_ids**: Virtual HubリソースIDマップ
+- **virtual_hub_resource_names**: Virtual Hub名マップ
 
-```hcl
-output "firewall_ip_addresses" {
-  description = "Azure Firewall IP addresses."
-  value = var.firewalls != null ? { for key, value in module.firewalls.resource_object : key => {
-    firewall_key        = key
-    private_ip_address  = module.firewalls.resource_object[key].virtual_hub[0].private_ip_address
-    public_ip_addresses = module.firewalls.resource_object[key].virtual_hub[0].public_ip_addresses
-  } } : null
-}
-```
+#### ExpressRoute Gateway出力
 
-**何してる？**
-
-- **firewall_ip_addresses**: Firewall IPアドレス情報の統合
-  - `firewall_key`: Firewallのキー
-  - `private_ip_address`: Private IP
-  - `public_ip_addresses`: Public IPリスト（Virtual WAN Hubモード）
-
-```hcl
+```tf title="modules/virtual-wan/outputs.tf（3/5）"
 output "ergw_id" {
   description = "ExpressRoute Gateway IDs"
   value       = try(var.expressroute_gateways, null) != null ? [for gw in module.express_route_gateways.resource_object : gw.id] : null
@@ -1338,10 +1695,14 @@ output "ergw_resource_ids_by_hub_key" {
 
 **何してる？**
 
-- **ergw_id**: ExpressRoute GatewayのIDリスト
-- **ergw_resource_ids_by_hub_key**: Hub Key別のExpressRoute Gateway ID
+ExpressRoute Gateway情報の出力：
 
-```hcl
+- **ergw_id**: ExpressRoute GatewayのIDリスト
+- **ergw_resource_ids_by_hub_key**: Hub Key別ExpressRoute Gateway ID
+
+#### VPN Gateway出力
+
+```tf title="modules/virtual-wan/outputs.tf（4/5）"
 output "vpn_gateway_resource_ids" {
   description = "VPN Gateway resource IDs"
   value       = module.vpn_gateways.resource_ids
@@ -1355,8 +1716,41 @@ output "p2s_vpn_gw_id" {
 
 **何してる？**
 
+VPN Gateway情報の出力：
+
 - **vpn_gateway_resource_ids**: S2S VPN GatewayのリソースIDマップ
 - **p2s_vpn_gw_id**: P2S VPN GatewayのIDリスト
+
+#### モジュール全体の出力まとめ
+
+```tf title="modules/virtual-wan/outputs.tf（5/5）"
+output "resource" {
+  description = "All Virtual WAN resources."
+  value = {
+    virtual_wan                    = azurerm_virtual_wan.virtual_wan
+    virtual_hubs                   = module.virtual_hubs.resource_object
+    firewalls                      = module.firewalls.resource_object
+    express_route_gateways         = module.express_route_gateways.resource_object
+    vpn_gateways                   = module.vpn_gateways.resource_object
+    p2s_gateways                   = azurerm_point_to_site_vpn_gateway.p2s_gateway
+    virtual_network_connections    = module.virtual_network_connections.resource_object
+    routing_intents                = azurerm_virtual_hub_routing_intent.routing_intent
+  }
+}
+```
+
+**何してる？**
+
+すべてのリソースオブジェクトを1つの出力にまとめてる：
+
+- Virtual WAN本体
+- すべてのVirtual Hub
+- すべてのFirewall
+- すべてのGateway（ExpressRoute、VPN）
+- すべてのVNet接続
+- すべてのRouting Intent
+
+このoutputで全リソースの詳細情報にアクセスできる
 
 ## Part 4: データフロー全体像
 
