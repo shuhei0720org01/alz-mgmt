@@ -6,7 +6,7 @@
 
 こういうのはやってみて初めて理解できます！
 
-公式の手順（https://azure.github.io/Azure-Landing-Zones/bootstrap/）があるのですが、英語でわかりやすいので、できるだけわかりやすいようにかみ砕いて手順を説明していきます！
+公式の手順（https://azure.github.io/Azure-Landing-Zones/bootstrap/）があるのですが、英語でわかりにくいので、できるだけわかりやすいようにかみ砕いて手順を説明していきます！
 
 ※Windows PCからの操作を想定しています。
 
@@ -45,7 +45,7 @@
 
     Gitをインストールします。
     
-    ```powershell title="Git for Windows"
+    ```powershell title="Git for WindowsをPowerShellでインストール"
     winget install Git.Git
     ```
 
@@ -57,9 +57,10 @@
     
     # Git
     git --version
-    ```
+    
     # PowerShell 7.4+ 起動して確認
     pwsh
+    ```
 
 ### Azure Subscriptions
 
@@ -110,57 +111,6 @@
 !!! warning "命名規則"
     Subscription名は組織の命名規則に従ってください。この教科書では「ALZ-」プレフィックスを使用します。
 
-### Azure権限設定
-
-適切な権限を持つアカウントでログインします。
-
-=== "必要な権限"
-
-    **すべてのIaCオプション（Bicep/Terraform）で必要**:
-    
-    - 親Management Groupに対する `Owner` 権限
-    - 4つのSubscriptionに対する `Owner` 権限
-    
-    **Bicep (AVM)のみ追加で必要**:
-    
-    - Root `/` レベルに対する `User Access Administrator` 権限
-
-=== "権限の確認"
-
-    ```bash title="現在の権限を確認"
-    # Management Groupの権限確認
-    az role assignment list \
-      --scope "/providers/Microsoft.Management/managementGroups/<mg-id>" \
-      --assignee <your-object-id> \
-      --output table
-    
-    # Subscriptionの権限確認
-    az role assignment list \
-      --scope "/subscriptions/<subscription-id>" \
-      --assignee <your-object-id> \
-      --output table
-    ```
-
-=== "Ownerロールの付与"
-
-    権限がない場合、管理者に依頼して付与してもらいます：
-    
-    ```bash title="Ownerロールの付与"
-    # Management Groupへの付与
-    az role assignment create \
-      --assignee <user-email-or-object-id> \
-      --role "Owner" \
-      --scope "/providers/Microsoft.Management/managementGroups/<mg-id>"
-    
-    # Subscriptionへの付与
-    az role assignment create \
-      --assignee <user-email-or-object-id> \
-      --role "Owner" \
-      --scope "/subscriptions/<subscription-id>"
-    ```
-
-!!! danger "Rootアクセスについて"
-    Bicep (AVM)を使用する場合、Root `/` レベルの `User Access Administrator` が必要です。詳細は[Root Accessドキュメント](https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/root-access/)を参照してください。
 
 ### GitHubの設定をしていきましょう
 
@@ -339,8 +289,6 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
 
 次に以下のように聞かれるので、そのままエンターを教えてください。
 
-忘れた人は別のPowerShellを開いて「az account list --output table」を実行してください。
-
 ```
 [root_parent_management_group_id]
   The ID of the parent management group under which the ALZ management group hierarchy will be created. See Decision 6 in the planning phase.
@@ -391,32 +339,32 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
     [4] subscription-spoke-e (ccc19b5e-07dc-45c5-9117-d1386759ee58)
     [0] Enter manually
   Select subscription (1-4, 0 for manual entry, or press Enter for default): 1 ←一番最初に選んだのと同じ
-  ```
+```
 
 次にサービス名を聞かれますが、そのままエンターでOK。
 
-  ```
+```
 [service_name]
   A short name identifier for the service, used in resource naming (e.g., 'alz'). See Decision 9 in the planning phase.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
   Required: Yes
   Current value: alz
   Enter value (default: alz):
-  ```
+```
 
   次もエンターでOK
-  ```
+```
   [environment_name]
   The environment name used in resource naming (e.g., 'mgmt', 'prod'). See Decision 9 in the planning phase.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
   Required: Yes
   Current value: mgmt
   Enter value (default: mgmt):
-  ```
+```
 
   次もエンターでOK
 
-  ```
+```
   [postfix_number]
   A numeric postfix for resource naming to ensure uniqueness. See Decision 9 in the planning phase.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
@@ -424,11 +372,11 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Format: Integer number
   Current value: 1
   Enter value (default: 1):
-  ```
+```
 
   次に、githubセルフホステッドランナーを使うかどうか聞かれますが、今回いらないので「false」でエンター
 
-  ```
+```
   [use_self_hosted_runners]
   Whether to deploy self-hosted GitHub Actions runners in Azure instead of using GitHub-hosted runners. See Decision 10 in the planning phase.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-10---choose-the-bootstrap-networking
@@ -436,11 +384,11 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Format: true or false
   Current value: true
   Enter value (default: true):false ←falseを入力
-  ```
+```
 
   次はそのままエンター
 
-  ```
+```
   [use_private_networking]
   Whether to use private networking for the bootstrap resources. When enabled, resources will use private endpoints and be isolated from the public internet. See Decision 10 in the planning phase.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-10---choose-the-bootstrap-networking
@@ -448,7 +396,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Format: true or false
   Current value: true
   Enter value (default: true):
-  ```
+```
 
   次はgithubのトークンを求められるので、さっきメモっておいたトークンを貼りましょう。
 　※忘れた人はもう一回発行してください。
@@ -508,6 +456,7 @@ The config file contains placeholders indicating the values are set via environm
 
 Would you like to open the config folder in VS Code? (Y/n):Y ←Yを入力
 ```
+
 そしたら「inputs.yaml」にこれまで入力してきた内容が書いてあるので確認しましょう！
 
 そして、これまでさんざん見てきた「platform-landing-zone.tfvars」がいよいよ登場です！
@@ -541,9 +490,11 @@ bastion = {
       }
     }
 ```
+
 追加し終わったら保存してエディタを閉じましょう！
 
 そして先ほどのPowerShellに戻ると、以下のように表示されているので「yes」を入力しましょう。
+
 ```
 Have you checked and updated the configuration files? Enter 'yes' to continue with deployment, or 'no' to exit and configure later:
 ```
