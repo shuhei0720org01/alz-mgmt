@@ -260,8 +260,9 @@ jobs:
 
 再利用可能ワークフローは、専用のテンプレートリポジトリに配置されています。
 実際に見てみましょう。
-テンプレート：https://github.com/shuhei0720org01/alz-mgmt-templates/tree/main/.github/workflows
-呼び出し側：https://github.com/shuhei0720org01/alz-mgmt/tree/main/.github/workflows
+
+- テンプレート：https://github.com/shuhei0720org01/alz-mgmt-templates/tree/main/.github/workflows
+- 呼び出し側：https://github.com/shuhei0720org01/alz-mgmt/tree/main/.github/workflows
 
 ```text title="リポジトリ構成"
 alz-mgmt-templates/
@@ -1874,7 +1875,7 @@ jobs:
 ## 練習問題の答え
 
 ### 答え1
-**同じワークフローを複数の環境で使い回せるから**です。
+同じワークフローを複数の環境で使い回せるからです。
 
 ```yaml
 # 再利用可能ワークフロー（.github/workflows/terraform.yml）
@@ -1915,7 +1916,7 @@ jobs:
 コードの重複を避けられます。
 
 ### 答え2
-**Pull Request作成時**と**mainブランチへのプッシュ前**です。
+Pull Request作成時とmainブランチへのプッシュ前です。
 
 ```yaml
 # PRでplan実行
@@ -1949,7 +1950,7 @@ jobs:
 ```
 
 ### 答え3
-**Environment Protection Rules**を使います。
+Environment Protection Rulesを使います。
 
 ```yaml
 # ワークフロー定義
@@ -1961,6 +1962,7 @@ jobs:
 ```
 
 GitHub Settings → Environments → production:
+
 - ✅ **Required reviewers**: 承認者を指定
 - ✅ **Wait timer**: デプロイ前の待機時間
 - ✅ **Deployment branches**: `main`ブランチのみ許可
