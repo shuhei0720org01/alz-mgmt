@@ -1,14 +1,8 @@
 # 15. Bootstrap Phase 2 - Landing Zonesのデプロイと検証
 
-!!! info "この章で学ぶこと"
-    Azure公式Bootstrap手順のPhase 2を実践します：
+## やってみよう
 
-    1. Landing Zonesのデプロイ
-    2. デプロイ後の検証
-    3. カスタマイズの実践
-    4. トラブルシューティング
-
-    この章を読めば、Landing Zonesが完全に稼働します。
+14章で準備は整ったので、この章でAzureにランディングゾーンを実際にデプロイしていきましょう！
 
 ---
 

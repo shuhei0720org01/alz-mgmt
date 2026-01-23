@@ -475,6 +475,14 @@ starter_locations = ["japaneast", "japanwest"]
 defender_email_security_contact = "replace_me@replace_me.com"
 ```
 
+次に、「ddos_protection_plan_enabled」を設定しましょう。
+
+ここをfalseにしないとめっちゃ金かかるのでここは絶対設定しましょう。
+
+```
+ddos_protection_plan_enabled = false
+```
+
 最後に一番下の方の「bastion」で以下のように設定しましょう。
 
 二か所にzones = [] を追加してください。
@@ -512,40 +520,53 @@ Do you want to proceed with the upgrade? (y/n):
 Do you want to proceed with the upgrade? (y/n):
 ```
 
-そうしたらスクリプトが動作し始めます！
+そうしたらスクリプトterrafromのプランで何がデプロイされるかがズラッと出てきます。
+
+少し待つと以下の確認画面になるので、Y を入力しましょう。
+
+```
+Confirm Terraform plan
+Please confirm you wish to apply the plan.
+[Y] Yes  [N] No  [?] Help (default is "Y"):
+```
 
 あなたが作成したgithubの組織を確認してみてください。コードがどんどん追加されていきます。
 
+![alt text](./img/image11.png)
+
+以下のようになれば実行成功です！
+
+```
+Time taken to complete Terraform apply:
+
+Days Hours Minutes Seconds Milliseconds
+---- ----- ------- ------- ------------
+0    0     4       43      452
+
+
+Bootstrap has completed successfully! Thanks for using our tool. Head over to Phase 3 in the documentation to continue...
+PS C:\Users\user>
+```
+
+次のパートで何が作成されたか確認していきましょう。
 
 
 ## Part 3: Phase 1デプロイ実行
 
-### State Storage作成
+### State Storage
 
 Terraform Stateを保存するAzure Storageが作成されます。
 
 === "作成されるリソース"
 
     ```text
-    Resource Group: alz-bootstrap-rg
-      └── Storage Account: stoalzmgmt001
-          └── Container: tfstate
+    Resource Group: rg-alz-mgmt-state-japaneast-001
+      └── Storage Account: stoalzmgmjap001xxxx
+          └── Container: mgmt-tfstate
               └── Blob: terraform.tfstate
     ```
 
-=== "確認方法"
-
-    ```bash title="Storage Accountの確認"
-    az storage account list \
-      --resource-group alz-bootstrap-rg \
-      --output table
-    ```
-    
-    ```bash title="Containerの確認"
-    az storage container list \
-      --account-name stoalzmgmt001 \
-      --output table
-    ```
+![alt text](./img/image12.png)
 
 !!! info "State Storageの役割"
     - Terraform Stateを安全に保存
@@ -559,30 +580,17 @@ OIDCで使用するManaged Identityが作成されます。
 === "作成されるIdentity"
 
     ```text
-    Resource Group: alz-identity-rg
-      ├── Managed Identity: alz-plan-identity
-      └── Managed Identity: alz-apply-identity
+    Resource Group: rg-alz-mgmt-identity-japaneast-001
+      ├── Managed Identity: id-alz-mgmt-japaneast-apply-001
+      └── Managed Identity: id-alz-mgmt-japaneast-plan-001
     ```
     
     **用途**:
     
-    - `alz-plan-identity`: Terraform Plan用（読み取り権限）
-    - `alz-apply-identity`: Terraform Apply用（書き込み権限）
+    - `id-alz-mgmt-japaneast-plan-001`: Terraform Plan用（読み取り権限）
+    - `id-alz-mgmt-japaneast-apply-001`: Terraform Apply用（書き込み権限）
 
-=== "確認方法"
-
-    ```bash title="Managed Identityの確認"
-    az identity list \
-      --resource-group alz-identity-rg \
-      --output table
-    ```
-    
-    ```bash title="Client IDの取得"
-    az identity show \
-      --name alz-plan-identity \
-      --resource-group alz-identity-rg \
-      --query clientId -o tsv
-    ```
+![alt text](./img/image13.png)
 
 ### Federated Credentialの設定
 
@@ -598,6 +606,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     Audiences: api://AzureADTokenExchange
     ```
 
+![alt text](./img/image14.png)
+
 === "Apply用Federated Credential"
 
     ```bash title="設定内容"
@@ -608,14 +618,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     Audiences: api://AzureADTokenExchange
     ```
 
-=== "確認方法"
+![alt text](./img/image15.png)
 
-    ```bash title="Federated Credentialの確認"
-    az identity federated-credential list \
-      --identity-name alz-plan-identity \
-      --resource-group alz-identity-rg \
-      --output table
-    ```
 
 !!! success "OIDCのメリット（再確認）"
     - パスワード不要
@@ -648,6 +652,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     - tfvars設定ファイル
     - CI/CD workflow呼び出し
 
+![alt text](./img/image16.png)
+
 === "alz-mgmt-templates（テンプレート）"
 
     **内容**:
@@ -663,6 +669,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     - 再利用可能ワークフロー
     - CI/CDロジック
 
+![alt text](./img/image17.png)
+
 === "GitHub Environments"
 
     **alz-mgmt-plan**:
@@ -670,86 +678,15 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     - Protection rules: なし（自動実行）
     - Variables:
         - `AZURE_CLIENT_ID`: Plan Identity
-        - `AZURE_TENANT_ID`: Tenant ID
-        - `AZURE_SUBSCRIPTION_ID`: Management Subscription
-        - Backend設定
     
     **alz-mgmt-apply**:
     
     - Protection rules: Required reviewers（承認必須）
     - Variables:
         - `AZURE_CLIENT_ID`: Apply Identity
-        - `AZURE_TENANT_ID`: Tenant ID
-        - `AZURE_SUBSCRIPTION_ID`: Management Subscription
-        - Backend設定
 
-### 検証手順
+![alt text](./img/image18.png)
 
-Bootstrap完了後、正しく設定されているか確認します。
-
-=== "リポジトリの確認"
-
-    ```bash title="ブラウザで確認"
-    # メインリポジトリ
-    https://github.com/<org>/alz-mgmt
-    
-    # テンプレートリポジトリ
-    https://github.com/<org>/alz-mgmt-templates
-    ```
-    
-    **確認項目**:
-    
-    - ✅ Terraformコードがある
-    - ✅ .github/workflows/ci.yaml がある
-    - ✅ .github/workflows/cd.yaml がある
-
-=== "Managed Identityの確認"
-
-    ```bash title="権限の確認"
-    # Plan Identityの権限（Reader）
-    az role assignment list \
-      --assignee <plan-identity-client-id> \
-      --all
-    
-    # Apply Identityの権限（Contributor）
-    az role assignment list \
-      --assignee <apply-identity-client-id> \
-      --all
-    ```
-
-=== "GitHub Environments確認"
-
-    ```text
-    GitHub → Settings → Environments
-    
-    ✓ alz-mgmt-plan
-      - Protection rules: なし
-      - Variables: 6個
-    
-    ✓ alz-mgmt-apply
-      - Protection rules: Required reviewers
-      - Variables: 6個
-    ```
-
-=== "Workflow確認"
-
-    ```bash title="ローカルにclone"
-    git clone https://github.com/<org>/alz-mgmt.git
-    cd alz-mgmt
-    
-    # ファイル構成確認
-    tree -L 2
-    ```
-    
-    ```text title="期待される構成"
-    alz-mgmt/
-    ├── .github/
-    │   └── workflows/
-    ├── main.tf
-    ├── variables.tf
-    ├── terraform.tfvars
-    └── lib/
-    ```
 
 !!! success "Phase 1完了チェックリスト"
     - ✅ State Storage作成済み
@@ -769,8 +706,7 @@ Bootstrap完了後、正しく設定されているか確認します。
 
 - PowerShell 7.4+、Azure CLI 2.55+、Gitのインストール
 - 4つのAzure Subscriptionの準備
-- Owner権限の確認
-- Version Control Systemの選択（GitHub推奨）
+- GitHubの準備
 
 ### ✅ Part 2: Bootstrap環境のセットアップ
 
@@ -784,7 +720,6 @@ Bootstrap完了後、正しく設定されているか確認します。
 - Managed Identity作成
 - Federated Credential設定
 - GitHub Repository/Actions作成
-- 検証手順
 
 次の章では、実際にLanding Zonesをデプロイします（Phase 2）。
 
