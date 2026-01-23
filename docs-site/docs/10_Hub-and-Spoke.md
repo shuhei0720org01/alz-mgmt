@@ -1482,396 +1482,6 @@ locals {
 - `merge()`でFirewall設定、Subnet設定を統合
 - IPアドレス範囲を自動計算（未指定なら10.0.0.0/16、10.1.0.0/16、...）
 
-### locals.firewall.tf - Firewall設定の組み立て
-
-```tf title="locals.firewall.tf（抜粋）"
-locals {
-  firewall_default_ip_configuration = {
-    for key, value in var.hub_virtual_networks : key => merge(value.firewall.default_ip_configuration, {
-      name = coalesce(value.firewall.default_ip_configuration.name, "default")
-      public_ip_config = merge(value.firewall.default_ip_configuration.public_ip_config, {
-        name  = coalesce(value.firewall.default_ip_configuration.public_ip_config.name, local.default_names[key].firewall_public_ip_name)
-        zones = coalesce(value.firewall.default_ip_configuration.public_ip_config.zones, local.availability_zones[key])
-      })
-    })
-  }
-  firewall_enabled = { for key, value in var.hub_virtual_networks : key => value.enabled_resources.firewall }
-  firewalls = { for key, value in var.hub_virtual_networks : key => local.firewall_enabled[key] ? merge(value.firewall, {
-    name                             = coalesce(value.firewall.name, local.default_names[key].firewall_name)
-    firewall_policy                  = local.firewall_policies[key]
-    subnet_address_prefix            = coalesce(value.firewall.subnet_address_prefix, local.virtual_network_subnet_default_ip_prefixes[key]["firewall"])
-    management_subnet_address_prefix = coalesce(value.firewall.management_subnet_address_prefix, local.virtual_network_subnet_default_ip_prefixes[key]["firewall_management"])
-    default_ip_configuration         = local.firewall_default_ip_configuration[key]
-    management_ip_configuration      = local.firewall_management_ip_configuration[key]
-    ip_configurations                = local.firewall_ip_configurations[key]
-    tags                             = coalesce(value.firewall.tags, var.tags, {})
-    zones                            = coalesce(value.firewall.zones, local.availability_zones[key])
-  }) : null }
-}
-```
-
-**何をしてる？**
-
-Firewall設定を組み立ててる。
-
-**処理内容**：
-
-- `firewall_enabled`：Firewallが有効かチェック
-- `firewall_default_ip_configuration`：デフォルトIP設定（Public IP名、Zones）
-- `firewalls`：全Firewall設定を統合（名前、Subnet、ポリシー、IP設定）
-
-**Zones自動設定**：
-
-```tf
-zones = coalesce(value.firewall.zones, local.availability_zones[key])
-```
-
-ユーザーが`zones`を指定してなければ、`local.availability_zones[key]`を適用。リージョンがAvailability Zones非対応なら空リスト、対応なら`["1", "2", "3"]`。
-
-### locals.bastion.tf - Bastion設定の組み立て
-
-```tf title="locals.bastion.tf（抜粋）"
-locals {
-  bastions_enabled = { for key, value in var.hub_virtual_networks : key => value.enabled_resources.bastion }
-}
-
-locals {
-  bastion_host_public_ips = {
-    for key, value in var.hub_virtual_networks : key => {
-      name                = coalesce(value.bastion.bastion_public_ip.name, local.default_names[key].bastion_host_public_ip_name)
-      location            = value.location
-      resource_group_name = coalesce(value.bastion.bastion_public_ip.resource_group_name, value.bastion.resource_group_name, local.hub_virtual_networks_resource_group_names[key])
-      tags                = coalesce(value.bastion.bastion_public_ip.tags, var.tags, {})
-      zones               = coalesce(value.bastion.bastion_public_ip.zones, local.availability_zones[key])
-      public_ip_settings  = value.bastion.bastion_public_ip
-    } if local.bastions_enabled[key]
-  }
-  bastion_hosts = {
-    for key, value in var.hub_virtual_networks : key => {
-      name                       = coalesce(value.bastion.name, local.default_names[key].bastion_host_name)
-      location                   = value.location
-      resource_group_name        = coalesce(value.bastion.resource_group_name, local.hub_virtual_networks_resource_group_names[key])
-      ...
-    } if local.bastions_enabled[key]
-  }
-}
-```
-
-**何をしてる？**
-
-Bastion設定を組み立ててる。
-
-**処理内容**：
-
-- `bastions_enabled`：Bastionが有効かチェック
-- `bastion_host_public_ips`：Bastion用Public IP設定（名前、Zones、location）
-- `bastion_hosts`：Bastion本体の設定
-
-**if文で絞り込み**：`if local.bastions_enabled[key]`でBastion有効なHubだけ処理。
-
-### locals.gateways.tf - Gateway設定の組み立て
-
-```tf title="locals.gateways.tf（抜粋）"
-locals {
-  virtual_network_gateways = merge(local.virtual_network_gateways_express_route, local.virtual_network_gateways_vpn)
-  virtual_network_gateways_express_route = {
-    for hub_network_key, hub_network_value in var.hub_virtual_networks : "${hub_network_key}-express-route" => {
-      name                              = coalesce(hub_network_value.virtual_network_gateways.express_route.name, local.default_names[hub_network_key].virtual_network_gateway_express_route_name)
-      virtual_network_gateway_subnet_id = module.hub_and_spoke_vnet.virtual_networks[hub_network_key].subnets["${hub_network_key}-gateway"].resource_id
-      parent_id                         = coalesce(hub_network_value.virtual_network_gateways.express_route.parent_id, hub_network_value.hub_virtual_network.parent_id, hub_network_value.default_parent_id)
-      tags                              = coalesce(hub_network_value.virtual_network_gateways.express_route.tags, var.tags, {})
-      ip_configurations                 = local.virtual_network_gateways_express_route_ip_configurations[hub_network_key]
-      virtual_network_gateway           = hub_network_value.virtual_network_gateways.express_route
-    } if hub_network_value.enabled_resources.virtual_network_gateway_express_route
-  }
-  virtual_network_gateways_vpn = {
-    for hub_network_key, hub_network_value in var.hub_virtual_networks : "${hub_network_key}-vpn" => {
-      name                              = coalesce(hub_network_value.virtual_network_gateways.vpn.name, local.default_names[hub_network_key].virtual_network_gateway_vpn_name)
-      virtual_network_gateway_subnet_id = module.hub_and_spoke_vnet.virtual_networks[hub_network_key].subnets["${hub_network_key}-gateway"].resource_id
-      parent_id                         = coalesce(hub_network_value.virtual_network_gateways.vpn.parent_id, hub_network_value.hub_virtual_network.parent_id, hub_network_value.default_parent_id)
-      tags                              = coalesce(hub_network_value.virtual_network_gateways.vpn.tags, var.tags, {})
-      ip_configurations                 = local.virtual_network_gateways_vpn_ip_configurations[hub_network_key]
-      virtual_network_gateway           = hub_network_value.virtual_network_gateways.vpn
-    } if hub_network_value.enabled_resources.virtual_network_gateway_vpn
-  }
-}
-```
-
-**何をしてる？**
-
-VPN GatewayとExpressRoute Gateway設定を組み立ててる。
-
-**処理内容**：
-
-- `virtual_network_gateways_express_route`：ExpressRoute Gateway設定
-- `virtual_network_gateways_vpn`：VPN Gateway設定
-- `merge()`で2つを統合して`virtual_network_gateways`に
-
-**for_each用のキー**：`"${hub_network_key}-express-route"`や`"${hub_network_key}-vpn"`でユニークキー生成。
-
-**GatewaySubnetの参照**：
-
-```tf
-virtual_network_gateway_subnet_id = module.hub_and_spoke_vnet.virtual_networks[hub_network_key].subnets["${hub_network_key}-gateway"].resource_id
-```
-
-サブモジュールが作成したGatewaySubnetのIDを取得して渡してる。
-
-### main.ip_ranges.tf - IPアドレス範囲の自動計算
-
-```tf title="main.ip_ranges.tf（抜粋）"
-locals {
-  virtual_network_default_ip_prefix_size = 22
-  virtual_network_subnet_default_ip_prefix_sizes = {
-    bastion             = 26
-    firewall            = 26
-    firewall_management = 26
-    gateway             = 27
-    dns_resolver        = 28
-  }
-}
-
-locals {
-  virtual_network_default_ip_prefix_input = {
-    for key, value in var.hub_virtual_networks : key => {
-      address_space = value.default_hub_address_space == null ? "10.${index(keys(var.hub_virtual_networks), key)}.0.0/16" : value.default_hub_address_space
-      address_prefixes = {
-        hub = local.virtual_network_default_ip_prefix_size
-      }
-    }
-  }
-}
-
-module "virtual_network_ip_prefixes" {
-  source   = "Azure/avm-utl-network-ip-addresses/azurerm"
-  version  = "0.1.0"
-  for_each = local.virtual_network_default_ip_prefix_input
-
-  address_prefixes = each.value.address_prefixes
-  address_space    = each.value.address_space
-}
-```
-
-**何をしてる？**
-
-Hub VNetとサブネットのIPアドレス範囲を自動計算してる。
-
-**自動計算ロジック**：
-
-```
-Hub未指定の場合：
-primary   → 10.0.0.0/16
-secondary → 10.1.0.0/16
-tertiary  → 10.2.0.0/16
-...
-
-各サブネット：
-bastion             → /26（64 IP）
-firewall            → /26（64 IP）
-firewall_management → /26（64 IP）
-gateway             → /27（32 IP）
-dns_resolver        → /28（16 IP）
-```
-
-**ユーティリティモジュール**：`Azure/avm-utl-network-ip-addresses/azurerm`でCIDR計算を委譲。
-
-### modules/hub-virtual-network-mesh/main.tf - Hub VNet作成
-
-```tf title="modules/hub-virtual-network-mesh/main.tf（抜粋）"
-module "hub_virtual_networks" {
-  source   = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version  = "0.15.0"
-  for_each = var.hub_virtual_networks
-
-  location      = each.value.location
-  parent_id     = each.value.parent_id
-  address_space = each.value.address_space
-  ddos_protection_plan = each.value.ddos_protection_plan_id == null ? null : {
-    id     = each.value.ddos_protection_plan_id
-    enable = true
-  }
-  dns_servers = each.value.dns_servers == null ? null : {
-    dns_servers = each.value.dns_servers
-  }
-  enable_telemetry        = var.enable_telemetry
-  flow_timeout_in_minutes = each.value.flow_timeout_in_minutes
-  name                    = each.value.name
-  retry                   = var.retry
-  tags                    = each.value.tags == null ? var.tags : each.value.tags
-  timeouts                = var.timeouts
-}
-
-module "hub_virtual_network_subnets" {
-  source   = "Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet"
-  version  = "0.15.0"
-  for_each = local.virtual_network_subnets
-
-  virtual_network = {
-    resource_id = local.virtual_network_id[each.value.virtual_network_key]
-  }
-  name             = each.value.name
-  address_prefixes = each.value.address_prefixes
-  ...
-}
-```
-
-**何をしてる？**
-
-Hub VNetとサブネットを作成してる。
-
-**処理内容**：
-
-1. `hub_virtual_networks`：Hub VNet作成（`for_each`で複数Hub対応）
-2. `hub_virtual_network_subnets`：サブネット作成（Firewall、Bastion、Gateway等）
-
-**公式サブモジュール呼び出し**：`Azure/avm-res-network-virtualnetwork/azurerm`を使ってVNet作成。
-
-### modules/hub-virtual-network-mesh/main.firewall.tf - Firewall作成
-
-```tf title="modules/hub-virtual-network-mesh/main.firewall.tf（抜粋）"
-module "hub_firewalls" {
-  source   = "Azure/avm-res-network-azurefirewall/azurerm"
-  version  = "0.4.0"
-  for_each = local.firewalls
-
-  firewall_sku_name   = each.value.sku_name
-  firewall_sku_tier   = each.value.sku_tier
-  location            = var.hub_virtual_networks[each.key].location
-  name                = each.value.name
-  resource_group_name = each.value.resource_group_name
-  enable_telemetry    = var.enable_telemetry
-  firewall_management_ip_configuration = each.value.management_ip_enabled ? {
-    name                 = try(each.value.management_ip_configuration.name, null)
-    public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)
-    subnet_id            = try(module.hub_virtual_network_subnets["${each.key}-${local.firewall_management_subnet_name}"].resource_id, null)
-  } : null
-  firewall_policy_id         = each.value.firewall_policy_id
-  firewall_private_ip_ranges = each.value.private_ip_ranges
-  firewall_subnet_id         = try(module.hub_virtual_network_subnets["${each.key}-${local.firewall_subnet_name}"].resource_id, null)
-  firewall_tags              = each.value.tags
-  firewall_zones             = each.value.zones
-  ...
-}
-
-module "fw_policies" {
-  source   = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version  = "0.5.1"
-  for_each = local.firewall_policies
-
-  location                                          = var.hub_virtual_networks[each.key].location
-  name                                              = each.value.name
-  resource_group_name                               = each.value.resource_group_name
-  enable_telemetry                                  = var.enable_telemetry
-  firewall_policy_auto_learn_private_ranges_enabled = each.value.auto_learn_private_ranges_enabled
-  firewall_policy_base_policy_id                    = each.value.base_policy_id
-  firewall_policy_dns                               = each.value.dns
-  firewall_policy_explicit_proxy                    = each.value.explicit_proxy
-  firewall_policy_identity                          = each.value.identity
-  firewall_policy_insights                          = each.value.insights
-  firewall_policy_intrusion_detection               = each.value.intrusion_detection
-  firewall_policy_private_ip_ranges                 = each.value.private_ip_ranges
-  firewall_policy_sku                               = each.value.sku
-  firewall_policy_sql_redirect_allowed              = each.value.sql_redirect_allowed
-  firewall_policy_threat_intelligence_allowlist     = each.value.threat_intelligence_allowlist
-  firewall_policy_threat_intelligence_mode          = each.value.threat_intelligence_mode
-  firewall_policy_timeouts                          = var.timeouts
-  ...
-}
-```
-
-**何をしてる？**
-
-Azure FirewallとFirewall Policyを作成してる。
-
-**処理内容**：
-
-1. `hub_firewalls`：Azure Firewall作成（`for_each`で複数Hub対応）
-2. `fw_policies`：Firewall Policy作成
-
-**Management IP設定**：
-
-```tf
-firewall_management_ip_configuration = each.value.management_ip_enabled ? {
-  name                 = try(each.value.management_ip_configuration.name, null)
-  public_ip_address_id = try(module.fw_management_ips[each.key].public_ip_id, null)
-  subnet_id            = try(module.hub_virtual_network_subnets["${each.key}-${local.firewall_management_subnet_name}"].resource_id, null)
-} : null
-```
-
-`management_ip_enabled`がtrueの場合のみManagement IP設定を追加。falseならnull。
-
-### modules/hub-virtual-network-mesh/main.routing.tf - Route Table作成
-
-```tf title="modules/hub-virtual-network-mesh/main.routing.tf（抜粋）"
-module "hub_routing_firewall" {
-  source   = "Azure/avm-res-network-routetable/azurerm"
-  version  = "0.3.1"
-  for_each = local.route_tables_firewall
-
-  location                      = each.value.location
-  name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name_firewall, "rt-firewall-${each.key}")
-  resource_group_name           = local.resource_group_names[each.key]
-  bgp_route_propagation_enabled = true
-  enable_telemetry              = var.enable_telemetry
-  tags                          = each.value.tags == null ? var.tags : each.value.tags
-}
-
-resource "azurerm_route" "firewall_default" {
-  for_each = local.default_route_internet
-
-  address_prefix         = each.value.address_prefix
-  name                   = each.value.name
-  next_hop_type          = each.value.next_hop_type
-  resource_group_name    = each.value.resource_group_name
-  route_table_name       = module.hub_routing_firewall[each.value.virtual_network_key].name
-  next_hop_in_ip_address = each.value.next_hop_in_ip_address
-}
-
-resource "azurerm_route" "firewall_mesh" {
-  for_each = local.final_route_map_firewall
-
-  address_prefix         = each.value.address_prefix
-  name                   = each.value.name
-  next_hop_type          = each.value.next_hop_type
-  resource_group_name    = each.value.resource_group_name
-  route_table_name       = module.hub_routing_firewall[each.value.virtual_network_key].name
-  next_hop_in_ip_address = each.value.next_hop_in_ip_address
-}
-
-module "hub_routing_user_subnets" {
-  source   = "Azure/avm-res-network-routetable/azurerm"
-  version  = "0.3.1"
-  for_each = local.route_tables_user_subnets
-
-  location                      = each.value.location
-  name                          = coalesce(var.hub_virtual_networks[each.key].route_table_name_user_subnets, "rt-user-subnets-${each.key}")
-  resource_group_name           = local.resource_group_names[each.key]
-  bgp_route_propagation_enabled = false
-  enable_telemetry              = var.enable_telemetry
-  tags                          = each.value.tags == null ? var.tags : each.value.tags
-}
-```
-
-**何をしてる？**
-
-Route Table（ルートテーブル）を作成してる。
-
-**処理内容**：
-
-1. `hub_routing_firewall`：Firewallサブネット用Route Table（BGP有効）
-2. `firewall_default`：デフォルトルート（0.0.0.0/0 → Internet）
-3. `firewall_mesh`：Hub間ルート（他のHub VNetへのルート）
-4. `hub_routing_user_subnets`：ユーザーサブネット用Route Table（BGP無効）
-
-**BGP Route Propagation**：
-
-```
-Firewall用：bgp_route_propagation_enabled = true
-User Subnet用：bgp_route_propagation_enabled = false
-```
-
-Firewallサブネットは動的ルート学習を有効化、ユーザーサブネットは無効化。
-
 ### outputs.tf - モジュール出力
 
 ```tf title="outputs.tf（抜粋）"
@@ -2154,14 +1764,18 @@ graph TD
 3. **locals.tf**：config出力とリソースグループ情報をマージ、公式モジュール用に整形
 4. **main.tf**：公式モジュール呼び出し（hub_and_spoke_vnet、virtual_network_gateway等）
 5. **サブモジュール**：
+
    - `hub-virtual-network-mesh`：Hub VNet、Firewall、Route Table作成
    - `virtual-network-gateway`：VPN Gateway、ExpressRoute Gateway作成
    - 追加モジュール：Bastion、DDoS、Private DNS作成
+
 6. **Azureリソース作成**：各サブモジュールが実際のリソースを作成
 
 ---
 
 ## Part 5: 実践パターン集
+
+tfvarsの設定をカスタマイズする例を見ていきましょう。
 
 ### パターン1：最小構成（ネットワークだけ）
 
@@ -2555,7 +2169,6 @@ terraform apply
 - Firewallでセキュリティ集約
 - VPN Gatewayでオンプレ接続
 - Bastionで安全なVM接続
-- Japan regionは`zones = []`必須
 - コスト削減：不要なリソースは無効化
 
 
@@ -2573,9 +2186,6 @@ Hub-and-Spokeアーキテクチャで、「Hub」の役割は何ですか？
 Azure FirewallのSKUを3つ挙げ、それぞれの特徴を簡単に説明してください。
 
 ### 問題3
-Japan East/Westリージョンでデプロイする際、なぜ`zones = []`にする必要がありますか？
-
-### 問題4
 VPN GatewayとExpressRoute Gatewayの違いは何ですか？
 
 ---
@@ -2586,6 +2196,7 @@ VPN GatewayとExpressRoute Gatewayの違いは何ですか？
 Hubの役割は、**中央集約ポイント**として機能することです：
 
 **主な機能**：
+
 - すべてのトラフィックの集約・制御
 - Firewallでセキュリティ検査
 - On-premises接続の終端（VPN/ExpressRoute）
@@ -2598,43 +2209,29 @@ Spoke VNetは直接通信せず、必ずHub経由で通信します（Hub-and-Sp
 Azure FirewallのSKU：
 
 **1. Basic**：
+
 - 月額：~5万円
 - スループット：最大250 Mbps
 - 用途：小規模・開発環境
 
 **2. Standard**：
+
 - 月額：~15万円
 - スループット：最大30 Gbps
 - 機能：脅威インテリジェンス、FQDNフィルタリング
 - 用途：本番環境（一般的）
 
 **3. Premium**：
+
 - 月額：~35万円
 - スループット：最大100 Gbps
 - 機能：TLS検査、IDPS、URL filtering
 - 用途：高セキュリティ要件の環境
 
+
 ### 答え3
-Japan East/WestリージョンはAvailability Zones（AZ）をサポートしていないためです。
-
-**Availability Zonesとは**：
-- データセンターを物理的に分離したゾーン
-- 冗長性・高可用性を実現
-
-**Japan Eastで`zones = [1, 2, 3]`にすると**：
-```
-Error: Availability Zones are not supported in Japan East
-```
-
-**対処法**：
-```hcl
-zones = []  # 空配列にする
-```
-
-これでAZ機能を無効化し、通常のデプロイになります。
-
-### 答え4
 **VPN Gateway**：
+
 - **接続方法**：インターネット経由（暗号化）
 - **帯域幅**：最大10 Gbps
 - **月額コスト**：~2.7万円～
@@ -2642,6 +2239,7 @@ zones = []  # 空配列にする
 - **設定**：比較的簡単
 
 **ExpressRoute Gateway**：
+
 - **接続方法**：専用線（インターネット未経由）
 - **帯域幅**：最大100 Gbps
 - **月額コスト**：~5万円～ + 回線費用
@@ -2649,6 +2247,7 @@ zones = []  # 空配列にする
 - **設定**：通信事業者との契約が必要
 
 **使い分け**：
+
 - コスト重視・小規模 → VPN Gateway
 - 帯域・品質重視・大規模 → ExpressRoute
 
