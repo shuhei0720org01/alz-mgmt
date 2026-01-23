@@ -387,6 +387,7 @@ locals {
 - `locals.resource_group_name`：作成/既存を統一的に扱う
 
 **使い分け**：
+
 - `create_resource_group = true`：新規作成
 - `create_resource_group = false`：既存リソースグループ使用
 
@@ -2369,429 +2370,6 @@ Virtual WANモジュールの理解が深まったでしょうか？重要なポ
 - **大規模（100+ VNet）**: Virtual WAN型が管理しやすい
 - **グローバル展開**: Virtual WAN型が最適（自動メッシュ接続）
 
-## Part 9: 実践パターン集
-
-実際の構成パターンを見ていきましょう。
-
-### パターン1: 最小構成（VNetのみ）
-
-```hcl title="platform-landing-zone.auto.tfvars"
-connectivity_type = "virtual_wan"
-
-virtual_wan_settings = {
-  virtual_wan = {
-    name                = "vwan-hub-japaneast-001"
-    resource_group_name = "rg-connectivity-vwan"
-    location            = "japaneast"
-  }
-}
-
-virtual_hubs = {
-  primary = {
-    enabled_resources = {
-      firewall                              = false
-      virtual_network_gateway_express_route = false
-      virtual_network_gateway_vpn           = false
-      sidecar_virtual_network               = false
-      bastion                               = false
-    }
-    location = "japaneast"
-    hub = {
-      name                                   = "vhub-hub-japaneast-001"
-      address_prefix                         = "10.0.0.0/23"
-      virtual_router_auto_scale_min_capacity = 2
-    }
-    virtual_network_connections = {
-      spoke1 = {
-        name                      = "vnet-conn-spoke1"
-        remote_virtual_network_id = "/subscriptions/.../vnet-spoke1"
-      }
-    }
-  }
-}
-```
-
-**構成内容**:
-
-- Virtual WAN + Virtual Hub + VNet接続のみ
-- Firewall、Gateway、Bastionなし
-- **月額コスト**: ~5.4万円（Virtual Hub 2 Unit）
-
-### パターン2: Firewall + VPN Gateway
-
-```hcl title="platform-landing-zone.auto.tfvars"
-connectivity_type = "virtual_wan"
-
-virtual_wan_settings = {
-  virtual_wan = {
-    name                = "vwan-hub-japaneast-001"
-    resource_group_name = "rg-connectivity-vwan"
-    location            = "japaneast"
-  }
-}
-
-virtual_hubs = {
-  primary = {
-    enabled_resources = {
-      firewall                              = true
-      firewall_policy                       = true
-      virtual_network_gateway_express_route = false
-      virtual_network_gateway_vpn           = true
-      sidecar_virtual_network               = true
-      bastion                               = true
-    }
-    location = "japaneast"
-    hub = {
-      name                                   = "vhub-hub-japaneast-001"
-      address_prefix                         = "10.0.0.0/23"
-      virtual_router_auto_scale_min_capacity = 2
-    }
-    firewall = {
-      name                 = "fw-hub-japaneast-001"
-      sku_tier             = "Standard"
-      vhub_public_ip_count = 1
-    }
-    firewall_policy = {
-      name                     = "fwp-hub-japaneast-001"
-      threat_intelligence_mode = "Deny"
-    }
-    virtual_network_gateways = {
-      vpn = {
-        name       = "vpngw-hub-japaneast-001"
-        scale_unit = 1
-      }
-    }
-    vpn_sites = {
-      tokyo_office = {
-        name = "vpnsite-tokyo"
-        links = [
-          {
-            name       = "primary"
-            ip_address = "203.0.113.10"
-          }
-        ]
-        address_cidrs = ["192.168.1.0/24"]
-      }
-    }
-    routing_intents = {
-      all = {
-        name = "routing-intent-all"
-        routing_policies = [
-          {
-            name                  = "InternetTraffic"
-            destinations          = ["Internet"]
-            next_hop_firewall_key = "primary"
-          },
-          {
-            name                  = "PrivateTraffic"
-            destinations          = ["PrivateTraffic"]
-            next_hop_firewall_key = "primary"
-          }
-        ]
-      }
-    }
-    sidecar_virtual_network = {
-      name          = "vnet-sidecar-japaneast-001"
-      address_space = ["10.0.1.0/24"]
-    }
-    bastion = {
-      name = "bas-hub-japaneast-001"
-      sku  = "Standard"
-    }
-  }
-}
-```
-
-**構成内容**:
-
-- Virtual WAN + Virtual Hub
-- Firewall Standard + Routing Intent（全トラフィック検査）
-- VPN Gateway 1 Unit（On-premises接続）
-- Bastion Standard（Sidecar VNet内）
-- **月額コスト**: ~29万円
-  - Virtual Hub 2 Unit: ~5.4万円
-  - Firewall Standard: ~15万円
-  - VPN Gateway 1 Unit: ~2.7万円
-  - Bastion Standard: ~1.5万円
-  - Sidecar VNet: ~0.3万円
-
-### パターン3: ExpressRoute + マルチリージョン
-
-```hcl title="platform-landing-zone.auto.tfvars"
-connectivity_type = "virtual_wan"
-
-virtual_wan_settings = {
-  virtual_wan = {
-    name                = "vwan-hub-japaneast-001"
-    resource_group_name = "rg-connectivity-vwan"
-    location            = "japaneast"
-  }
-}
-
-virtual_hubs = {
-  primary = {
-    enabled_resources = {
-      firewall                              = true
-      firewall_policy                       = true
-      virtual_network_gateway_express_route = true
-      virtual_network_gateway_vpn           = false
-      sidecar_virtual_network               = true
-      bastion                               = true
-    }
-    location = "japaneast"
-    hub = {
-      name                                   = "vhub-hub-japaneast-001"
-      address_prefix                         = "10.0.0.0/23"
-      hub_routing_preference                 = "ExpressRoute"
-      virtual_router_auto_scale_min_capacity = 2
-    }
-    firewall = {
-      name                 = "fw-hub-japaneast-001"
-      sku_tier             = "Standard"
-      vhub_public_ip_count = 1
-    }
-    virtual_network_gateways = {
-      express_route = {
-        name        = "ergw-hub-japaneast-001"
-        scale_units = 2
-      }
-    }
-    express_route_circuit_connections = {
-      hq_connection = {
-        name                             = "er-conn-hq"
-        express_route_circuit_peering_id = "/subscriptions/.../peerings/AzurePrivatePeering"
-      }
-    }
-  }
-  
-  secondary = {
-    enabled_resources = {
-      firewall                              = true
-      firewall_policy                       = true
-      virtual_network_gateway_express_route = true
-      virtual_network_gateway_vpn           = false
-      sidecar_virtual_network               = true
-      bastion                               = true
-    }
-    location = "japanwest"
-    hub = {
-      name                                   = "vhub-hub-japanwest-001"
-      address_prefix                         = "10.1.0.0/23"
-      hub_routing_preference                 = "ExpressRoute"
-      virtual_router_auto_scale_min_capacity = 2
-    }
-    firewall = {
-      name                 = "fw-hub-japanwest-001"
-      sku_tier             = "Standard"
-      vhub_public_ip_count = 1
-    }
-    virtual_network_gateways = {
-      express_route = {
-        name        = "ergw-hub-japanwest-001"
-        scale_units = 2
-      }
-    }
-  }
-}
-```
-
-**構成内容**:
-
-- Virtual WAN（グローバル1つ）
-- Virtual Hub × 2（東日本、西日本）
-- Hub間は自動メッシュ接続（Microsoftバックボーン経由）
-- Firewall Standard × 2
-- ExpressRoute Gateway 2 Unit × 2
-- Bastion × 2
-- **月額コスト**: ~58万円
-  - Virtual Hub 2 Unit × 2: ~10.8万円
-  - Firewall Standard × 2: ~30万円
-  - ExpressRoute Gateway 2 Unit × 2: ~10.8万円
-  - Bastion Standard × 2: ~3万円
-  - その他: ~3.4万円
-
-**メリット**:
-
-- リージョン間が自動接続（設定不要）
-- DR（災害復旧）対応
-- ExpressRouteでOn-premises高速接続
-
-### パターン4: 開発環境分離（カスタムルートテーブル）
-
-```hcl title="platform-landing-zone.auto.tfvars"
-virtual_hubs = {
-  primary = {
-    # カスタムルートテーブル定義
-    custom_route_tables = {
-      production = {
-        name   = "rt-production"
-        labels = ["production"]
-      }
-      development = {
-        name   = "rt-development"
-        labels = ["development"]
-      }
-      shared = {
-        name   = "rt-shared"
-        labels = ["shared"]
-      }
-    }
-    
-    # VNet接続
-    virtual_network_connections = {
-      spoke_prod_web = {
-        name                      = "vnet-conn-prod-web"
-        remote_virtual_network_id = "/subscriptions/.../vnet-prod-web"
-        routing = {
-          associated_route_table_key = "production"
-          propagated_route_table = {
-            labels = ["production", "shared"]  # 本番とSharedにルート伝播
-          }
-        }
-      }
-      spoke_prod_db = {
-        name                      = "vnet-conn-prod-db"
-        remote_virtual_network_id = "/subscriptions/.../vnet-prod-db"
-        routing = {
-          associated_route_table_key = "production"
-          propagated_route_table = {
-            labels = ["production"]  # 本番のみにルート伝播
-          }
-        }
-      }
-      spoke_dev_web = {
-        name                      = "vnet-conn-dev-web"
-        remote_virtual_network_id = "/subscriptions/.../vnet-dev-web"
-        routing = {
-          associated_route_table_key = "development"
-          propagated_route_table = {
-            labels = ["development", "shared"]  # 開発とSharedにルート伝播
-          }
-        }
-      }
-      spoke_shared = {
-        name                      = "vnet-conn-shared"
-        remote_virtual_network_id = "/subscriptions/.../vnet-shared"
-        routing = {
-          associated_route_table_key = "shared"
-          propagated_route_table = {
-            labels = ["production", "development", "shared"]  # 全環境にルート伝播
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**何してる？**:
-
-- **本番環境**: `production`ルートテーブル
-  - 本番VNet同士は通信可能
-  - Shared VNet（Jump Server、Monitoringなど）とも通信可能
-  - 開発VNetとは**通信不可**
-- **開発環境**: `development`ルートテーブル
-  - 開発VNet同士は通信可能
-  - Shared VNetとも通信可能
-  - 本番VNetとは**通信不可**
-- **共有環境**: `shared`ルートテーブル
-  - すべての環境と通信可能
-
-### パターン5: インターネットトラフィックのみFirewall経由（コスト削減）
-
-```hcl title="platform-landing-zone.auto.tfvars"
-virtual_hubs = {
-  primary = {
-    enabled_resources = {
-      firewall        = true
-      firewall_policy = true
-      # ...他の設定
-    }
-    routing_intents = {
-      internet_only = {
-        name = "routing-intent-internet"
-        routing_policies = [
-          {
-            name                  = "InternetTraffic"
-            destinations          = ["Internet"]
-            next_hop_firewall_key = "primary"
-          }
-          # PrivateTrafficは設定しない
-        ]
-      }
-    }
-  }
-}
-```
-
-**何してる？**:
-
-- インターネット向けトラフィック（`0.0.0.0/0`）だけFirewall経由
-- VNet間、On-premisesトラフィックは直接通信（Firewall不要）
-- **Firewallのスループット削減 → コスト削減**
-
-**月額コスト削減例**:
-
-- すべてのトラフィックをFirewall経由: Firewall Standard（~15万円/月）
-- インターネットのみFirewall経由: Firewall Basic（~5万円/月）で十分
-- **差額: 10万円/月の削減**
-
-### パターン6: NVA（Network Virtual Appliance）統合
-
-```hcl title="platform-landing-zone.auto.tfvars"
-virtual_hubs = {
-  primary = {
-    virtual_network_connections = {
-      spoke_nva = {
-        name                      = "vnet-conn-nva"
-        remote_virtual_network_id = "/subscriptions/.../vnet-nva"
-        routing = {
-          static_vnet_route = {
-            name                = "route-to-nva"
-            address_prefixes    = ["10.0.0.0/8"]
-            next_hop_ip_address = "10.2.0.4"  # NVAのPrivate IP
-          }
-        }
-      }
-      spoke_workload = {
-        name                      = "vnet-conn-workload"
-        remote_virtual_network_id = "/subscriptions/.../vnet-workload"
-        routing = {
-          associated_route_table_key = "custom_via_nva"
-        }
-      }
-    }
-    
-    custom_route_tables = {
-      custom_via_nva = {
-        name = "rt-via-nva"
-        routes = {
-          to_nva = {
-            name                = "route-to-nva"
-            destinations        = ["10.0.0.0/8"]
-            destinations_type   = "CIDR"
-            vnet_connection_key = "spoke_nva"  # NVA VNet経由
-            next_hop_type       = "ResourceId"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**何してる？**:
-
-- Azure FirewallではなくサードパーティNVA（Palo Alto、Fortinet等）を使う
-- NVA VNetへの静的ルート設定
-- Workload VNetからのトラフィックをNVA経由にする
-
-**用途**:
-
-- 既存のNVAライセンスを活用
-- Azure Firewallにない機能が必要
-- マルチクラウド統一管理
-
 ---
 
 ## 練習問題
@@ -2818,18 +2396,22 @@ Routing Intentの2つのルーティングポリシーは何ですか？
 Virtual WANとHub-and-Spokeの主な違い：
 
 **1. 管理方法**：
+
 - Hub-and-Spoke：手動管理（VNet、Peering等を自分で作成）
 - Virtual WAN：マネージドサービス（Microsoftが基盤を管理）
 
 **2. Hub間接続**：
+
 - Hub-and-Spoke：手動でVNet Peeringを設定
 - Virtual WAN：自動メッシュ接続（Microsoftバックボーン経由）
 
 **3. コスト**：
+
 - Hub-and-Spoke：~2-3万円/月～（小規模から開始可能）
 - Virtual WAN：~23万円/月～（基本料金が高い）
 
 **4. 規模**：
+
 - Hub-and-Spoke：小～中規模（~100 VNet）
 - Virtual WAN：大規模（100+ VNet、数千VPN接続）
 
@@ -2837,14 +2419,17 @@ Virtual WANとHub-and-Spokeの主な違い：
 Virtual Hubのアドレス空間として推奨されるのは **/23（512アドレス）** です。
 
 **理由**：
+
 - Azure Firewallが最大250個のIPアドレスを使用
 - VPN Gateway、ExpressRoute Gatewayもアドレスを消費
 - 将来の拡張に備えて余裕を持たせる
 
 **最小サイズ**：
+
 - /24（256アドレス）も可能だが、拡張性に制限
 
 **より大きなサイズ**：
+
 - /22以上も可能だが、IPアドレス空間を無駄遣い
 
 /23が**機能と効率のバランスが最適**です。
@@ -2853,16 +2438,19 @@ Virtual Hubのアドレス空間として推奨されるのは **/23（512アド
 Routing Intentの2つのルーティングポリシー：
 
 **1. InternetTraffic**：
+
 - インターネット向けトラフィック（`0.0.0.0/0`）
 - Firewall経由でセキュリティ検査
 - 例：VNetからインターネットへの通信
 
 **2. PrivateTraffic**：
+
 - プライベートトラフィック（VNet間、On-premises）
 - Firewall経由でセキュリティ検査
 - 例：VNet間通信、VPN経由のOn-premises通信
 
 **使い分け**：
+
 - 両方設定：すべてのトラフィックがFirewall経由（最もセキュア）
 - InternetTrafficのみ：コスト削減（VNet間は直接通信）
 
@@ -2915,6 +2503,8 @@ virtual_network_connections = {
 以上で、Virtual WANの完全解説を終わります。公式モジュールの内部構造から実際の設定パターンまで、すべてを網羅しました。
 
 次のChapterでは、GitHub Actionsを使ったCI/CDパイプラインの構築を学びます。
+
+---
 
 **所要時間**: 80分  
 **難易度**: ★★★★★  
