@@ -69,9 +69,9 @@ Virtual WANの構成要素を見ておきましょう：
 
 ## Part 1: 設定ファイル（platform-landing-zone.auto.tfvars）
 
-**重要な注意**：
+**注意**：
 
-実際のplatform-landing-zone.auto.tfvarsでは**Virtual WAN用の設定はコメントアウトされています**。このプロジェクトはHub-and-Spoke構成を採用しているためです。
+実際のplatform-landing-zone.auto.tfvarsではVirtual WAN用の設定はコメントアウトされています。このプロジェクトはHub-and-Spoke構成を採用しているためです。
 
 Virtual WANを使う場合は、以下のように設定を変更します。
 
@@ -138,10 +138,10 @@ virtual_hubs = {
 
 **注意**：
 
-- 上記は**例**です。実際のファイルには含まれていません
+- 上記は例です。実際のファイルには含まれていません
 - Virtual WANに切り替える場合は、`custom_replacements.names`にも対応する変数を追加する必要があります
 - このドキュメントでは、Virtual WANの構造を理解するために解説を続けます
-```
+
 
 **何してる？**
 
@@ -224,7 +224,7 @@ module "virtual_wan" {
 
 - **count**: `connectivity_type = "virtual_wan"`の時だけ実行
 - **パラメータ**:
-  - `virtual_wan_settings`: [config-templatingモジュール](../../modules/config-templating/)から取得
+  - `virtual_wan_settings`: config-templatingモジュールら取得
   - `virtual_hubs`: 同じくconfig-templatingから取得（Virtual Hubの設定マップ）
   - `enable_telemetry`: テレメトリ送信の有無
   - `tags`: タグ（connectivity_tags優先、なければvar.tags）
@@ -235,7 +235,7 @@ module "virtual_wan" {
 
 - Chapter 10と同じく、**ローカルラッパーモジュールなし**
 - 直接公式モジュールを呼び出す
-- パラメータは全て[config-templatingモジュール](../../modules/config-templating/)で処理
+- パラメータは全てconfig-templatingモジュールで処理
 
 ### locals.tfでの有効化判定
 
