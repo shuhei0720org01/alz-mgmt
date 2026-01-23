@@ -138,36 +138,7 @@ graph TB
     - 一箇所直せば全体に反映
     - ベストプラクティスを標準化
 
-### テンプレートリポジトリの設計
 
-再利用可能ワークフローは、専用のテンプレートリポジトリに配置します。
-
-```text title="リポジトリ構成"
-alz-mgmt-templates/
-├── .github/
-│   └── workflows/
-│       ├── ci-template.yaml    ← Plan用テンプレート
-│       └── cd-template.yaml    ← Apply用テンプレート
-└── README.md
-
-alz-mgmt/
-├── .github/
-│   └── workflows/
-│       ├── ci.yaml             ← テンプレートを呼び出す
-│       └── cd.yaml             ← テンプレートを呼び出す
-├── main.tf
-└── variables.tf
-```
-
-**構成の理由**:
-
-- **alz-mgmt-templates**: ワークフローのロジックを集約
-- **alz-mgmt**: 実際のTerraformコード + テンプレート呼び出し
-
-!!! tip "なぜ分けるの？"
-    - 1つのテンプレートを複数プロジェクトで使い回せる
-    - ワークフロー変更時、テンプレートだけ修正すればOK
-    - プロジェクトコードとワークフローロジックを分離
 
 ### inputs/secrets の定義
 
@@ -283,34 +254,311 @@ jobs:
 - `1`: エラー
 - `2`: 変更あり
 
-### 実際のテンプレート例
+### 実際にコードを見てみよう
 
-Azure Landing Zonesプロジェクトでの実際のテンプレートを見てみましょう。
+#### テンプレートリポジトリの設計
 
-```yaml title="ci-template.yaml（Plan用テンプレート）"
-name: Terraform Plan Template
+再利用可能ワークフローは、専用のテンプレートリポジトリに配置されています。
+実際に見てみましょう。
+テンプレート：https://github.com/shuhei0720org01/alz-mgmt-templates/tree/main/.github/workflows
+呼び出し側：https://github.com/shuhei0720org01/alz-mgmt/tree/main/.github/workflows
+
+```text title="リポジトリ構成"
+alz-mgmt-templates/
+├── .github/
+│   └── workflows/
+│       ├── ci-template.yaml    ← Plan用テンプレート
+│       └── cd-template.yaml    ← Apply用テンプレート
+└── README.md
+
+alz-mgmt/
+├── .github/
+│   └── workflows/
+│       ├── ci.yaml             ← テンプレートを呼び出す
+│       └── cd.yaml             ← テンプレートを呼び出す
+├── main.tf
+└── variables.tf
+```
+
+**構成の理由**:
+
+- **alz-mgmt-templates**: ワークフローのロジックを集約
+- **alz-mgmt**: 実際のTerraformコード + テンプレート呼び出し
+
+!!! tip "なぜ分けるの？"
+    - 1つのテンプレートを複数プロジェクトで使い回せる
+    - ワークフロー変更時、テンプレートだけ修正すればOK
+    - プロジェクトコードとワークフローロジックを分離
+---
+
+#### コード解説
+
+じゃあ実際のコードはどうなっているのか順番に見ていきましょう。
+
+##### 呼び出し側: CI ワークフロー
+
+まずは、alz-mgmtリポジトリのCIワークフローから。
+
+```yaml title=".github/workflows/ci.yaml"
+---
+name: 01 Azure Landing Zones Continuous Integration
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      terraform_cli_version:
+        description: 'Terraform CLI Version'
+        required: true
+        default: 'latest'
+        type: string
+
+jobs:
+  validate_and_plan:
+    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+    name: 'CI'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    with:
+      root_module_folder_relative_path: '.'
+      terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+
+**コードの解説**:
+
+#### トリガー設定
+
+```yaml
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      terraform_cli_version:
+        description: 'Terraform CLI Version'
+        required: true
+        default: 'latest'
+        type: string
+```
+
+このワークフローは2つのタイミングで動きます：
+
+1. **pull_request**: mainブランチへのPR作成時
+
+   - 誰かがfeatureブランチからPRを出すと自動実行
+   - Terraform Planで変更内容を確認
+   
+2. **workflow_dispatch**: 手動実行
+
+   - GitHub Actionsの画面から手動でトリガー可能
+   - Terraformのバージョンを指定できる（デフォルトは`latest`）
+
+!!! tip "workflow_dispatchの使いどころ"
+    - PRを作らずにPlanだけ確認したい時
+    - 特定のTerraformバージョンでテストしたい時
+    - デバッグ目的で手動実行したい時
+
+#### ジョブ定義
+
+```yaml
+jobs:
+  validate_and_plan:
+    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+    name: 'CI'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    with:
+      root_module_folder_relative_path: '.'
+      terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+
+ここがポイント！実際の処理は`alz-mgmt-templates`リポジトリのテンプレートを呼び出しています。
+
+**uses**: テンプレートの場所
+```yaml
+uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+```
+- `shuhei0720org01/alz-mgmt-templates`: リポジトリ名
+- `.github/workflows/ci-template.yaml`: テンプレートファイルのパス
+- `@main`: ブランチ指定（mainブランチの最新版を使用）
+
+**permissions**: OIDCに必要な権限
+```yaml
+permissions:
+  id-token: write      # OIDCトークンの発行
+  contents: read       # コードの読み取り
+  pull-requests: write # PRへのコメント書き込み
+```
+
+これがないとOIDCでAzureにログインできません。
+
+**with**: テンプレートに渡すパラメータ
+```yaml
+with:
+  root_module_folder_relative_path: '.'
+  terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+- `root_module_folder_relative_path`: Terraformコードの場所（ルートディレクトリ）
+- `terraform_cli_version`: 使用するTerraformのバージョン
+
+---
+
+### 呼び出し側: CD ワークフロー
+
+次に、CDワークフロー（デプロイ）を見てみましょう。
+
+```yaml title=".github/workflows/cd.yaml"
+---
+name: 02 Azure Landing Zones Continuous Delivery
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Terraform Action to perform'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - 'apply'
+          - 'destroy'
+      terraform_cli_version:
+        description: 'Terraform CLI Version'
+        required: true
+        default: 'latest'
+        type: string
+
+jobs:
+  plan_and_apply:
+    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
+    name: 'CD'
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      terraform_action: ${{ inputs.terraform_action }}
+      root_module_folder_relative_path: '.'
+      terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+
+**コードの解説**:
+
+#### トリガー設定
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        description: 'Terraform Action to perform'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - 'apply'
+          - 'destroy'
+      terraform_cli_version:
+        description: 'Terraform CLI Version'
+        required: true
+        default: 'latest'
+        type: string
+```
+
+CDワークフローも2つのタイミングで動きます：
+
+1. **push**: mainブランチへのプッシュ時
+
+   - PRがマージされたら自動実行
+   - Terraform Applyでリソースをデプロイ
+   
+2. **workflow_dispatch**: 手動実行
+
+   - **terraform_action**: `apply`か`destroy`を選択
+   - **terraform_cli_version**: Terraformバージョンを指定
+
+!!! warning "destroyオプションについて"
+    `destroy`を選ぶと全リソースを削除します。本番環境では非常に危険なので、手動実行時のみ使えるようにしています。
+
+#### ジョブ定義
+
+```yaml
+jobs:
+  plan_and_apply:
+    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
+    name: 'CD'
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      terraform_action: ${{ inputs.terraform_action }}
+      root_module_folder_relative_path: '.'
+      terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+
+**permissions**: CDではPRへのコメントが不要
+```yaml
+permissions:
+  id-token: write      # OIDCトークンの発行
+  contents: read       # コードの読み取り
+  # pull-requests: write は不要
+```
+
+**with**: テンプレートに渡すパラメータ
+```yaml
+with:
+  terraform_action: ${{ inputs.terraform_action }}  # apply or destroy
+  root_module_folder_relative_path: '.'
+  terraform_cli_version: ${{ inputs.terraform_cli_version }}
+```
+
+---
+
+### テンプレート側: CI テンプレート
+
+さて、ここからが本番です。実際の処理が書かれているテンプレート側のコードを見てみましょう。
+
+```yaml title="alz-mgmt-templates/.github/workflows/ci-template.yaml"
+name: CI Template
 
 on:
   workflow_call:
     inputs:
-      terraform_version:
+      root_module_folder_relative_path:
+        description: 'Root module folder relative path'
         required: false
         type: string
-        default: '1.9.0'
-      environment_name:
-        required: true
+        default: '.'
+      terraform_cli_version:
+        description: 'Terraform CLI version'
+        required: false
         type: string
+        default: 'latest'
 
 jobs:
   validate_and_plan:
     name: Validate and Plan
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment_name }}
+    environment: alz-mgmt-plan
     
     permissions:
       id-token: write
       contents: read
       pull-requests: write
+    
+    env:
+      TERRAFORM_CLI_VERSION: ${{ inputs.terraform_cli_version }}
+      ROOT_MODULE_PATH: ${{ inputs.root_module_folder_relative_path }}
     
     steps:
       - name: Checkout
@@ -319,9 +567,10 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ inputs.terraform_version }}
+          terraform_version: ${{ env.TERRAFORM_CLI_VERSION }}
+          terraform_wrapper: true
       
-      - name: Azure Login (OIDC)
+      - name: Azure Login via OIDC
         uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
@@ -329,6 +578,8 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       
       - name: Terraform Init
+        id: init
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
         run: |
           terraform init \
             -backend-config="resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
@@ -336,29 +587,451 @@ jobs:
             -backend-config="container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}"
       
       - name: Terraform Format Check
-        run: terraform fmt -check
+        id: fmt
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform fmt -check -recursive
+        continue-on-error: true
       
       - name: Terraform Validate
-        run: terraform validate
+        id: validate
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform validate -no-color
       
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: |
+          terraform plan -no-color -out=tfplan
+          terraform show -no-color tfplan > plan-output.txt
+        continue-on-error: true
       
-      - name: Comment PR
+      - name: Comment PR with Plan
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
         with:
           script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ env.ROOT_MODULE_PATH }}/plan-output.txt', 'utf8');
+            
+            const output = `## Terraform Plan 📋
+            
+            #### Terraform Format and Style 🖌: \`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️: \`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖: \`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖: \`${{ steps.plan.outcome }}\`
+            
+            <details>
+            <summary>Show Plan</summary>
+            
+            \`\`\`terraform
+            ${planOutput}
+            \`\`\`
+            
+            </details>
+            
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '## Terraform Plan\n\n```\n${{ steps.plan.outputs.stdout }}\n```'
-            })
+              body: output
+            });
+      
+      - name: Fail if Plan Failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
 ```
 
-わかりますか？このテンプレートがあれば、呼び出し側は数行で済みます。
+**コードの詳細解説**:
+
+#### workflow_call定義
+
+```yaml
+on:
+  workflow_call:
+    inputs:
+      root_module_folder_relative_path:
+        description: 'Root module folder relative path'
+        required: false
+        type: string
+        default: '.'
+      terraform_cli_version:
+        description: 'Terraform CLI version'
+        required: false
+        type: string
+        default: 'latest'
+```
+
+これが「再利用可能ワークフロー」の印です。`workflow_call`を使うと、他のワークフローから呼び出せます。
+
+#### 環境とPermissions
+
+```yaml
+environment: alz-mgmt-plan
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+```
+
+- **environment**: GitHub Environmentsの`alz-mgmt-plan`を使用
+
+  - ここに環境変数（AZURE_CLIENT_IDなど）が定義されている
+  - 読み取り専用のManaged Identityを使用
+
+- **permissions**: OIDC + PRコメントに必要な権限
+
+#### Step 1: Checkout
+
+```yaml
+- name: Checkout
+  uses: actions/checkout@v4
+```
+
+GitHubリポジトリのコードをチェックアウト。これがないと何もできません。
+
+#### Step 2: Setup Terraform
+
+```yaml
+- name: Setup Terraform
+  uses: hashicorp/setup-terraform@v3
+  with:
+    terraform_version: ${{ env.TERRAFORM_CLI_VERSION }}
+    terraform_wrapper: true
+```
+
+指定されたバージョンのTerraformをインストール。`terraform_wrapper: true`でTerraformの出力をキャプチャできるようにします。
+
+#### Step 3: Azure Login
+
+```yaml
+- name: Azure Login via OIDC
+  uses: azure/login@v2
+  with:
+    client-id: ${{ vars.AZURE_CLIENT_ID }}
+    tenant-id: ${{ vars.AZURE_TENANT_ID }}
+    subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+```
+
+OIDCでAzureにログイン。`vars.*`は環境変数（alz-mgmt-plan環境で定義済み）。
+
+#### Step 4: Terraform Init
+
+```yaml
+- name: Terraform Init
+  id: init
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: |
+    terraform init \
+      -backend-config="resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+      -backend-config="storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+      -backend-config="container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}"
+```
+
+Terraformを初期化。バックエンド（Azure Storage）の情報を環境変数から取得して設定します。
+
+#### Step 5: Terraform Format Check
+
+```yaml
+- name: Terraform Format Check
+  id: fmt
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform fmt -check -recursive
+  continue-on-error: true
+```
+
+コードのフォーマットチェック。`continue-on-error: true`なので、失敗してもワークフローは継続します。
+
+#### Step 6: Terraform Validate
+
+```yaml
+- name: Terraform Validate
+  id: validate
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform validate -no-color
+```
+
+Terraformコードの文法チェック。
+
+#### Step 7: Terraform Plan
+
+```yaml
+- name: Terraform Plan
+  id: plan
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: |
+    terraform plan -no-color -out=tfplan
+    terraform show -no-color tfplan > plan-output.txt
+  continue-on-error: true
+```
+
+Plan実行。結果を`plan-output.txt`に保存します。
+
+#### Step 8: PRへのコメント
+
+```yaml
+- name: Comment PR with Plan
+  if: github.event_name == 'pull_request'
+  uses: actions/github-script@v7
+  env:
+    PLAN_OUTPUT: ${{ steps.plan.outputs.stdout }}
+  with:
+    script: |
+      const fs = require('fs');
+      const planOutput = fs.readFileSync('${{ env.ROOT_MODULE_PATH }}/plan-output.txt', 'utf8');
+      
+      const output = `## Terraform Plan 📋
+      
+      #### Terraform Format and Style 🖌: \`${{ steps.fmt.outcome }}\`
+      #### Terraform Initialization ⚙️: \`${{ steps.init.outcome }}\`
+      #### Terraform Validation 🤖: \`${{ steps.validate.outcome }}\`
+      #### Terraform Plan 📖: \`${{ steps.plan.outcome }}\`
+      
+      <details>
+      <summary>Show Plan</summary>
+      
+      \`\`\`terraform
+      ${planOutput}
+      \`\`\`
+      
+      </details>
+      
+      *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+      
+      github.rest.issues.createComment({
+        issue_number: context.issue.number,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: output
+      });
+```
+
+これがPlanをPRにコメントする部分！`github-script`を使ってGitHub APIを呼び出しています。
+
+#### Step 9: 失敗チェック
+
+```yaml
+- name: Fail if Plan Failed
+  if: steps.plan.outcome == 'failure'
+  run: exit 1
+```
+
+Planが失敗していたら、ワークフロー全体を失敗させます。
+
+---
+
+### テンプレート側: CD テンプレート
+
+最後に、CDテンプレート（Apply）を見てみましょう。
+
+```yaml title="alz-mgmt-templates/.github/workflows/cd-template.yaml"
+name: CD Template
+
+on:
+  workflow_call:
+    inputs:
+      terraform_action:
+        description: 'Terraform action (apply or destroy)'
+        required: false
+        type: string
+        default: 'apply'
+      root_module_folder_relative_path:
+        description: 'Root module folder relative path'
+        required: false
+        type: string
+        default: '.'
+      terraform_cli_version:
+        description: 'Terraform CLI version'
+        required: false
+        type: string
+        default: 'latest'
+
+jobs:
+  plan_and_apply:
+    name: Plan and Apply
+    runs-on: ubuntu-latest
+    environment: alz-mgmt-apply
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    env:
+      TERRAFORM_CLI_VERSION: ${{ inputs.terraform_cli_version }}
+      ROOT_MODULE_PATH: ${{ inputs.root_module_folder_relative_path }}
+      TERRAFORM_ACTION: ${{ inputs.terraform_action }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_CLI_VERSION }}
+          terraform_wrapper: false
+      
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Terraform Init
+        id: init
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}"
+      
+      - name: Terraform Plan (Apply)
+        if: env.TERRAFORM_ACTION == 'apply'
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform plan -out=tfplan
+      
+      - name: Terraform Apply
+        if: env.TERRAFORM_ACTION == 'apply'
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform apply -auto-approve tfplan
+      
+      - name: Terraform Plan (Destroy)
+        if: env.TERRAFORM_ACTION == 'destroy'
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform plan -destroy -out=tfplan
+      
+      - name: Terraform Destroy
+        if: env.TERRAFORM_ACTION == 'destroy'
+        working-directory: ${{ env.ROOT_MODULE_PATH }}
+        run: terraform apply -auto-approve tfplan
+```
+
+**コードの詳細解説**:
+
+#### workflow_call定義
+
+```yaml
+on:
+  workflow_call:
+    inputs:
+      terraform_action:
+        description: 'Terraform action (apply or destroy)'
+        required: false
+        type: string
+        default: 'apply'
+```
+
+CI テンプレートとの違いは`terraform_action`パラメータ。`apply`か`destroy`を選べます。
+
+#### 環境とPermissions
+
+```yaml
+environment: alz-mgmt-apply
+
+permissions:
+  id-token: write
+  contents: read
+```
+
+- **environment**: `alz-mgmt-apply`環境を使用
+
+  - 書き込み可能なManaged Identity
+  - 承認ルールが設定されている（Required reviewers）
+
+- **permissions**: PRコメント不要なので`pull-requests: write`なし
+
+#### Apply用のステップ
+
+```yaml
+- name: Terraform Plan (Apply)
+  if: env.TERRAFORM_ACTION == 'apply'
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform plan -out=tfplan
+
+- name: Terraform Apply
+  if: env.TERRAFORM_ACTION == 'apply'
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform apply -auto-approve tfplan
+```
+
+`terraform_action`が`apply`の場合：
+
+1. Plan実行（変更内容を再確認）
+2. Apply実行（`-auto-approve`で確認プロンプトスキップ）
+
+!!! tip "なぜ2回Planを実行？"
+    - 1回目（CI）: PRレビュー時
+    - 2回目（CD）: Apply直前の最終確認
+    
+    マージ後に他の変更が入っている可能性があるため、Apply前にもう一度Planします。
+
+#### Destroy用のステップ
+
+```yaml
+- name: Terraform Plan (Destroy)
+  if: env.TERRAFORM_ACTION == 'destroy'
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform plan -destroy -out=tfplan
+
+- name: Terraform Destroy
+  if: env.TERRAFORM_ACTION == 'destroy'
+  working-directory: ${{ env.ROOT_MODULE_PATH }}
+  run: terraform apply -auto-approve tfplan
+```
+
+`terraform_action`が`destroy`の場合：
+
+1. Destroy Plan実行（削除内容を確認）
+2. Apply実行（Planに従ってリソース削除）
+
+!!! danger "Destroy は慎重に"
+    手動実行（workflow_dispatch）でのみ使用できるようにしています。本番環境では絶対に使わないでください。
+
+---
+
+### コード全体の流れ
+
+これで全体像がわかりましたね。最後に流れを整理しましょう。
+
+```mermaid
+graph LR
+    A[開発者] -->|1. PR作成| B[ci.yaml]
+    B -->|2. 呼び出し| C[ci-template.yaml]
+    C -->|3. Plan実行| D[PRにコメント]
+    
+    E[レビュアー] -->|4. 承認| F[mainにマージ]
+    F -->|5. 自動実行| G[cd.yaml]
+    G -->|6. 呼び出し| H[cd-template.yaml]
+    H -->|7. 承認待ち| I[承認者]
+    I -->|8. 承認| J[Apply実行]
+    
+    style C fill:#fff4e1
+    style H fill:#ffe1e1
+```
+
+**各ファイルの役割**:
+
+| ファイル | 役割 | 配置場所 |
+|---------|------|---------|
+| `ci.yaml` | PR時のトリガー | alz-mgmt |
+| `cd.yaml` | mainマージ時のトリガー | alz-mgmt |
+| `ci-template.yaml` | Plan処理のロジック | alz-mgmt-templates |
+| `cd-template.yaml` | Apply処理のロジック | alz-mgmt-templates |
+
+**再利用可能ワークフローのメリットが実感できましたか？**
+
+- alz-mgmtのワークフローはシンプル（20行程度）
+- 複雑なロジックはテンプレート側に集約（100行以上）
+- 他のプロジェクトでもテンプレートを再利用可能
+- テンプレート修正で全プロジェクトに反映
+
+これが「DRY（Don't Repeat Yourself）」原則ってやつです！
 
 ---
 
@@ -720,88 +1393,6 @@ jobs:
             });
 ```
 
-**PRでの表示**:
-
-```markdown
-## Terraform Plan 📋
-
-<details>
-<summary>Show Plan</summary>
-
-```terraform
-Terraform will perform the following actions:
-
-  # azurerm_resource_group.example will be created
-  + resource "azurerm_resource_group" "example" {
-      + id       = (known after apply)
-      + location = "japaneast"
-      + name     = "my-rg"
-    }
-
-Plan: 1 to add, 0 to change, 0 to destroy.
-```
-
-</details>
-
-*Pushed by: @user1*
-```
-
-レビュアーはこのコメントでPlanを確認できます。
-
-### mainマージ後の自動Apply
-
-mainマージ後の自動Applyの流れです。
-
-```yaml title="cd-template.yaml"
-name: Terraform Apply Template
-
-on:
-  workflow_call:
-    inputs:
-      terraform_version:
-        required: false
-        type: string
-        default: '1.9.0'
-      environment_name:
-        required: true
-        type: string
-
-jobs:
-  terraform_apply:
-    name: Terraform Apply
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment_name }}
-    
-    permissions:
-      id-token: write
-      contents: read
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-      
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}" \
-            -backend-config="container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}"
-      
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-```
 
 !!! warning "auto-approveの注意"
     `terraform apply -auto-approve` は承認プロンプトをスキップします。

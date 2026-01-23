@@ -650,7 +650,7 @@ az identity federated-credential create \
     例: repo:shuhei0720org01/alz-mgmt:environment:alz-mgmt-plan
     ```
     
-    この設定により、**alz-mgmt-plan環境からのみ**認証を許可します。
+    この設定により、alz-mgmt-plan環境からのみ認証を許可します。
 
 ### permissions設定
 
@@ -1083,7 +1083,7 @@ SecretsとVariablesの違いは何ですか？
 ## 練習問題の答え
 
 ### 答え1
-**Secretsに認証情報を保存しなくて済むから**です。
+Secretsに認証情報を保存しなくて済むからです。
 
 従来の方法:
 ```yaml
@@ -1110,7 +1110,7 @@ steps:
 OIDCでは一時的なトークンを使うため、**長期的な認証情報を保存する必要がありません**。
 
 ### 答え2
-**`main`ブランチへのPull Request作成時**に実行されます。
+`main`ブランチへのPull Request作成時に実行されます。
 
 ```yaml
 on:
@@ -1120,6 +1120,7 @@ on:
 ```
 
 つまり：
+
 - 他のブランチから`main`へPRを作成 → 実行
 - `main`ブランチへ直接プッシュ → 実行されない
 - `develop`ブランチへのPR → 実行されない
@@ -1134,6 +1135,7 @@ on:
 | 例 | `ARM_CLIENT_ID` | `ENVIRONMENT`, `REGION` |
 
 **使い分け：**
+
 - **Secrets**: 秘密情報（パスワード、トークン等）
 - **Variables**: 非機密な設定値（リージョン名、環境名等）
 
