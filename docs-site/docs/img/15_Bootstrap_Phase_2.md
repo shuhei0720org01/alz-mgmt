@@ -23,29 +23,8 @@
     5. ブランチを選択（通常はmain）
     6. 「Run workflow」を実行
 
-=== "手動実行（ローカル）"
+![alt text](./img/image19.png)
 
-    ```bash title="ローカルでのデプロイ"
-    # リポジトリをクローン
-    git clone https://github.com/<org>/alz-mgmt.git
-    cd alz-mgmt
-    
-    # Azure にログイン
-    az login
-    az account set --subscription <management-subscription-id>
-    
-    # Terraform初期化
-    terraform init \
-      -backend-config="resource_group_name=alz-bootstrap-rg" \
-      -backend-config="storage_account_name=stoalzmgmt001" \
-      -backend-config="container_name=tfstate"
-    
-    # Plan実行
-    terraform plan -out=tfplan
-    
-    # Apply実行
-    terraform apply tfplan
-    ```
 
 ### GitHub Actionsでのデプロイ
 
@@ -74,26 +53,21 @@ sequenceDiagram
 
 **実際の画面**:
 
-```text title="GitHub Actions実行画面"
-02 Azure Landing Zone Continuous Delivery
 
-Run #1 - Deploy Landing Zones
+02 Azure Landing Zone Continuous Delivery をクリックすると、実行中なのがわかります。
+クリックして開いてみましょう。
 
-Jobs:
-  ✓ terraform_apply
-    ⏸ Waiting for approval
-    
-    Review pending deployments
-    
-    Environment: alz-mgmt-apply
-    Reviewers: user1, user2
-    
-    [Review deployments]
-```
+![alt text](./img/image20.png)
 
-「Review deployments」をクリックして承認します。
+しばらく待つと、terraform planが終わって承認待ちになります。
 
-### Plan確認とApproval
+![alt text](./img/image21.png)
+
+「Review deployments」をクリックして承認しましょう！Azureへのデプロイが始まります。
+
+![alt text](./img/image22.png)
+
+### Plan確認とApprovalについて
 
 承認前に必ずPlanを確認します。
 
@@ -124,6 +98,8 @@ Jobs:
     
     Plan: 234 to add, 0 to change, 0 to destroy.
     ```
+
+![alt text](./img/image23.png)
 
 === "確認ポイント"
 
@@ -180,11 +156,8 @@ Apply complete! Resources: 234 added, 0 changed, 0 destroyed.
 ```
 
 !!! info "デプロイ時間"
-    - 小規模（basic）: 10〜15分
-    - 標準（hubnetworking）: 30〜45分
-    - 大規模（complete）: 60〜90分
+    - 60〜90分かかります！
     
-    Firewallの作成に時間がかかります（5〜10分）。
 
 ### デプロイ状況のモニタリング
 
