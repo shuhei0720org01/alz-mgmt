@@ -63,97 +63,38 @@ sequenceDiagram
 
 ![alt text](./img/image21.png)
 
-「Review deployments」をクリックして承認しましょう！Azureへのデプロイが始まります。
-
-![alt text](./img/image22.png)
-
 ### Plan確認とApprovalについて
 
 承認前に必ずPlanを確認します。
 
-=== "Plan確認"
-
-    ```text title="Terraform Plan出力"
-    Terraform will perform the following actions:
-    
-    # Management Groups
-    + azurerm_management_group.platform
-    + azurerm_management_group.landing_zones
-    + azurerm_management_group.connectivity
-    + azurerm_management_group.identity
-    + azurerm_management_group.management
-    
-    # Policies
-    + azurerm_policy_definition.deny_public_ip (x50)
-    + azurerm_policy_assignment.root_policies (x30)
-    
-    # Networking
-    + azurerm_virtual_network.hub
-    + azurerm_subnet.firewall
-    + azurerm_firewall.hub
-    
-    # Management Resources
-    + azurerm_log_analytics_workspace.management
-    + azurerm_automation_account.management
-    
-    Plan: 234 to add, 0 to change, 0 to destroy.
-    ```
-
 ![alt text](./img/image23.png)
+
++が、新しく作成されるリソースです。
+
+最初なので、物量が多いですが実運用だと確認が必要です。
+
+![alt text](./img/image24.png)
 
 === "確認ポイント"
 
     !!! warning "必ず確認"
-        - ✅ 作成されるリソース数は想定通りか
+        - ✅ 作成されるリソースは想定通りか
         - ✅ Management Group構造は正しいか
         - ✅ Subscription配置は正しいか
         - ✅ リージョンは正しいか（japaneast等）
         - ✅ 削除されるリソースがないか（初回は0のはず）
 
-=== "承認"
+確認が済んだら、「Review deployments」をクリックして承認しましょう！Azureへのデプロイが始まります。
 
-    問題なければ承認します：
-    
-    ```text
-    [✓] Approve and deploy
-    [ ] Reject
-    
-    Comment (optional):
-    初回デプロイ - Planを確認しました。問題なし。
-    
-    [Submit review]
-    ```
+![alt text](./img/image22.png)
+
+
 
 ### Applyの実行
 
 承認後、Terraformが自動実行されます。
 
-```text title="Apply実行ログ"
-azurerm_management_group.platform: Creating...
-azurerm_management_group.landing_zones: Creating...
-azurerm_management_group.connectivity: Creating...
-azurerm_management_group.identity: Creating...
-azurerm_management_group.management: Creating...
-
-azurerm_management_group.platform: Creation complete after 15s
-azurerm_management_group.landing_zones: Creation complete after 16s
-
-azurerm_policy_definition.deny_public_ip[0]: Creating...
-azurerm_policy_definition.deny_public_ip[1]: Creating...
-...
-
-azurerm_virtual_network.hub: Creating...
-azurerm_virtual_network.hub: Still creating... [10s elapsed]
-azurerm_virtual_network.hub: Creation complete after 23s
-
-azurerm_subnet.firewall: Creating...
-azurerm_firewall.hub: Creating...
-azurerm_firewall.hub: Still creating... [10s elapsed]
-azurerm_firewall.hub: Still creating... [1m30s elapsed]
-azurerm_firewall.hub: Creation complete after 5m12s
-
-Apply complete! Resources: 234 added, 0 changed, 0 destroyed.
-```
+![alt text](./img/image25.png)
 
 !!! info "デプロイ時間"
     - 60〜90分かかります！
@@ -161,121 +102,24 @@ Apply complete! Resources: 234 added, 0 changed, 0 destroyed.
 
 ### デプロイ状況のモニタリング
 
-デプロイ中の状況をモニタリングします。
+実行したアクションをクリックして開くと、デプロイ状況をモニタリングできます。
 
-=== "GitHub Actions"
+![alt text](./img/image26.png)
 
-    **リアルタイム確認**:
-    
-    1. GitHub → Actions
-    2. 実行中のWorkflowをクリック
-    3. terraform_apply ジョブをクリック
-    4. ログをリアルタイム表示
+※もしエラーが出た場合は、エラーの赤文字の箇所を読んでみましょう。わからない場合はAIに聞いてみましょう。
 
-=== "Azure Portal"
+以下のようになるとデプロイ成功です！
 
-    **リソース確認**:
-    
-    ```bash title="Management Groupの確認"
-    az account management-group list --output table
-    ```
-    
-    ```bash title="Resource Groupの確認"
-    az group list --output table
-    ```
-    
-    ```bash title="VNetの確認"
-    az network vnet list --output table
-    ```
 
-=== "エラー発生時"
 
-    エラーが出た場合：
-    
-    1. ログを確認
-    2. エラーメッセージをコピー
-    3. Part 4のトラブルシューティングを参照
-    4. 修正後、再実行
-
-!!! success "デプロイ完了"
-    ```text
-    Apply complete! Resources: 234 added, 0 changed, 0 destroyed.
-    
-    Outputs:
-    
-    management_group_root_id = "alz"
-    hub_vnet_id = "/subscriptions/.../virtualNetworks/alz-hub-vnet"
-    log_analytics_workspace_id = "/subscriptions/.../workspaces/alz-log"
-    ```
-
----
 
 ## Part 2: デプロイ後の検証
 
-### Management Group構造の確認
+### 管理グループ構造の確認
 
-作成されたManagement Group階層を確認します。
+Azureポータルで作成された管理グループを確認してみましょう。
 
-=== "Azure CLI"
 
-    ```bash title="Management Group階層の表示"
-    az account management-group show \
-      --name alz \
-      --expand \
-      --recurse
-    ```
-    
-    ```json title="出力例"
-    {
-      "id": "/providers/Microsoft.Management/managementGroups/alz",
-      "name": "alz",
-      "displayName": "Azure Landing Zones",
-      "children": [
-        {
-          "displayName": "Platform",
-          "id": "/providers/Microsoft.Management/managementGroups/alz-platform",
-          "children": [
-            {
-              "displayName": "Management",
-              "id": "/providers/Microsoft.Management/managementGroups/alz-management"
-            },
-            {
-              "displayName": "Connectivity",
-              "id": "/providers/Microsoft.Management/managementGroups/alz-connectivity"
-            },
-            {
-              "displayName": "Identity",
-              "id": "/providers/Microsoft.Management/managementGroups/alz-identity"
-            }
-          ]
-        },
-        {
-          "displayName": "Landing Zones",
-          "id": "/providers/Microsoft.Management/managementGroups/alz-landingzones"
-        }
-      ]
-    }
-    ```
-
-=== "Azure Portal"
-
-    1. Azureポータルにログイン
-    2. 「Management Groups」を検索
-    3. 階層を確認
-    
-    ```text title="期待される構造"
-    Tenant Root Group
-      └── alz (Azure Landing Zones)
-          ├── Platform
-          │   ├── Management
-          │   ├── Connectivity
-          │   └── Identity
-          ├── Landing Zones
-          │   ├── Corp
-          │   └── Online
-          ├── Sandbox
-          └── Decommissioned
-    ```
 
 === "確認ポイント"
 
