@@ -291,7 +291,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Available management groups:
     [1] Tenant Root Group (9c3ef3df-9ca7-4dbe-885f-0887fe89e7a8)
     [0] Enter manually
-    Press Enter to leave empty (uses Tenant Root Group)
+    Press Enter to leave empty (uses Tenant Root Group) ←そのままenterでOK
 ```
 そしたらmanagement用のサブスクリプションを選べと言われるので、どれかのサブスクリプションを選びます。
 
@@ -342,7 +342,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
   Required: Yes
   Current value: alz
-  Enter value (default: alz):
+  Enter value (default: alz): ←そのままenterでOK
 ```
 
   次もエンターでOK
@@ -352,7 +352,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/0_planning/#decision-9---choose-the-bootstrap-resource-naming
   Required: Yes
   Current value: mgmt
-  Enter value (default: mgmt):
+  Enter value (default: mgmt): ←そのままenterでOK
 ```
 
   次もエンターでOK
@@ -364,7 +364,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Required: Yes
   Format: Integer number
   Current value: 1
-  Enter value (default: 1):
+  Enter value (default: 1): ←そのままenterでOK
 ```
 
   次に、githubセルフホステッドランナーを使うかどうか聞かれますが、今回いらないので「false」でエンター
@@ -388,7 +388,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   Required: Yes
   Format: true or false
   Current value: true
-  Enter value (default: true):
+  Enter value (default: true): ←そのままenterでOK
 ```
 
   次はgithubのトークンを求められるので、さっきメモっておいたトークンを貼りましょう。
@@ -411,7 +411,7 @@ Select region (1-61, 0 for manual entry, or press Enter for default):27
   A GitHub Personal Access Token (PAT) for registering self-hosted runners. Can also be supplied via environment variable TF_VAR_github_runners_personal_access_token.
   Help: https://azure.github.io/Azure-Landing-Zones/accelerator/1_prerequisites/github/
   Current value: <to***-2>
-  Enter value:
+  Enter value: ←そのままenterでOK
 ```
 
 次にgithubの組織の名前を聞かれるので、自分で作ったgithub組織の名前を入力してください。
@@ -452,7 +452,7 @@ Would you like to open the config folder in VS Code? (Y/n):Y ←Yを入力
 
 そしたら「inputs.yaml」にこれまで入力してきた内容が書いてあるので確認しましょう！
 
-そして、これまでさんざん見てきた「platform-landing-zone.tfvars」がいよいよ登場です！
+そして、ランディングゾーンの重要設定ファイルである「platform-landing-zone.tfvars」がいよいよ登場です！
 
 ここでいろいろ設定できます!が、今回は必須のところだけ設定しましょう！
 
@@ -478,9 +478,22 @@ ddos_protection_plan_enabled = false
 
 最後に一番下の方の「bastion」で以下のように設定しましょう。
 
-二か所にzones = [] を追加してください。
+※注意:プライマリとセカンダリがあるので両方に設定してください。
+
+4か所にzones = [] を追加してください。
 
 ```
+bastion = {
+      zones = [] # ←追加
+      subnet_address_prefix = "$${primary_bastion_subnet_address_prefix}"
+      name                  = "$${primary_bastion_host_name}"
+      bastion_public_ip = {
+        zones = [] # ←追加
+        name  = "$${primary_bastion_host_public_ip_name}"
+      }
+    }
+    ...ほかのコード
+
 bastion = {
       zones = [] # ←追加
       subnet_address_prefix = "$${secondary_bastion_subnet_address_prefix}"
