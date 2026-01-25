@@ -57,116 +57,75 @@ terraform plan -detailed-exitcode
 
     ```yaml title=".github/workflows/drift-detection.yml"
     name: Drift Detection
-    
+
     on:
       # 毎日 9:00 JSTに実行
       schedule:
         - cron: '0 0 * * *'
       # 手動実行も可能
       workflow_dispatch:
-    
+
     permissions:
       contents: read
       id-token: write
       issues: write
-    
+
     jobs:
-      drift-detection:
+      drift-check:
+        uses: shuheiorg02/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+        name: 'Drift Check'
+        permissions:
+          id-token: write
+          contents: read
+          pull-requests: write
+        with:
+          root_module_folder_relative_path: '.'
+          terraform_cli_version: 'latest'
+
+      create-issue-on-drift:
+        needs: drift-check
+        if: failure()
         runs-on: ubuntu-latest
-        
+        permissions:
+          issues: write
         steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-          
-          - name: Setup Terraform
-            uses: hashicorp/setup-terraform@v3
-            with:
-              terraform_version: "~> 1.10"
-          
-          - name: Azure Login
-            uses: azure/login@v2
-            with:
-              client-id: ${{ secrets.AZURE_CLIENT_ID }}
-              tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-              subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
-          - name: Terraform Init
-            run: terraform init
-          
-          - name: Terraform Plan
-            id: plan
-            run: |
-              terraform plan -detailed-exitcode -no-color -out=tfplan 2>&1 | tee plan_output.txt
-            continue-on-error: true
-          
-          - name: Check for Drift
-            id: drift
-            run: |
-              if [ ${{ steps.plan.outcome }} == 'failure' ]; then
-                if grep -q "Error" plan_output.txt; then
-                  echo "status=error" >> $GITHUB_OUTPUT
-                  echo "message=Terraform plan failed with errors" >> $GITHUB_OUTPUT
-                else
-                  echo "status=drift" >> $GITHUB_OUTPUT
-                  echo "message=Configuration drift detected" >> $GITHUB_OUTPUT
-                fi
-              else
-                echo "status=success" >> $GITHUB_OUTPUT
-                echo "message=No drift detected" >> $GITHUB_OUTPUT
-              fi
-          
-          - name: Create Issue on Drift
-            if: steps.drift.outputs.status == 'drift'
+          - name: Create Drift Detection Issue
             uses: actions/github-script@v7
             with:
               script: |
-                const planOutput = require('fs').readFileSync('plan_output.txt', 'utf8');
                 const body = `## ⚠️ Configuration Drift検出
-                
+
                 定期チェックで設定のずれ（Drift）を検出しました。
-                
+
                 ### 検出日時
                 ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
-                
+
+                ### ワークフロー実行
+                https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
                 ### 対応が必要な理由
                 TerraformのコードとAzureの実際の状態が一致していません。以下のいずれかの対応が必要です：
-                
+
                 1. **手動変更を元に戻す**: Azure Portalでの変更をロールバック
                 2. **Terraformコードを更新**: 変更が正しい場合、コードに反映
                 3. **Terraformで再適用**: \`terraform apply\`で状態を同期
-                
-                ### Terraform Plan結果
-                
-                <details>
-                <summary>詳細を見る</summary>
-                
-                \`\`\`
-                ${planOutput.substring(0, 60000)}
-                \`\`\`
-                
-                </details>
-                
+
                 ### 次のステップ
-                
+
                 - [ ] 変更内容を確認
                 - [ ] 変更理由を調査
                 - [ ] 対応方法を決定
                 - [ ] 対応を実施
                 - [ ] このIssueをクローズ
                 `;
-                
+
                 await github.rest.issues.create({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  title: `[Drift Detection] Configuration drift detected - ${new Date().toISOString().split('T')[0]}`,
+                  title: `⚠️ Drift Detection: ${new Date().toISOString().split('T')[0]}`,
                   body: body,
-                  labels: ['drift-detection', 'operations']
+                  labels: ['drift-detection', 'infrastructure']
                 });
-          
-          - name: Notify Success
-            if: steps.drift.outputs.status == 'success'
-            run: |
-              echo "✅ No configuration drift detected. System is in sync!"
     ```
 
 === "ハンズオン: ワークフローの実装"
