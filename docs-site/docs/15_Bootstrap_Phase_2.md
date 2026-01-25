@@ -220,9 +220,9 @@ graph LR
 
 ---
 
-### 高額リソースの排除
+### Azureポリシー割り当てのカスタマイズ
 
-今回は検証のために、高額リソースを消しておきましょう。
+今回は検証のため、DDOSプロテクションは使用しないため、DDOSプロテクション適用のAzureポリシーの割り当てを削除してみましょう。
 
 あなたの「alz-mgmt」リポジトリを開いて、「Code」→「Create Codespace on main」からgithub codespaceを作成し、ここで編集していきます。
 
@@ -232,10 +232,70 @@ graph LR
 
 ![alt text](./img/image31.png)
 
+「lib/archetype_definitions/connectivity_custom.alz_archetype_override.yaml」を開いて編集していきましょう。
+
+このファイルではAzureポリシーの割り当てをカスタマイズできます。
+
+removeのところにDDOSのポリシーを削除する例が書いてあるので、コメントの「#」を削除して、削除する対象としましょう。
+
+![alt text](./img/image46.png)
+
+
+変更を保存したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
+
+```
+# feature ブランチ作成
+git checkout -b feature/delete-ddos-policy
+
+# 変更をコミット、プッシュ
+git add .
+git commit -m "ddosプロテクションのAzureポリシー割り当てを削除"
+git push origin feature/delete-ddos-policy
+
+# PR作成
+gh pr create --base main --head feature/delete-ddos-policy --title "delete-ddos-policy" --body "delete-ddos-policy"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/delete-ddos-policy
+
+```
+
+![alt text](./img/image47.png)
+
+あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されています。
+
+![alt text](./img/image48.png)
+
+CIが終わったら、承認待ちになるので、先ほどと同じようにプランの変更点を確認して承認しましょう。
+
+![alt text](./img/image49.png)
+
+デプロイが終わると、DDOSプラン用のポリシーの割り当てが削除されます。
+
+※Connectivity管理グループにもともと割り当てられていましたがなくなっています。
+
+![alt text](./img/image50.png)
+
+
+### 高額リソースの排除
+
+今回は検証のために、高額リソースを消しておきましょう。
+
+先ほどと同じようにgithub codespaceで編集していきます。
+
 「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
 
 
-まずプライマリの高額リソースをfalseにします。
+次は、プライマリの高額リソースをfalseにします。
 
 機能の有効無効の箇所を探して、falseに設定していきましょう。（プライベートDNSゾーンは無料なのでtrueのままにしてます）
 
@@ -276,21 +336,17 @@ git branch -D feature/delete-resources
 
 ![alt text](./img/image43.png)
 
-あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されています。
-
-![alt text](./img/image44.png)
-
-CIが終わったら、承認待ちになるので、先ほどと同じようにプランの変更点を確認して承認しましょう。
-
-![alt text](./img/image42.png)
+あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されてるので、またplanで変更点を確認して承認→デプロイしていきましょう！
 
 デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
+
+※VNet、プライベートDNSゾーン、Azureポリシーは無料のリソースなので残しておいて大丈夫
 
 ![alt text](./img/image45.png)
 
 ### tfvarsのカスタマイズ
 
-設定をカスタマイズしてみましょう！
+次に、設定をカスタマイズしてみましょう！
 
 先ほどと同じようにgithub codespaceで「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
 
@@ -369,15 +425,12 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 - Policy割り当ての確認
 - Management Resourcesの確認
 - Networking（Hub/Spoke or VWAN）の確認
-- ログの確認
 
 ### ✅ Part 3: カスタマイズの実践
 
-- tfvarsのカスタマイズ
-- libフォルダのカスタマイズ
-- 独自ポリシーの追加
-- ネットワーク設定の調整
 - 変更の適用方法
+- 高額リソースの排除
+- tfvarsのカスタマイズ
 
 
 次の章では、Landing Zonesの運用管理の基礎を学びます。
