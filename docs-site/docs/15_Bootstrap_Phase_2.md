@@ -119,7 +119,7 @@ sequenceDiagram
 
 Azureポータルで作成された管理グループを確認してみましょう。
 
-
+![alt text](./img/image35.png)
 
 === "確認ポイント"
 
@@ -133,16 +133,15 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 Azureポータルでカスタムポリシーが作成されていることを確認しましょう。
 
-contoso管理グループスコープでいろいろ作成されています。
+alz管理グループスコープでいろいろ作成されています。
 
-<img>
+![alt text](./img/image36.png)
 
 次に、Azureポータルでポリシーの割り当てを確認しましょう。
 
-<img>
+![alt text](./img/image37.png)
 
 各管理グループスコープで様々なポリシーが割り当てられています。勉強になるので、じっくり見ていくのおすすめです。
-
 
 
 割り当てられているポリシーの全容は、以下のサイトに書いています。こちらも参考になるので、見てみるといいでしょう。（英語なので日本語翻訳すると見やすいです）
@@ -243,11 +242,66 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 <img>
 
+### 高額リソースの排除
 
+今回は検証のために、高額リソースを消しておきましょう。
+
+先ほどと同じようにgithub codespaceで「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
+
+まずプライマリの高額リソースをfalseにします。（プライベートDNSゾーンは無料なのでtrueのままにしてます）
+
+![alt text](./img/image38.png)
+
+すぐ下のセカンダリの部分も同じように設定します。
+
+![alt text](./img/image39.png)
+
+
+変更したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
+
+```
+# feature ブランチ作成
+git checkout -b feature/delete-resources
+
+# 変更をコミット、プッシュ
+git add .
+git commit -m "高額リソースを削除"
+git push origin feature/delete-resources
+
+# PR作成
+gh pr create --base main --head feature/delete-resources --title "delete-resources" --body "delete-resources"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/delete-resources
+
+```
+
+あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されています。
+
+<img>
+
+CIが終わったら、承認待ちになるので、先ほどと同じように承認しましょう。
+
+<img>
+
+デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
+
+<img>
 
 ### libフォルダのカスタマイズ
 
-独自のポリシーやManagement Group構造を定義します。
+管理グループに割り当てるAzureポリシーをカスタマイズしてみましょう。
+
+先ほどと同じgithub codespace上で、「lib/archetype_definitions/corp_custom.alz_archetype_override.yaml」を開きましょう。
 
 === "archetype定義のカスタマイズ"
 
@@ -263,29 +317,6 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
       - Deploy-VM-Backup  # バックアップポリシーを削除
     ```
 
-=== "architecture定義のカスタマイズ"
-
-    ```yaml title="lib/architecture_definitions/alz_custom.alz_architecture_definition.yaml"
-    name: alz_custom
-    base_archetype: alz
-    
-    management_groups:
-      alz:
-        display_name: Contoso Landing Zones
-        children:
-          alz-platform:
-            display_name: Platform
-          alz-landingzones:
-            display_name: Landing Zones
-            children:
-              alz-corp:
-                display_name: Corp
-              alz-online:
-                display_name: Online
-              alz-sap:  # 新規追加
-                display_name: SAP
-                archetype_name: corp_custom
-    ```
 
 === "変更を適用"
 
