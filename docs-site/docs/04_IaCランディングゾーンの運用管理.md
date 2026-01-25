@@ -173,32 +173,45 @@ terraform plan -detailed-exitcode
 
     **Step 1: ワークフローファイルを作成**
 
-    ```bash
-    cd /workspaces/alz-mgmt
-    
-    # ディレクトリがなければ作成
-    mkdir -p .github/workflows
-    
-    # ワークフローファイルを作成
-    cat > .github/workflows/drift-detection.yml << 'EOF'
-    # 上記のYAML内容をコピペ
-    EOF
-    ```
+     実践編と同じようにgithub codespacesを開きます。
+
+    「.github/workflows/」フォルダに「drift-detection.yml」というファイルを作成します。
+
+    「ワークフローの作成」タブのコードをコピーして、作成したファイルに貼り付けます。
 
     **Step 2: コミット＆プッシュ**
 
     ```bash
-    git add .github/workflows/drift-detection.yml
-    git commit -m "Add drift detection workflow"
-    git push origin main
+    # feature ブランチ作成
+   git checkout -b feature/add-workflow
+
+   # 変更をコミット、プッシュ
+   git add .
+   git commit -m "ワークフローを追加"
+   git push origin feature/add-workflow
+
+   # PR作成
+   gh pr create --base main --head feature/add-workflow --title "add-workflow" --body "add-workflow"
+
+   # PR番号を確認してマージ（squash mergeの例）
+   gh pr merge --squash
+
+   # mainブランチに戻る
+   git checkout main
+
+   # 最新を取得
+   git pull origin main
+
+   # ローカルブランチを強制削除
+   git branch -D feature/add-workflow
     ```
 
     **Step 3: 手動でテスト実行**
 
-    1. GitHubリポジトリの**Actions**タブを開く
-    2. 左側から**Drift Detection**を選択
-    3. **Run workflow**ボタンをクリック
-    4. **Run workflow**を確認
+    1. GitHubリポジトリの「Actions」タブを開く
+    2. 左側から「Drift Detection」を選択
+    3. 「Run workflow」ボタンをクリック
+    4. 「Run workflow」を確認
 
     !!! success "初回実行の結果"
         デプロイ直後なので、Driftは検出されないはず。「✅ No configuration drift detected」というメッセージが表示されるよ。
