@@ -183,27 +183,27 @@ terraform plan -detailed-exitcode
 
     ```bash
     # feature ブランチ作成
-   git checkout -b feature/add-workflow
+    git checkout -b feature/add-workflow
 
-   # 変更をコミット、プッシュ
-   git add .
-   git commit -m "ワークフローを追加"
-   git push origin feature/add-workflow
+    # 変更をコミット、プッシュ
+    git add .
+    git commit -m "ワークフローを追加"
+    git push origin feature/add-workflow
 
-   # PR作成
-   gh pr create --base main --head feature/add-workflow --title "add-workflow" --body "add-workflow"
+    # PR作成
+    gh pr create --base main --head feature/add-workflow --title "add-workflow" --body  "add-workflow"
 
-   # PR番号を確認してマージ（squash mergeの例）
-   gh pr merge --squash
+    # PR番号を確認してマージ（squash mergeの例）
+    gh pr merge --squash
 
-   # mainブランチに戻る
-   git checkout main
+    # mainブランチに戻る
+    git checkout main
 
-   # 最新を取得
-   git pull origin main
+    # 最新を取得
+    git pull origin main
 
-   # ローカルブランチを強制削除
-   git branch -D feature/add-workflow
+    # ローカルブランチを強制削除
+    git branch -D feature/add-workflow
     ```
 
     **Step 3: 手動でテスト実行**
