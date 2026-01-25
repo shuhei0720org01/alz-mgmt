@@ -220,6 +220,8 @@ ALZ  6.0.5              PSGallery
 
 最初にaz loginでazureにログインしておきます。
 
+※Tenant Root Groupに所有者権限を持っているアカウントでログインしてください。
+
 ```
 az login
 ```
