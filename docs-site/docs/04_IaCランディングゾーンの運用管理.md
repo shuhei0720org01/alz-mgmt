@@ -343,20 +343,21 @@ module "management_groups" {
 !!! warning "更新時にリリースノートは絶対確認！"
 
     対応バージョンは以下で確認：
+
     - [ALZプロバイダー リリースノート](https://github.com/Azure/terraform-provider-alz/releases)
     - [AVMパターンモジュール リリースノート](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases)
 
 #### バージョン更新の手順
 
-=== "Step 1: リポジトリのファイルで、現在のバージョン確認"
+- "Step 1: リポジトリのファイルで、現在のバージョン確認"
 
-=== "Step 2: リリースノートで最新バージョンの確認"
+- "Step 2: リリースノートで最新バージョンの確認"
     
-=== "Step 3: コミットする"
+- "Step 3: コミットする"
 
-=== "Step 4: CIのterraformプランで変更点を確認"
+- "Step 4: CIのterraformプランで変更点を確認"
 
-=== "Step 5: 変更点が確認できたらCDを起動して変更をデプロイする"
+- "Step 5: 変更点が確認できたらCDを起動して変更をデプロイする"
 
 
 #### やってみよう: バージョンアップデートの実践
@@ -382,7 +383,7 @@ alz = {
 }
 ```
 
-![alt text](image53.png)
+![alt text](./img/image53.png)
 
 **Step 2: modules/management_groups/main.tfのバージョンも変更**
 
