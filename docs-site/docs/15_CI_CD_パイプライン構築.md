@@ -261,8 +261,8 @@ jobs:
 再利用可能ワークフローは、専用のテンプレートリポジトリに配置されています。
 実際に見てみましょう。
 
-- テンプレート：https://github.com/shuhei0720org01/alz-mgmt-templates/tree/main/.github/workflows
-- 呼び出し側：https://github.com/shuhei0720org01/alz-mgmt/tree/main/.github/workflows
+- テンプレート：実践編で作成した「alz-mgmt-template」リポジトリ
+- 呼び出し側：実践編で作成した「alz-mgmt」リポジトリ
 
 ```text title="リポジトリ構成"
 alz-mgmt-templates/
@@ -317,7 +317,7 @@ on:
 
 jobs:
   validate_and_plan:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+    uses: <あなたのリポジトリ>/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
     name: 'CI'
     permissions:
       id-token: write
@@ -368,7 +368,7 @@ on:
 ```yaml
 jobs:
   validate_and_plan:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+    uses: <あなたのリポジトリ>/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
     name: 'CI'
     permissions:
       id-token: write
@@ -383,7 +383,7 @@ jobs:
 
 **uses**: テンプレートの場所
 ```yaml
-uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+uses: <あなたのリポジトリ>/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
 ```
 
 - `shuhei0720org01/alz-mgmt-templates`: リポジトリ名
@@ -441,7 +441,7 @@ on:
 
 jobs:
   plan_and_apply:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
+    uses: <あなたのリポジトリ>/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
     name: 'CD'
     permissions:
       id-token: write
@@ -498,7 +498,7 @@ CDワークフローも2つのタイミングで動きます：
 ```yaml
 jobs:
   plan_and_apply:
-    uses: shuhei0720org01/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
+    uses: <あなたのリポジトリ>/alz-mgmt-templates/.github/workflows/cd-template.yaml@main
     name: 'CD'
     permissions:
       id-token: write
