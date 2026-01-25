@@ -1,4 +1,4 @@
-# 10. Hub-and-Spoke - ネットワークの中核
+# 13. Hub-and-Spoke - ネットワークの中核
 
 !!! info "この章で学ぶこと"
     Hub-and-Spokeネットワークの全体像を完全理解します：
@@ -55,7 +55,6 @@
 3. コストが予測しやすい
 4. 日本の中小企業に最適
 
-Virtual WANについては[Chapter 11](./11_Virtual_WAN.md)で詳しく解説します。
 
 ---
 
@@ -2261,6 +2260,6 @@ Azure FirewallのSKU：
 
 **難易度**: ★★★★★
 
-**前**: [09_管理リソース](./09_管理リソース.md)
+**前**: [12_管理リソース](./12_管理リソース.md)
 
-**次**: [11_Virtual_WAN](./11_Virtual_WAN.md)
+**次**: [14_GitHub_Actions](./14_GitHub_Actions.md)

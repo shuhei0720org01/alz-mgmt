@@ -1,8 +1,8 @@
-# 15. Bootstrap Phase 2 - Landing Zonesのデプロイと検証
+# 03. IaCのランディングゾーン環境を作ってみよう(続き) - Landing Zonesのデプロイと検証
 
 ## やってみよう
 
-14章で準備は整ったので、この章でAzureにランディングゾーンを実際にデプロイしていきましょう！
+2章で準備は整ったので、この章でAzureにランディングゾーンを実際にデプロイしていきましょう！
 
 ---
 
@@ -334,7 +334,6 @@ git branch -D feature/delete-resources
 
 ```
 
-![alt text](./img/image43.png)
 
 あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されてるので、またplanで変更点を確認して承認→デプロイしていきましょう！
 
@@ -403,7 +402,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 デプロイが終了したらAzureポータルでプライマリのHub VNetのIPを確認してみましょう。
 
-<img>
+![alt text](./img/image51.png)
 
 
 
@@ -513,4 +512,4 @@ azurerm_firewall.connectivity
 ができます。
 
 !!! tip "次の章へ"
-    [Chapter 16: 運用管理の基礎](16_運用管理の基礎.md)で、日常運用タスクとリソース管理を学びます。
+    [04_IaCランディングゾーンの運用管理.md](04_IaCランディングゾーンの運用管理.md)で、IaCの運用管理を学びます。

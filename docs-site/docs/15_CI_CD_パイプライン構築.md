@@ -1,4 +1,4 @@
-# 13. CI/CDパイプライン構築 - 実践的な自動化
+# 15. CI/CDパイプライン構築 - 実践的な自動化
 
 !!! info "この章で学ぶこと"
     再利用可能ワークフローを使った実践的なCI/CDパイプラインを構築します：
@@ -1971,5 +1971,3 @@ GitHub Settings → Environments → production:
 
 承認者がApproveするまでデプロイが実行されません。
 
-!!! tip "次の章へ"
-    [Chapter 14: Bootstrap Phase 1](14_Bootstrap_Phase_1.md)で、前提条件の準備からBootstrap環境のセットアップまでを学びます。

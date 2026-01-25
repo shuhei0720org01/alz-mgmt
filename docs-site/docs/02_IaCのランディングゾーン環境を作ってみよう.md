@@ -1,4 +1,4 @@
-# 14. Bootstrap Phase 1 - 準備とBootstrap環境のセットアップ
+# 02. IaCのランディングゾーン環境を作ってみよう - 準備とBootstrap環境のセットアップ
 
 ## やってみよう
 
@@ -233,37 +233,29 @@ Deploy-Accelerator
 
 **起動すると質問が始まります**：
 
-何個か質問が聞かれますが、全部そのままEnterでいいです。
+ここから質問が始まるので答えていきます。まず、4回連続そのままEnterでいいです。
 
-```text title="Interactive Mode"
-Checking the software requirements for the Accelerator...
-
-Check Result Check Details
------------- -------------
-Success      PowerShell version 7.5.4 is supported.
-Success      Git is installed.
-Success      Azure CLI is installed.
-Success      Azure CLI is logged in. Tenant ID: e2f04341-4f1f-480c-a5e4-42f590247b83, Subscription: subscription-mgmt (
-             348d4546-e26e-47c1-900d-c9f3339aea5e)
-Success      ALZ module is the latest version (6.0.5).
-Success      powershell-yaml module is installed but was not imported, now imported (version 0.4.12).
-
-
-No input configuration files provided. Let's set up the accelerator folder structure first...
-For more information, see: https://aka.ms/alz/acc/phase2
-
+```
 Enter the target folder path for the accelerator files (default: ~/accelerator):
 Target folder path:　←そのままenterでOK
+```
+
+```
 Select the Infrastructure as Code (IaC) type:
   [1] terraform (Default)
   [2] bicep
 Enter selection (1-2, default: 1): ←そのままenterでOK
+```
 
+```
 Select the Version Control System:
   [1] github (Default)
   [2] azure-devops
   [3] local
 Enter selection (1-3, default: 1): ←そのままenterでOK
+```
+
+```
 Select the Terraform scenario (see https://aka.ms/alz/acc/scenarios):
   [1] 1 - Full Multi-Region - Hub and Spoke VNet (Default)
   [2] 2 - Full Multi-Region - Virtual WAN
@@ -276,6 +268,7 @@ Select the Terraform scenario (see https://aka.ms/alz/acc/scenarios):
   [9] 9 - Full Single-Region NVA - Virtual WAN
 Enter selection (1-9, default: 1): ←そのままenterでOK
 ```
+
 以下のような質問になります。Y を入力してエンター
 
 ```
@@ -786,4 +779,4 @@ repo:{organization}/{repository}:ref:refs/heads/{branch}
 これにより、**特定のリポジトリ・ブランチからのみAzure認証を許可**できます。
 
 !!! tip "次の章へ"
-    [Chapter 15: Bootstrap Phase 2](15_Bootstrap_Phase_2.md)で、Landing Zonesのデプロイと検証を学びます。
+    [03_IaCのランディングゾーン環境を作ってみよう(続き).md](03_IaCのランディングゾーン環境を作ってみよう(続き).md)で、Landing Zonesのデプロイと検証を学びます。

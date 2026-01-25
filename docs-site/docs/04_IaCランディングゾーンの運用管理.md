@@ -1,11 +1,11 @@
-# 16. 運用管理の基礎
+# 04. IaCランディングゾーンの運用管理
 
 !!! info "この章で学ぶこと"
     Landing Zonesの日常運用と管理方法を学びます：
 
-    1. 日常運用タスク
+    1. terraformの運用
     2. 変更管理フロー
-    3. リソースの追加・削除
+    3. サブスクリプション払い出しの自動化
     4. ポリシーの更新管理
 
     この章で、安定した運用ができるようになります。
@@ -16,19 +16,19 @@
 
 ### Configuration Driftの検出
 
-Landing Zonesをデプロイした後、誰かがAzure Portalから手動でリソースを変更したり、設定を変えてしまったりすることがあるよね。そうなると、Terraformのコードと実際のAzureの状態が違っちゃう。これを「Configuration Drift（設定のずれ）」って呼ぶんだ。
+Landing Zonesをデプロイした後、誰かがAzure Portalから手動でリソースを変更したり、設定を変えてしまったりすることがあります。
+
+そうなると、Terraformのコードと実際のAzureの状態が違う。これを「Configuration Drift（設定のずれ）」と呼びます。
 
 !!! warning "Driftが起きる典型的なケース"
     - Azure Portalから直接リソースを変更
     - 他のツールでの変更（Azure CLI、PowerShellなど）
-    - 手動でのタグ追加・削除
-    - ネットワーク設定の変更
     
-    こういう変更があると、Terraformのコードと実際の状態がずれちゃうんだ。
+    こういう変更があると、Terraformのコードと実際の状態がずれてしまいます。
 
 #### Drift検出の仕組み
 
-Terraformには、現在の状態とコードの差分を検出する機能が標準で備わっているよ。
+Terraformには、現在の状態とコードの差分を検出する機能が標準で備わっています。
 
 ```bash
 # 現在の状態とコードの差分をチェック
@@ -41,11 +41,15 @@ terraform plan -detailed-exitcode
 - `1`: エラー発生
 - `2`: 変更あり（Driftを検出！）
 
-このコマンドを定期的に実行すれば、Driftを早期に発見できるってわけ。
+このコマンドを定期的に実行すれば、Driftを早期に発見できるってわけです。
 
 #### GitHub ActionsでDrift検出を自動化
 
-毎回手動でチェックするのは面倒だから、GitHub Actionsで自動化しちゃおう。毎週月曜日の朝にチェックして、もしDriftが見つかったらIssueを作成してくれるワークフローを作るよ。
+毎回手動でチェックするのは面倒だから、GitHub Actionsで自動化するのがベストプラクティスです。
+
+毎日チェックして、もしDriftが見つかったらIssueを作成してくれるワークフローが以下です。
+
+※IssueとはGitHubの問題チケットみたいなもの
 
 === "ワークフローの作成"
 
@@ -237,7 +241,7 @@ terraform plan -detailed-exitcode
 
     **定期実行のタイミング**:
     
-    - 毎週月曜日の朝: 週の始まりにチェック
+    - 毎日実行
     - リリース前後: デプロイ前後での状態確認
     - インシデント後: トラブル対応後の状態確認
     
@@ -275,7 +279,7 @@ terraform plan -detailed-exitcode
     !!! info "Stateful Resourcesの扱い"
         一部のリソース（Log Analyticsのデータなど）は、手動で操作しても問題ない場合がある。
         
-        そういったリソースは、`lifecycle`ブロックで管理対象外にできるよ：
+        そういったリソースは、`lifecycle`ブロックで管理対象外にできる：
         
         ```hcl
         resource "azurerm_log_analytics_workspace" "example" {
@@ -292,7 +296,11 @@ terraform plan -detailed-exitcode
 
 ### Terraform Landing Zonesのバージョン更新
 
-Azure Landing Zonesは定期的にアップデートされるんだ。新機能の追加、バグ修正、セキュリティパッチなど、最新の状態に保つことが大事だよ。
+Azure Landing Zonesは定期的にアップデートされるます。
+
+新機能の追加、バグ修正、セキュリティパッチなど、最新の状態に保つことが大事です。IaCのメリットを活かせます。
+
+※IaCの管理でないと、Microsoftのアップデートに手動でついていく必要がある。
 
 !!! info "なぜバージョン更新が必要？"
     - **セキュリティ**: 脆弱性への対応
@@ -304,7 +312,7 @@ Azure Landing Zonesは定期的にアップデートされるんだ。新機能�
 
 #### バージョン管理の仕組み
 
-Landing Zonesでは、`terraform.tf`でモジュールのバージョンを管理しているよ。
+Landing Zonesでは、`terraform.tf`でモジュールのバージョンを管理しています。
 
 ```hcl title="terraform.tf"
 terraform {
@@ -319,7 +327,7 @@ terraform {
 }
 ```
 
-また、使用している`alz`モジュールのバージョンもチェックが必要だ。
+また、使用している`alz`モジュールのバージョンもチェックが必要です。
 
 ```hcl title="main.*.tf"
 module "alz" {
