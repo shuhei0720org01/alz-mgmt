@@ -110,7 +110,7 @@ sequenceDiagram
 
 以下のようになるとデプロイ成功です！
 
-
+<img>
 
 
 ## Part 2: デプロイ後の検証
@@ -131,215 +131,43 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 ### Policy割り当ての確認
 
-ポリシーが正しく割り当てられているか確認します。
+Azureポータルでカスタムポリシーが作成されていることを確認しましょう。
 
-=== "割り当て済みポリシー確認"
+contoso管理グループスコープでいろいろ作成されています。
 
-    ```bash title="Root MGのポリシー確認"
-    az policy assignment list \
-      --scope "/providers/Microsoft.Management/managementGroups/alz" \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name                                DisplayName
-    ----------------------------------  -----------------------------------------
-    Deny-PublicIP                       Deny creation of public IP addresses
-    Deny-RDP-From-Internet              Deny RDP from internet
-    Deploy-Diagnostics                  Deploy diagnostic settings
-    Deploy-AzureMonitor-VM              Deploy Azure Monitor for VMs
-    ...（合計30〜50個）
-    ```
+<img>
 
-=== "特定ポリシーの詳細確認"
+次に、Azureポータルでポリシーの割り当てを確認しましょう。
 
-    ```bash title="ポリシーの詳細"
-    az policy assignment show \
-      --name "Deny-PublicIP" \
-      --scope "/providers/Microsoft.Management/managementGroups/alz"
-    ```
+<img>
 
-=== "ポリシー準拠状況の確認"
+各管理グループスコープで様々なポリシーが割り当てられています。勉強になるので、じっくり見ていくのおすすめです。
 
-    ```bash title="準拠状況"
-    az policy state summarize \
-      --management-group alz
-    ```
-    
-    ```json title="出力例"
-    {
-      "policyAssignments": [
-        {
-          "policyAssignmentId": ".../Deny-PublicIP",
-          "results": {
-            "nonCompliantResources": 0,
-            "nonCompliantPolicies": 0
-          }
-        }
-      ]
-    }
-    ```
 
-!!! tip "ポリシー適用タイミング"
-    ポリシーは即座に適用されますが、既存リソースの評価には最大30分かかる場合があります。
+
+割り当てられているポリシーの全容は、以下のサイトに書いています。こちらも参考になるので、見てみるといいでしょう。（英語なので日本語翻訳すると見やすいです）
+
+https://github.com/Azure/Enterprise-Scale/wiki/ALZ-Policies
+
 
 ### Management Resourcesの確認
 
-管理リソースが作成されているか確認します。
+Log Analyticsワークスペース、DCRなどの管理リソースが作成されているか確認します。
 
-=== "Log Analytics Workspace"
+リソースグループ「rg-managemanet-japaneast」に管理リソースが作成されています。
 
-    ```bash title="Log Analytics確認"
-    az monitor log-analytics workspace list \
-      --resource-group alz-management-rg \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name          Location    ResourceGroup
-    ------------  ----------  -----------------
-    alz-log-jpe   japaneast   alz-management-rg
-    ```
-    
-    **動作確認**:
-    
-    ```bash title="Workspaceにクエリ実行"
-    az monitor log-analytics query \
-      --workspace <workspace-id> \
-      --analytics-query "Heartbeat | take 10"
-    ```
+![alt text](./img/image27.png)
 
-=== "Automation Account"
+### Networking（Hub/Spoke）の確認
 
-    ```bash title="Automation Account確認"
-    az automation account list \
-      --resource-group alz-management-rg \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name               Location    ResourceGroup
-    -----------------  ----------  -----------------
-    alz-automation-jpe japaneast   alz-management-rg
-    ```
+Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワークリソースを確認します。
 
-=== "診断設定"
+リソースグループ「rg-hub-japaneast」にHubのリソース、「rg-hub-dns-japaneast」にDNSのリソースが作成されています。
 
-    ```bash title="診断設定の確認"
-    az monitor diagnostic-settings list \
-      --resource <resource-id>
-    ```
-    
-    Log Analyticsに診断ログが送信されているか確認します。
+![alt text](./img/image28.png)
 
-### Networking（Hub/Spoke or VWAN）の確認
+![alt text](./img/image29.png)
 
-ネットワークリソースを確認します。
-
-=== "Hub VNet（Hub-and-Spoke）"
-
-    ```bash title="VNet確認"
-    az network vnet list \
-      --resource-group alz-connectivity-rg \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name          Location    ResourceGroup
-    ------------  ----------  ---------------------
-    alz-hub-jpe   japaneast   alz-connectivity-rg
-    ```
-    
-    **Subnet確認**:
-    
-    ```bash title="Subnet一覧"
-    az network vnet subnet list \
-      --resource-group alz-connectivity-rg \
-      --vnet-name alz-hub-jpe \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name                    AddressPrefix
-    ----------------------  ---------------
-    AzureFirewallSubnet     10.0.0.0/26
-    GatewaySubnet           10.0.0.64/27
-    ```
-
-=== "Azure Firewall"
-
-    ```bash title="Firewall確認"
-    az network firewall list \
-      --resource-group alz-connectivity-rg \
-      --output table
-    ```
-    
-    ```text title="出力例"
-    Name           Location    ResourceGroup
-    -------------  ----------  ---------------------
-    alz-fw-jpe     japaneast   alz-connectivity-rg
-    ```
-    
-    **Firewallルール確認**:
-    
-    ```bash title="ネットワークルール"
-    az network firewall network-rule collection list \
-      --firewall-name alz-fw-jpe \
-      --resource-group alz-connectivity-rg
-    ```
-
-=== "Virtual WAN（VWANの場合）"
-
-    ```bash title="Virtual WAN確認"
-    az network vwan list --output table
-    ```
-    
-    ```bash title="Virtual Hub確認"
-    az network vhub list --output table
-    ```
-
-### ログの確認
-
-各リソースのログが正しく収集されているか確認します。
-
-=== "Activity Log"
-
-    ```bash title="Activity Logの確認"
-    az monitor activity-log list \
-      --max-events 10 \
-      --output table
-    ```
-    
-    デプロイ時の操作ログが記録されています。
-
-=== "Diagnostic Settings"
-
-    ```bash title="診断設定の確認"
-    # VNetの診断設定
-    az monitor diagnostic-settings show \
-      --resource <vnet-id> \
-      --name "diag-log"
-    
-    # Firewallの診断設定
-    az monitor diagnostic-settings show \
-      --resource <firewall-id> \
-      --name "diag-log"
-    ```
-
-=== "Log Analyticsクエリ"
-
-    ```bash title="ログクエリ実行"
-    az monitor log-analytics query \
-      --workspace <workspace-id> \
-      --analytics-query "
-        AzureActivity
-        | where TimeGenerated > ago(1h)
-        | where OperationNameValue contains 'Microsoft.Network'
-        | summarize count() by OperationNameValue
-      "
-    ```
-    
-    ネットワークリソースの操作ログを集計します。
 
 !!! success "検証完了チェックリスト"
     - ✅ Management Group階層が正しい
@@ -347,7 +175,6 @@ Azureポータルで作成された管理グループを確認してみましょ
     - ✅ Log Analytics Workspaceが稼働
     - ✅ Hub VNetが作成済み
     - ✅ Azure Firewallが稼働
-    - ✅ ログが収集されている
 
 ---
 
@@ -355,53 +182,68 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 ### tfvarsのカスタマイズ
 
-設定をカスタマイズします。
+設定をカスタマイズしてみましょう！
 
-=== "リポジトリをクローン"
+あなたの「alz-mgmt」リポジトリを開いて、「Code」→「Create Codespace on main」からgithub codespaceを作成し、ここで編集していきます。
 
-    ```bash title="ローカルにクローン"
-    git clone https://github.com/<org>/alz-mgmt.git
-    cd alz-mgmt
-    
-    # feature ブランチ作成
-    git checkout -b feature/customize-settings
-    ```
+![alt text](./img/image30.png)
 
-=== "terraform.tfvarsの編集"
+しばらく待つと、ブラウザでこんな画面が開きます。
 
-    ```hcl title="terraform.tfvars"
-    # リージョン変更
-    default_location = "japanwest"  # japaneast → japanwest
-    
-    # Management Group名のカスタマイズ
-    root_id = "contoso"
-    root_name = "Contoso Landing Zones"
-    
-    # Hub VNetのアドレス空間変更
-    connectivity_resources_config = {
-      hub_networks = {
-        japanwest = {
-          address_space = ["10.100.0.0/16"]  # デフォルトから変更
-          subnets = {
-            AzureFirewallSubnet = {
-              address_prefix = "10.100.0.0/26"
-            }
-            GatewaySubnet = {
-              address_prefix = "10.100.0.64/27"
-            }
-          }
-        }
-      }
-    }
-    ```
+![alt text](./img/image31.png)
 
-=== "変更をコミット"
+「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
 
-    ```bash title="Git操作"
-    git add terraform.tfvars
-    git commit -m "feat: カスタマイズ - リージョンをjapanwestに変更"
-    git push origin feature/customize-settings
-    ```
+今回は、IPアドレス範囲をカスタマイズしてみます。
+
+IPアドレスを定義している箇所を探して、以下のようにプライマリのIP範囲を「10.100.0.0/16」に変更してみましょう。
+
+![alt text](./img/image32.png)
+
+
+変更したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
+
+```
+# feature ブランチ作成
+git checkout -b feature/ip-range-change
+
+# 変更をコミット、プッシュ
+git add .
+git commit -m "ipレンジを変更"
+git push origin feature/ip-range-change
+
+# PR作成
+gh pr create --base main --head feature/ip-range-change --title "ip-range-change" --body "ip-range-change"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/ip-range-change
+
+```
+
+![alt text](./img/image33.png)
+
+以下のような感じになると変更がリポジトリに反映されました。
+
+![alt text](./img/image34.png)
+
+あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、自動でCI（terraform plan）が実行されています。
+
+<img>
+
+CIが終わったら、承認待ちになるので、先ほどと同じように承認しましょう。
+
+<img>
+
+
 
 ### libフォルダのカスタマイズ
 
