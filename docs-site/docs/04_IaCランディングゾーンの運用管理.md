@@ -47,9 +47,9 @@ terraform plan -detailed-exitcode
 
 毎回手動でチェックするのは面倒だから、GitHub Actionsで自動化するのがベストプラクティスです。
 
-毎日チェックして、もしDriftが見つかったらIssueを作成してくれるワークフローが以下です。
+毎日チェックして、もしDriftをログに出してくれるワークフローが以下です。
 
-※IssueとはGitHubの問題チケットみたいなもの
+※ここからもしDriftがあったらTeamsに通知するなどの仕組みを実装します。
 
 === "ワークフローの作成"
 
@@ -59,10 +59,8 @@ terraform plan -detailed-exitcode
     name: Drift Detection
 
     on:
-      # 毎日 9:00 JSTに実行
       schedule:
         - cron: '0 0 * * *'
-      # 手動実行も可能
       workflow_dispatch:
 
     permissions:
@@ -73,7 +71,6 @@ terraform plan -detailed-exitcode
     jobs:
       drift-check:
         uses: shuheiorg02/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
-        name: 'Drift Check'
         permissions:
           id-token: write
           contents: read
@@ -82,50 +79,86 @@ terraform plan -detailed-exitcode
           root_module_folder_relative_path: '.'
           terraform_cli_version: 'latest'
 
-      create-issue-on-drift:
+      analyze-drift:
         needs: drift-check
-        if: failure()
+        if: always()
         runs-on: ubuntu-latest
         permissions:
           issues: write
+          actions: read
         steps:
-          - name: Create Drift Detection Issue
+          - name: Check for Drift in Logs
+            id: check
             uses: actions/github-script@v7
             with:
               script: |
-                const body = `## ⚠️ Configuration Drift検出
-
-                定期チェックで設定のずれ（Drift）を検出しました。
-
-                ### 検出日時
-                ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
-
-                ### ワークフロー実行
-                https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-                ### 対応が必要な理由
-                TerraformのコードとAzureの実際の状態が一致していません。以下のいずれかの対応が必要です：
-
-                1. **手動変更を元に戻す**: Azure Portalでの変更をロールバック
-                2. **Terraformコードを更新**: 変更が正しい場合、コードに反映
-                3. **Terraformで再適用**: \`terraform apply\`で状態を同期
-
-                ### 次のステップ
-
-                - [ ] 変更内容を確認
-                - [ ] 変更理由を調査
-                - [ ] 対応方法を決定
-                - [ ] 対応を実施
-                - [ ] このIssueをクローズ
-                `;
-
-                await github.rest.issues.create({
+                const jobs = await github.rest.actions.listJobsForWorkflowRun({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  title: `⚠️ Drift Detection: ${new Date().toISOString().split('T')[0]}`,
-                  body: body,
-                  labels: ['drift-detection', 'infrastructure']
+                  run_id: context.runId,
                 });
+                
+                console.log(`Found ${jobs.data.jobs.length} jobs`);
+                jobs.data.jobs.forEach(j => console.log(`Job: ${j.name} (${j.conclusion})`));
+                
+                const planJob = jobs.data.jobs.find(j => j.name.includes('Validate Terraform Plan'));
+                if (!planJob) {
+                  console.log('❌ Plan job not found');
+                  core.setOutput('drift_detected', 'false');
+                  return;
+                }
+                
+                console.log(`✅ Found plan job: ${planJob.name} (ID: ${planJob.id})`);
+                
+                const logs = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: planJob.id,
+                });
+                
+                const logText = typeof logs.data === 'string' ? logs.data : String(logs.data);
+                console.log(`Log size: ${logText.length} characters`);
+                
+                // ANSIエスケープシーケンスを除去
+                const cleanedLog = logText.replace(/\x1b\[[0-9;]*m/g, '');
+                console.log(`Cleaned log size: ${cleanedLog.length} characters`);
+                
+                // ログサンプルを出力
+                const planIndex = cleanedLog.indexOf('Plan:');
+                if (planIndex !== -1) {
+                  console.log(`Found "Plan:" at position ${planIndex}`);
+                  const sample = cleanedLog.substring(planIndex, planIndex + 100);
+                  console.log('Sample around Plan:', sample);
+                }
+                
+                // より柔軟な正規表現: 改行やタイムスタンプを含む可能性に対応
+                // "Plan: 0 to add,\n 1 to change, 0 to destroy." のような複数行にも対応
+                const planMatch = cleanedLog.match(/Plan:\s*(\d+)\s+to\s+add,\s*(\d+)\s+to\s+change,\s*(\d+)\s+to\s+destroy/is);
+                
+                if (planMatch) {
+                  const [, add, change, destroy] = planMatch;
+                  console.log(`📊 Plan match: ${add} to add, ${change} to change, ${destroy} to destroy`);
+                  const hasChanges = parseInt(add) > 0 || parseInt(change) > 0 || parseInt(destroy) > 0;
+                  
+                  if (hasChanges) {
+                    console.log('✅ Drift detected!');
+                    core.setOutput('drift_detected', 'true');
+                    core.setOutput('changes', `${add} to add, ${change} to change, ${destroy} to destroy`);
+                    return;
+                  } else {
+                    console.log('✅ No changes detected');
+                  }
+                } else {
+                  console.log('❌ No plan match found in logs');
+                }
+                
+                core.setOutput('drift_detected', 'false');
+
+          - name: Log Drift Detection
+            if: steps.check.outputs.drift_detected == 'true'
+            run: |
+              echo "::warning::🚨 Configuration Drift検出: ${{ steps.check.outputs.changes }}"
+              echo "詳細: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
     ```
 
 === "ハンズオン: ワークフローの実装"
@@ -182,9 +215,7 @@ terraform plan -detailed-exitcode
     **Step 1: Azure Portalで手動変更**
 
     1. Azure Portalにログイン
-    2. Management Groupsに移動
-    3. Landing Zonesのいずれかの Management Groupを選択
-    4. **タグ**を追加（例: `TestTag: ManualChange`）
+    2. vnet-hub-japaneastにてきとうに一つタグを追加してみる。
 
     **Step 2: ワークフローを再実行**
 
@@ -193,19 +224,11 @@ terraform plan -detailed-exitcode
 
     **Step 3: 結果を確認**
 
-    - ワークフローが「失敗」になる（これは期待される動作）
-    - **Issues**タブに新しいIssueが作成される
-    - Issueには変更内容の詳細が記載されている
+    - ワークフローが終わると、先ほど追加したタグが、Driftとしてログに出ていることが確認できる。
 
     !!! tip "Driftを解消する"
-        テスト後は、以下のいずれかで対応：
-        
-        ```bash
-        # 方法1: Terraformで上書き（推奨）
-        terraform apply -auto-approve
-        
-        # 方法2: Azure Portalで追加したタグを削除
-        ```
+        テスト後は、CDのアプライを実行するとDriftが解消されます
+
 
 #### Drift検出のベストプラクティス
 
@@ -219,13 +242,13 @@ terraform plan -detailed-exitcode
     
     **Issueへの対応フロー**:
     
-    1. **検出**: GitHub ActionsがIssueを作成
+    1. **検出**: GitHub Actionsが検出
     2. **調査**: 誰が、なぜ変更したかを確認
     3. **判断**: 
         - 変更が正しい → Terraformコードを更新
         - 変更が誤り → Terraformで上書き
     4. **適用**: 決定した対応を実施
-    5. **クローズ**: Issueをクローズ
+    5. **クローズ**
     
     **よくあるDriftのパターン**:
     
@@ -272,7 +295,7 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 新機能の追加、バグ修正、セキュリティパッチなど、最新の状態に保つことが大事です。IaCのメリットを活かせます。
 
-※IaCの管理でないと、Microsoftのアップデートに手動でついていく必要がある。
+※IaCの管理でないと、Microsoftのアップデートに手動でついていく必要がある。直近などNSGフローログの廃止などがありました。今後はVMInsightsの廃止があるとの噂があります。
 
 !!! info "なぜバージョン更新が必要？"
     - **セキュリティ**: 脆弱性への対応
@@ -284,280 +307,165 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 #### バージョン管理の仕組み
 
-Landing Zonesでは、`terraform.tf`でモジュールのバージョンを管理しています。
+Landing Zonesでは、主要なバージョン更新箇所は二つあります。
+
+**1. `terraform.tf` - ALZプロバイダーのバージョン**
 
 ```hcl title="terraform.tf"
 terraform {
-  required_version = "~> 1.10"
+  required_version = "~> 1.12"
   
   required_providers {
+    # Terraformプロバイダーのバージョン
+    alz = {
+      source  = "Azure/alz"
+      version = "0.20.0"  # ← これ！ALZプロバイダー
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"  # ← Providerのバージョン
+      version = "~> 4.0"
     }
   }
 }
 ```
 
-また、使用している`alz`モジュールのバージョンもチェックが必要です。
+**2. `modules/management_groups/main.tf` - AVMモジュールのバージョン**
 
-```hcl title="main.*.tf"
-module "alz" {
+```hcl title="modules/management_groups/main.tf"
+module "management_groups" {
   source  = "Azure/avm-ptn-alz/azurerm"
-  version = "~> 0.11.0"  # ← モジュールのバージョン
+  version = "0.14.1"  # ← これも！AVMパターンモジュール
+  
+  # ... 設定 ...
+}
+```
+
+!!! warning "更新時にリリースノートは絶対確認！"
+
+    対応バージョンは以下で確認：
+    - [ALZプロバイダー リリースノート](https://github.com/Azure/terraform-provider-alz/releases)
+    - [AVMパターンモジュール リリースノート](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases)
+
+#### バージョン更新の手順
+
+=== "Step 1: リポジトリのファイルで、現在のバージョン確認"
+
+=== "Step 2: リリースノートで最新バージョンの確認"
+    
+=== "Step 3: コミットする"
+
+=== "Step 4: CIのterraformプランで変更点を確認"
+
+=== "Step 5: 変更点が確認できたらCDを起動して変更をデプロイする"
+
+
+#### やってみよう: バージョンアップデートの実践
+
+実際にバージョン更新を体験してみよう。
+
+※バージョンは筆者がやってる時と違う場合があります。リリースノートを確認して最新のバージョンに更新してみましょう。
+
+実践編と同じようにcodespacesを開いて、以下の2つのファイルを更新します。
+
+!!! tip "更新が必要な2つのファイル"
+    1. `terraform.tf` - ALZプロバイダー
+    2. `modules/management_groups/main.tf` - AVMモジュール
+
+**Step 1: terraform.tfのバージョンを変更**
+
+「terraform.tf」を開いて、ALZプロバイダーのバージョンを更新：
+
+```hcl title="terraform.tf（変更例）"
+alz = {
+  source  = "Azure/alz"
+  version = "0.20.2"  # 0.20.0 → 0.20.2 に変更
+}
+```
+
+![alt text](image53.png)
+
+**Step 2: modules/management_groups/main.tfのバージョンも変更**
+
+`modules/management_groups/main.tf`を開いて、AVMモジュールのバージョンも変更：
+
+```hcl title="modules/management_groups/main.tf（変更例）"
+module "management_groups" {
+  source  = "Azure/avm-ptn-alz/azurerm"
+  version = "0.17.0"  # 0.14.1 → 0.17.0 に変更
   # ...
 }
 ```
 
-#### バージョン更新の手順
+![alt text](./img/image54.png)
 
-=== "Step 1: 現在のバージョン確認"
+**Step 3: コミット&PRを作成**
 
-    まずは現在使っているバージョンを確認しよう。
-
-    ```bash
-    cd /workspaces/alz-mgmt
-    
-    # Terraformのバージョン
-    terraform version
-    
-    # 使用中のProviderバージョン
-    terraform providers
-    
-    # モジュールのバージョンを確認
-    grep 'version.*=' terraform.tf
-    ```
-
-    **出力例**:
-    ```
-    Terraform v1.10.3
-    └── provider registry.terraform.io/hashicorp/azurerm v4.0.1
-    
-      required_version = "~> 1.10"
-      version = "~> 4.0"
-    ```
-
-=== "Step 2: 最新バージョンの確認"
-
-    次に、利用可能な最新バージョンを確認する。
-
-    **Terraform本体**:
-    ```bash
-    # Terraform本体の最新版を確認
-    curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r .current_version
-    ```
-
-    **AzureRM Provider**:
-    - [Terraform Registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest)でチェック
-    - または：
-    ```bash
-    # 最新のProviderバージョンを確認
-    terraform init -upgrade 2>&1 | grep azurerm
-    ```
-
-    **ALZ Module**:
-    - [GitHub Releases](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases)でチェック
-    - リリースノートを必ず確認！破壊的変更がないかチェック
-
-=== "Step 3: テスト環境で試す"
-
-    いきなり本番を更新するのは危険。まずはブランチを作って試そう。
-
-    ```bash
-    # 作業ブランチを作成
-    git checkout -b update/terraform-versions
-    
-    # バージョンを更新（例）
-    sed -i 's/version = "~> 0.11.0"/version = "~> 0.12.0"/' main.management.tf
-    sed -i 's/version = "~> 4.0"/version = "~> 4.1"/' terraform.tf
-    
-    # 依存関係を更新
-    terraform init -upgrade
-    
-    # 変更内容を確認
-    terraform plan
-    ```
-
-    !!! warning "破壊的変更に注意"
-        `terraform plan`の結果を**必ず**確認すること：
-        
-        - `destroy`が含まれていないか
-        - 予期しない変更がないか
-        - リソースの再作成が発生していないか
-        
-        特にManagement Groupsやポリシーの再作成は避けたいよね。
-
-=== "Step 4: リリースノートを読む"
-
-    バージョンアップする前に、必ずリリースノートを確認しよう。
-
-    **チェックポイント**:
-    
-    - **Breaking Changes**: 破壊的変更はあるか？
-    - **New Features**: 新機能で使いたいものは？
-    - **Bug Fixes**: 影響を受けるバグ修正は？
-    - **Migration Guide**: 移行ガイドはあるか？
-    
-    例えば、ALZ Module v0.12.0のリリースノート：
-    ```markdown
-    ## v0.12.0
-    
-    ### ⚠️ Breaking Changes
-    - Changed default policy assignment behavior
-    - Renamed some variables (see migration guide)
-    
-    ### ✨ New Features
-    - Support for new Azure regions
-    - Enhanced logging configuration
-    
-    ### 🐛 Bug Fixes
-    - Fixed issue with tag inheritance
-    ```
-
-=== "Step 5: 段階的に適用"
-
-    問題なければ、段階的に適用していく。
-
-    ```bash
-    # まずはplanで最終確認
-    terraform plan -out=tfplan
-    
-    # 問題なければapply
-    terraform apply tfplan
-    
-    # 結果を確認
-    terraform state list
-    ```
-
-    **適用後のチェック**:
-    
-    - [ ] Management Groupsが正常に見える
-    - [ ] ポリシーが適用されている
-    - [ ] Log Analyticsにログが流れている
-    - [ ] CI/CDワークフローが動作する
-
-=== "Step 6: 本番に反映"
-
-    テストで問題なければ、本番に反映。
-
-    ```bash
-    # 変更をコミット
-    git add terraform.tf main.*.tf .terraform.lock.hcl
-    git commit -m "Update Terraform and provider versions to latest stable"
-    
-    # プルリクエストを作成
-    git push origin update/terraform-versions
-    ```
-
-    プルリクエストには以下を記載：
-    
-    ```markdown
-    ## Terraform/Provider バージョン更新
-    
-    ### 変更内容
-    - Terraform: 1.9.x → 1.10.x
-    - AzureRM Provider: 4.0.x → 4.1.x
-    - ALZ Module: 0.11.x → 0.12.x
-    
-    ### テスト結果
-    - [x] terraform plan: 変更なし
-    - [x] terraform apply: 成功
-    - [x] 全ワークフロー実行: 成功
-    
-    ### リリースノート
-    - [Terraform v1.10.0](https://github.com/hashicorp/terraform/releases/tag/v1.10.0)
-    - [AzureRM v4.1.0](https://github.com/hashicorp/terraform-provider-azurerm/releases/tag/v4.1.0)
-    - [ALZ Module v0.12.0](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases/tag/v0.12.0)
-    ```
-
-#### バージョン更新のベストプラクティス
-
-=== "更新頻度の目安"
-
-    | 更新タイプ | 頻度 | タイミング |
-    |----------|-----|----------|
-    | **Patch版** (1.10.1 → 1.10.2) | 月次 | バグ修正・セキュリティパッチ |
-    | **Minor版** (1.10 → 1.11) | 四半期 | 新機能追加 |
-    | **Major版** (1.x → 2.x) | 計画的 | 破壊的変更を含む |
-    
-    !!! tip "おすすめの戦略"
-        - Patch版: すぐに適用（リスク低い）
-        - Minor版: リリースノート確認後、1-2週間以内
-        - Major版: 十分な検証期間を設けて計画的に
-
-=== "自動化の検討"
-
-    Dependabotを使えば、バージョン更新を自動で提案してくれるよ。
-
-    `.github/dependabot.yml`を作成：
-
-    ```yaml title=".github/dependabot.yml"
-    version: 2
-    updates:
-      # Terraform providersの更新チェック
-      - package-ecosystem: "terraform"
-        directory: "/"
-        schedule:
-          interval: "weekly"
-          day: "monday"
-          time: "09:00"
-        open-pull-requests-limit: 5
-        labels:
-          - "dependencies"
-          - "terraform"
-        commit-message:
-          prefix: "deps"
-          include: "scope"
-    ```
-
-    これで、毎週月曜日にバージョン更新のPRが自動作成されるようになる！
-
-=== "注意点とトラブルシューティング"
-
-    **よくある問題と対処法**:
-
-    | 問題 | 原因 | 対処法 |
-    |-----|------|-------|
-    | `Error: Failed to query available provider packages` | ネットワークエラー | `terraform init -upgrade`を再実行 |
-    | `Error: Inconsistent dependency lock file` | ロックファイルの不整合 | `.terraform.lock.hcl`を削除して再init |
-    | プラン結果に大量の変更 | API仕様変更 | リリースノートで確認、必要に応じてロールバック |
-
-    !!! danger "緊急時のロールバック"
-        もしバージョン更新後に問題が発生したら：
-        
-        ```bash
-        # 前のコミットに戻す
-        git revert HEAD
-        git push origin main
-        
-        # または、直接編集して元のバージョンに戻す
-        terraform init -upgrade
-        terraform plan
-        terraform apply
-        ```
-
-    !!! info "State Lockに注意"
-        バージョン更新中は、他の人がTerraformを実行しないように注意！
-        
-        Slackなどで「現在バージョン更新中です」と周知するのがベター。
-
-#### GitHub ActionsでのCI/CD連携
-
-バージョン更新後は、CI/CDワークフローも正常に動作するか確認しよう。
+以下のコマンドをターミナルで実行：
 
 ```bash
-# 全てのワークフローをテスト実行
-# 1. CI（terraform plan）
-git push origin update/terraform-versions
+# feature ブランチ作成
+git checkout -b feature/version-change
 
-# 2. Drift Detection
-# GitHub Actions UIから手動実行
+# 変更をコミット、プッシュ
+git add .
+git commit -m "バージョンを更新"
+git push origin feature/version-change
 
-# 3. CD（terraform apply）
-# PRマージ後に自動実行される
+# PR作成
+gh pr create --base main --head feature/version-change --title "version-change" --body "version-change"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/version-change
 ```
 
-全てのワークフローが成功すれば、バージョン更新完了だ！🎉
+**Step 4: CIでPlanを確認**
+
+リポジトリに戻るとCIが実行されているので、terraform planの変更点を確認しましょう。
+
+!!! question "確認すること"
+    - どんなリソースが変更される？
+    - 削除されるリソースはない？
+    - 意図しない変更はない？
+
+**Step 5: 適用**
+
+問題なければ、デプロイを承認して適用しましょう！
+
+※バージョンに大きな変更があると、コードを変更する必要も出てくることがあります。できれば筆者と同じバージョンに更新することをお勧めします。
+
+
+!!! success "完了！"
+    これで2つのバージョン管理ポイントを確認できました。
+    
+    更新したファイル：
+    - ✅ `terraform.tf` (ALZプロバイダー)
+    - ✅ `modules/management_groups/main.tf` (AVMモジュール)
+
+
+=== "まとめ"
+
+    !!! success "学んだこと"
+        ✅ バージョンファイルの場所と変更方法  
+        ✅ terraform init/planでの確認方法  
+        ✅ Git/GitHubでの変更フロー  
+        ✅ CI/CDパイプラインの動作  
+        ✅ バージョン更新の影響範囲の確認方法
+
+    !!! tip "本番での運用ポイント"
+        - **必ずリリースノートを読む**: 破壊的変更がないか確認
+        - **テスト環境で先に試す**: 可能なら別のランディングゾーンで
+        - **バックアップ**: 重要なリソースは事前にバックアップ
+        - **メンテナンスウィンドウ**: 影響が少ない時間帯に実施
+        - **ロールバック計画**: 問題が起きたときの戻し方を事前に決めておく
 
 ---
 
@@ -889,8 +797,675 @@ PRで実行されるPlanを確認します。
 
 ## Part 3: サブスクリプション払い出しの自動化
 
-### 新規Subscriptionの追加
+### Subscription Vendingとは？
 
+新しいプロジェクトが始まるたび、「Azureサブスクリプションが欲しい！」って要望が来る。毎回手作業で対応するのは大変だし、設定漏れも起きやすい。
+
+そこで、**YAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組み**を作ろう。
+
+!!! info "Subscription Vendingの仕組み"
+    ```mermaid
+    graph LR
+        A[開発者] -->|YAMLファイル作成| B[parameters/myapp.yaml]
+        B -->|PR作成| C[GitHub]
+        C -->|CI/CD実行| D[Terraform]
+        D -->|自動作成| E[サブスクリプション]
+        D -->|自動配置| F[Management Group]
+        D -->|自動設定| G[VNet/RBAC/タグ]
+    ```
+    
+    開発者がやることは**YAMLファイルを1つ追加するだけ**！
+
+---
+
+### 🎯 やってみよう: サブスクリプション自動払い出し
+
+!!! warning "前提条件"
+    - Enterprise Agreement (EA) または Microsoft Customer Agreement (MCA) が必要
+    - Billing Account への権限（Enrollment Account Owner など）
+    
+    **権限がない場合は、コードの確認だけでもOK！**
+
+#### 手順1: 基盤のセットアップ
+
+まず、サブスクリプション払い出しの仕組みを作ります。
+
+```bash
+# ブランチ作成
+git checkout main
+git pull origin main
+git checkout -b feature/setup-subscription-vending
+
+# ディレクトリ作成
+mkdir -p subscription-vending/parameters
+cd subscription-vending
+```
+
+#### 手順2: Terraformファイルを作成
+
+**`main.tf`を作成：**
+
+```hcl title="subscription-vending/main.tf"
+terraform {
+  required_version = "~> 1.12"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+  }
+}
+
+# YAMLファイルを読み込む
+locals {
+  subscription_files = fileset("${path.module}/parameters", "*.yaml")
+  
+  subscriptions = {
+    for file in local.subscription_files :
+    trimsuffix(file, ".yaml") => yamldecode(file("${path.module}/parameters/${file}"))
+  }
+}
+
+# 各サブスクリプションを作成
+module "subscription_vending" {
+  source   = "Azure/lz-vending/azurerm"
+  version  = "~> 4.1.3"
+  
+  for_each = local.subscriptions
+  
+  subscription_alias_enabled       = true
+  subscription_display_name        = each.value.subscription_name
+  subscription_alias_name          = each.key
+  subscription_billing_scope       = var.billing_scope
+  subscription_workload            = each.value.workload_type
+  subscription_management_group_id = each.value.management_group_id
+  
+  subscription_tags = merge(
+    each.value.tags,
+    { "managed-by" = "terraform" }
+  )
+  
+  # Virtual Network（オプション）
+  virtual_network_enabled = lookup(each.value, "virtual_network", null) != null
+  virtual_networks = lookup(each.value, "virtual_network", null) != null ? {
+    primary = {
+      name                = each.value.virtual_network.name
+      address_space       = [each.value.virtual_network.address_space]
+      location            = each.value.virtual_network.location
+      resource_group_name = each.value.virtual_network.resource_group_name
+      
+      subnets = {
+        for subnet in lookup(each.value.virtual_network, "subnets", []) :
+        subnet.name => {
+          name             = subnet.name
+          address_prefixes = [subnet.address_prefix]
+        }
+      }
+    }
+  } : {}
+  
+  # ロール割り当て（オプション）
+  role_assignment_enabled = lookup(each.value, "role_assignments", null) != null
+  role_assignments = lookup(each.value, "role_assignments", null) != null ? {
+    for idx, role in each.value.role_assignments :
+    "${role.role}-${idx}" => {
+      principal_id         = role.principal_id
+      role_definition_name = role.role
+      scope                = "subscription"
+    }
+  } : {}
+}
+```
+
+**`variables.tf`を作成：**
+
+```hcl title="subscription-vending/variables.tf"
+variable "billing_scope" {
+  description = "The billing scope for subscription creation (EA or MCA)"
+  type        = string
+  sensitive   = true
+}
+```
+
+**`outputs.tf`を作成：**
+
+```hcl title="subscription-vending/outputs.tf"
+output "subscriptions" {
+  description = "Created subscriptions"
+  value = {
+    for k, v in module.subscription_vending :
+    k => {
+      subscription_id = v.subscription_id
+    }
+  }
+}
+```
+
+#### 手順3: 最初のサブスクリプションを定義
+
+**YAMLファイルを作成：**
+
+```yaml title="subscription-vending/parameters/demo-dev.yaml"
+subscription_name: "Demo App - Development"
+workload_type: "DevTest"
+management_group_id: "landing-zones"
+
+tags:
+  environment: "development"
+  cost-center: "engineering"
+  project: "demo-app"
+  owner: "demo-team"
+```
+
+#### 手順4: ルートのTerraformに統合
+
+プロジェクトルートに戻って：
+
+```bash
+cd ..
+```
+
+**`main.tf`に追加：**
+
+```hcl title="main.tf"
+# ... 既存のLanding Zones設定 ...
+
+# Subscription Vending
+module "subscription_vending" {
+  source = "./subscription-vending"
+  
+  billing_scope = var.billing_scope
+}
+```
+
+**`variables.tf`に追加：**
+
+```hcl title="variables.tf"
+variable "billing_scope" {
+  description = "Billing scope for subscription creation"
+  type        = string
+  sensitive   = true
+}
+```
+
+**`terraform.tfvars`に追加：**
+
+```hcl title="terraform.tfvars"
+# あなたのBilling Scope IDに置き換え
+# EA: /providers/Microsoft.Billing/billingAccounts/{billing_account_id}/enrollmentAccounts/{enrollment_account_id}
+# MCA: /providers/Microsoft.Billing/billingAccounts/{billing_account_id}/billingProfiles/{billing_profile_id}/invoiceSections/{invoice_section_id}
+billing_scope = "/providers/Microsoft.Billing/billingAccounts/xxxxx/enrollmentAccounts/xxxxx"
+```
+
+#### 手順5: コミット&PR作成
+
+```bash
+git add subscription-vending/ main.tf variables.tf terraform.tfvars
+git commit -m "feat: Setup subscription vending"
+git push origin feature/setup-subscription-vending
+
+# PR作成
+gh pr create --base main --head feature/setup-subscription-vending \
+  --title "feat: Setup subscription vending" \
+  --body "YAMLファイルベースのサブスクリプション払い出し機能を追加"
+```
+
+#### 手順6: CI/Planで確認してマージ
+
+PRページでPlan結果を確認後、マージ：
+
+```bash
+gh pr merge --squash
+
+git checkout main
+git pull origin main
+git branch -D feature/setup-subscription-vending
+```
+
+!!! success "基盤完成！"
+    これで、YAMLファイルを追加するだけでサブスクリプションが作れるようになりました！
+
+---
+
+### 🚀 2つ目以降のサブスクリプション作成
+
+基盤ができたので、**YAMLファイルを追加するだけ**でサブスクリプションを作れます！
+
+#### 例1: シンプルなサブスクリプション
+
+```bash
+git checkout -b feature/add-webapp-sub
+```
+
+**YAMLファイルを作成：**
+
+```yaml title="subscription-vending/parameters/webapp-prod.yaml"
+subscription_name: "WebApp - Production"
+workload_type: "Production"
+management_group_id: "corp"
+
+tags:
+  environment: "production"
+  cost-center: "product"
+  project: "webapp"
+  owner: "webapp-team"
+```
+
+```bash
+git add subscription-vending/parameters/webapp-prod.yaml
+git commit -m "feat: Add WebApp production subscription"
+git push origin feature/add-webapp-sub
+
+gh pr create --base main --head feature/add-webapp-sub \
+  --title "feat: Add WebApp production subscription" \
+  --body "WebApp本番環境用のサブスクリプションを追加"
+
+# Plan確認後、マージ
+gh pr merge --squash
+```
+
+#### 例2: VNet付きサブスクリプション
+
+```yaml title="subscription-vending/parameters/myapp-dev.yaml"
+subscription_name: "MyApp - Development"
+workload_type: "DevTest"
+management_group_id: "landing-zones"
+
+tags:
+  environment: "development"
+  cost-center: "engineering"
+  project: "myapp"
+  owner: "myteam"
+
+# Virtual Networkも作成
+virtual_network:
+  name: "vnet-myapp-dev"
+  address_space: "10.100.0.0/16"
+  location: "japaneast"
+  resource_group_name: "rg-network-dev"
+  subnets:
+    - name: "snet-app"
+      address_prefix: "10.100.1.0/24"
+    - name: "snet-data"
+      address_prefix: "10.100.2.0/24"
+```
+
+#### 例3: RBAC設定付き
+
+```yaml title="subscription-vending/parameters/critical-prod.yaml"
+subscription_name: "Critical System - Production"
+workload_type: "Production"
+management_group_id: "corp"
+
+tags:
+  environment: "production"
+  cost-center: "it"
+  project: "critical-system"
+  criticality: "high"
+
+role_assignments:
+  - principal_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # プラットフォームチーム
+    role: "Owner"
+  - principal_id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"  # 開発チーム
+    role: "Reader"  # 本番は閲覧のみ
+```
+
+---
+
+### 📋 YAMLファイルの書き方
+    
+    # ワークロードタイプ（Production または DevTest）
+    workload_type: "DevTest"
+    
+    # Management Group ID（配置先）
+    # - landing-zones: 通常のアプリケーション
+    # - corp: 厳しいガバナンスが必要な場合
+    # - online: インターネット公開アプリ
+    management_group_id: "landing-zones"
+    
+    # タグ（必須）
+    tags:
+      environment: "development"
+      cost-center: "engineering"
+      project: "myapp"
+      owner: "myteam"
+    
+    # Virtual Network（オプション）
+    virtual_network:
+      name: "vnet-myapp-dev"
+      address_space: "10.100.0.0/16"
+      location: "japaneast"
+      resource_group_name: "rg-network-dev"
+      subnets:
+        - name: "snet-app"
+          address_prefix: "10.100.1.0/24"
+        - name: "snet-data"
+          address_prefix: "10.100.2.0/24"
+    
+    # ロール割り当て（オプション）
+    role_assignments:
+      - principal_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Azure AD Group ID
+        role: "Contributor"
+      - principal_id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+        role: "Reader"
+    ```
+
+### やってみよう: サブスクリプション自動払い出し
+
+実際にパラメーターファイルを追加して、サブスクリプションを自動作成してみよう。
+
+!!! warning "前提条件"
+    - Enterprise Agreement (EA) または Microsoft Customer Agreement (MCA) が必要
+    - Billing Account への権限（Enrollment Account Owner など）
+    
+    権限がない場合は、コードの確認だけでもOK！
+
+=== "ハンズオン手順"
+
+    **Step 1: ブランチを作成**
+    
+    ```bash
+    git checkout main
+    git pull origin main
+    git checkout -b feature/setup-subscription-vending
+    ```
+
+    **Step 2: Subscription Vendingのファイルを作成**
+    
+    先ほどの「Step 2: Terraformファイル作成」の内容を作成：
+    
+    ```bash
+    # ディレクトリ作成
+    mkdir -p subscription-vending/parameters
+    
+    # ファイル作成（VS Codeなどで）
+    # - subscription-vending/main.tf
+    # - subscription-vending/variables.tf
+    # - subscription-vending/outputs.tf
+    ```
+
+    **Step 3: 最初のサブスクリプションを定義**
+    
+    ```yaml title="subscription-vending/parameters/demo-dev.yaml"
+    subscription_name: "Demo App - Development"
+    workload_type: "DevTest"
+    management_group_id: "landing-zones"
+    
+    tags:
+      environment: "development"
+      cost-center: "engineering"
+      project: "demo-app"
+      owner: "demo-team"
+    
+    # 最初はVNetなしでシンプルに
+    # virtual_network: ...
+    # role_assignments: ...
+    ```
+
+    **Step 4: ルートのmain.tfにモジュールを追加**
+    
+    プロジェクトルートの`main.tf`に追加：
+    
+    ```hcl title="main.tf"
+    # ... 既存のLanding Zones設定 ...
+    
+    # Subscription Vending
+    module "subscription_vending" {
+      source = "./subscription-vending"
+      
+      billing_scope = var.billing_scope
+    }
+    ```
+    
+    `variables.tf`に追加：
+    
+    ```hcl title="variables.tf"
+    variable "billing_scope" {
+      description = "Billing scope for subscription creation"
+      type        = string
+      sensitive   = true
+    }
+    ```
+    
+    `terraform.tfvars`に追加：
+    
+    ```hcl title="terraform.tfvars"
+    # あなたのBilling Scope IDに置き換え
+    billing_scope = "/providers/Microsoft.Billing/billingAccounts/xxxxx/enrollmentAccounts/xxxxx"
+    ```
+
+    **Step 5: コミット&プッシュ、PR作成**
+    
+    ```bash
+    git add subscription-vending/ main.tf variables.tf terraform.tfvars
+    git commit -m "feat: Setup subscription vending"
+    git push origin feature/setup-subscription-vending
+    
+    # PR作成
+    gh pr create --base main --head feature/setup-subscription-vending \
+      --title "feat: Setup subscription vending" \
+      --body "Subscription Vending機能をセットアップ
+
+## 概要
+- パラメーターファイルベースのサブスクリプション払い出し
+- 最初のサブスクリプション: Demo App Development
+
+## 機能
+- YAMLファイルを追加するだけでサブスクリプション作成
+- Management Group自動配置
+- タグ、VNet、RBACの自動設定"
+    ```
+
+    **Step 6: CI/Planで確認**
+    
+    PRページでPlan結果を確認：
+    
+    - 新しいサブスクリプションが作成される
+    - Management Groupに配置される
+    - タグが設定される
+
+    **Step 7: マージ&デプロイ**
+    
+    ```bash
+    gh pr merge --squash
+    
+    git checkout main
+    git pull origin main
+    git branch -D feature/setup-subscription-vending
+    ```
+
+=== "追加のサブスクリプションを作る"
+
+    基盤ができたので、今度は**パラメーターファイルを追加するだけ**でサブスクリプションを作れます！
+    
+    **Step 1: ブランチ作成**
+    
+    ```bash
+    git checkout -b feature/add-webapp-subscription
+    ```
+    
+    **Step 2: YAMLファイルを追加**
+    
+    ```yaml title="subscription-vending/parameters/webapp-prod.yaml"
+    subscription_name: "WebApp - Production"
+    workload_type: "Production"
+    management_group_id: "corp"  # Productionは厳しいガバナンス
+    
+    tags:
+      environment: "production"
+      cost-center: "product"
+      project: "webapp"
+      owner: "webapp-team"
+      criticality: "high"
+    
+    # Virtual Networkも作成
+    virtual_network:
+      name: "vnet-webapp-prod"
+      address_space: "10.200.0.0/16"
+      location: "japaneast"
+      resource_group_name: "rg-network-prod"
+      subnets:
+        - name: "snet-frontend"
+          address_prefix: "10.200.1.0/24"
+        - name: "snet-backend"
+          address_prefix: "10.200.2.0/24"
+        - name: "snet-database"
+          address_prefix: "10.200.3.0/24"
+    
+    # ロール割り当て
+    role_assignments:
+      - principal_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        role: "Reader"  # Prodは閲覧のみ
+      - principal_id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+        role: "Owner"   # プラットフォームチーム
+    ```
+    
+    **Step 3: コミット&PR**
+    
+    ```bash
+    git add subscription-vending/parameters/webapp-prod.yaml
+    git commit -m "feat: Add WebApp production subscription"
+    git push origin feature/add-webapp-subscription
+    
+    gh pr create --base main --head feature/add-webapp-subscription \
+      --title "feat: Add WebApp production subscription" \
+      --body "WebApp本番環境用のサブスクリプションを追加"
+    ```
+    
+    これだけ！あとはCI/CDが自動的にサブスクリプションを作ってくれます。
+
+=== "複数環境を一気に作る"
+
+    開発、ステージング、本番を一気に作る場合：
+    
+    ```bash
+    git checkout -b feature/add-myapp-environments
+    ```
+    
+    3つのファイルを作成：
+    
+    ```yaml title="subscription-vending/parameters/myapp-dev.yaml"
+    subscription_name: "MyApp - Development"
+    workload_type: "DevTest"
+    management_group_id: "landing-zones"
+    tags:
+      environment: "development"
+      cost-center: "engineering"
+      project: "myapp"
+    ```
+    
+    ```yaml title="subscription-vending/parameters/myapp-staging.yaml"
+    subscription_name: "MyApp - Staging"
+    workload_type: "Production"
+    management_group_id: "landing-zones"
+    tags:
+      environment: "staging"
+      cost-center: "engineering"
+      project: "myapp"
+    ```
+    
+    ```yaml title="subscription-vending/parameters/myapp-prod.yaml"
+    subscription_name: "MyApp - Production"
+    workload_type: "Production"
+    management_group_id: "corp"
+    tags:
+      environment: "production"
+      cost-center: "product"
+      project: "myapp"
+    ```
+    
+    ```bash
+    git add subscription-vending/parameters/myapp-*.yaml
+    git commit -m "feat: Add MyApp all environments"
+    git push origin feature/add-myapp-environments
+    
+    gh pr create --base main --head feature/add-myapp-environments \
+      --title "feat: Add MyApp all environments" \
+      --body "MyAppの全環境（Dev/Staging/Prod）を追加"
+    ```
+    
+    これで3つのサブスクリプションが一度に作成されます！
+
+### 運用のポイント
+
+=== "申請から払い出しまで"
+
+    **開発者がやること：**
+    
+    1. YAMLファイルを作成
+    2. PRを作成
+    3. レビュー待ち
+    
+    **プラットフォームチームがやること：**
+    
+    1. YAMLファイルのレビュー（設定が適切か確認）
+    2. PRを承認
+    3. マージ
+    
+    **自動で実行されること：**
+    
+    - サブスクリプション作成
+    - Management Group配置
+    - タグ付与
+    - VNet作成（指定された場合）
+    - RBAC設定（指定された場合）
+    - ポリシー自動適用
+
+=== "YAMLファイルのレビューポイント"
+
+    PRレビュー時に確認すること：
+    
+    - ✅ **Management Group**: 環境に適したMGが選択されているか
+    - ✅ **タグ**: 必須タグ（cost-center, project, owner）があるか
+    - ✅ **ワークロードタイプ**: DevTestとProductionが正しいか
+    - ✅ **VNetアドレス**: 他のVNetと重複していないか
+    - ✅ **ロール割り当て**: 適切な権限か（Production環境でContributorは避ける）
+    
+    ```yaml
+    # 悪い例（本番にContributor）
+    role_assignments:
+      - principal_id: "..."
+        role: "Contributor"  # ❌ 本番環境では危険
+    
+    # 良い例（本番はReaderのみ）
+    role_assignments:
+      - principal_id: "..."
+        role: "Reader"  # ✅ 本番は閲覧のみ
+    ```
+
+=== "トラブルシューティング"
+
+    **エラー: YAMLパースエラー**
+    
+    ```
+    Error: Invalid YAML syntax
+    ```
+    
+    → インデントを確認。YAMLはスペース2つでインデント。
+    
+    **エラー: Billing scope権限不足**
+    
+    ```
+    Error: insufficient privileges
+    ```
+    
+    → Enrollment Account Owner権限が必要です。
+    
+    **エラー: Management Groupが見つからない**
+    
+    ```
+    Error: management group not found
+    ```
+    
+    → `management_group_id`の値を確認。Landing Zonesが正しくデプロイされているか確認。
+    
+    **エラー: サブスクリプション名の重複**
+    
+    ```
+    Error: subscription alias already exists
+    ```
+    
+    → YAMLファイル名を変更してください。ファイル名が`subscription_alias_name`になります。
 
 ---
 
@@ -898,324 +1473,7 @@ PRで実行されるPlanを確認します。
 
 ### ポリシー定義の追加
 
-新しいポリシーを追加します。
 
-=== "ポリシー定義ファイル作成"
-
-    ```json title="lib/policy_definitions/Require-Backup-Tag.json"
-    {
-      "name": "Require-Backup-Tag",
-      "type": "Microsoft.Authorization/policyDefinitions",
-      "properties": {
-        "displayName": "Require Backup tag on VMs",
-        "policyType": "Custom",
-        "mode": "Indexed",
-        "description": "Requires Backup tag on all Virtual Machines",
-        "metadata": {
-          "category": "Compute",
-          "version": "1.0.0"
-        },
-        "parameters": {
-          "effect": {
-            "type": "String",
-            "defaultValue": "Audit",
-            "allowedValues": [
-              "Audit",
-              "Deny",
-              "Disabled"
-            ],
-            "metadata": {
-              "displayName": "Effect",
-              "description": "The effect determines what happens when the policy rule is evaluated to match"
-            }
-          }
-        },
-        "policyRule": {
-          "if": {
-            "allOf": [
-              {
-                "field": "type",
-                "equals": "Microsoft.Compute/virtualMachines"
-              },
-              {
-                "field": "tags['Backup']",
-                "exists": "false"
-              }
-            ]
-          },
-          "then": {
-            "effect": "[parameters('effect')]"
-          }
-        }
-      }
-    }
-    ```
-
-=== "libフォルダに配置"
-
-    ```bash title="ファイル配置"
-    # ポリシー定義を配置
-    cp Require-Backup-Tag.json \
-      lib/policy_definitions/
-    
-    # Git管理下に追加
-    git add lib/policy_definitions/Require-Backup-Tag.json
-    git commit -m "feat: Backupタグ必須ポリシーを追加"
-    ```
-
-=== "デプロイ"
-
-    ```bash title="PR作成"
-    git push origin feature/add-backup-policy
-    
-    # PR作成 → レビュー → マージ → デプロイ
-    ```
-
-### ポリシー割り当ての変更
-
-ポリシーの割り当てを変更します。
-
-=== "archetype定義に追加"
-
-    ```yaml title="lib/archetype_definitions/landingzones_custom.yaml"
-    name: landingzones_custom
-    base_archetype: default
-    
-    policy_assignments_to_add:
-      - Require-Backup-Tag  # 新規追加
-      - Require-Tag-Environment
-    
-    policy_assignment_properties:
-      Require-Backup-Tag:
-        enforcement_mode: DoNotEnforce  # 最初は監視のみ
-        parameters:
-          effect:
-            value: "Audit"
-    ```
-
-=== "段階的な適用"
-
-    **フェーズ1: 監視モード（1ヶ月）**:
-    
-    ```yaml
-    enforcement_mode: DoNotEnforce
-    parameters:
-      effect:
-        value: "Audit"
-    ```
-    
-    非準拠リソースを洗い出し。
-    
-    **フェーズ2: 警告モード（1ヶ月）**:
-    
-    ```yaml
-    enforcement_mode: Default
-    parameters:
-      effect:
-        value: "Audit"
-    ```
-    
-    準拠を促進。
-    
-    **フェーズ3: 強制モード**:
-    
-    ```yaml
-    enforcement_mode: Default
-    parameters:
-      effect:
-        value: "Deny"
-    ```
-    
-    新規リソースは必須化。
-
-=== "影響確認"
-
-    ```bash title="準拠状況確認"
-    az policy state list \
-      --policy-assignment "Require-Backup-Tag" \
-      --filter "complianceState eq 'NonCompliant'" \
-      --output table
-    ```
-
-### Exclusion（除外）管理
-
-ポリシーの除外を管理します。
-
-=== "除外設定の追加"
-
-    ```bash title="特定リソースを除外"
-    az policy exemption create \
-      --name "test-vm-exemption" \
-      --policy-assignment "/providers/Microsoft.Management/managementGroups/alz/providers/Microsoft.Authorization/policyAssignments/Require-Backup-Tag" \
-      --scope "/subscriptions/<sub-id>/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm" \
-      --exemption-category "Waiver" \
-      --description "テスト環境のため除外" \
-      --expires-on "2026-12-31T23:59:59Z"
-    ```
-
-=== "除外理由のカテゴリ"
-
-    | カテゴリ | 用途 |
-    |---------|------|
-    | **Waiver** | 正当な理由による除外（ビジネス要件） |
-    | **Mitigated** | 別の方法で対応済み |
-    
-    **Waiver例**:
-    - レガシーシステム（移行計画あり）
-    - 外部ベンダー管理リソース
-    
-    **Mitigated例**:
-    - オンプレでバックアップ取得済み
-    - 別のバックアップソリューション使用
-
-=== "除外の定期レビュー"
-
-    ```bash title="除外一覧確認"
-    az policy exemption list \
-      --query "[].{Name:name, Expires:expiresOn, Category:exemptionCategory}" \
-      --output table
-    ```
-    
-    **レビュー項目**:
-    
-    - 有効期限切れの除外を削除
-    - 理由が依然有効か確認
-    - 除外が不要になっていないか確認
-
-### ポリシーの無効化・削除
-
-ポリシーを無効化または削除します。
-
-=== "一時無効化"
-
-    ```yaml title="archetype定義で無効化"
-    policy_assignment_properties:
-      Require-Backup-Tag:
-        enforcement_mode: DoNotEnforce  # 無効化
-    ```
-    
-    または：
-    
-    ```bash title="Azure CLIで無効化"
-    az policy assignment update \
-      --name "Require-Backup-Tag" \
-      --enforcement-mode DoNotEnforce
-    ```
-
-=== "割り当て削除"
-
-    ```yaml title="archetype定義から削除"
-    policy_assignments_to_remove:
-      - Require-Backup-Tag  # 削除対象に追加
-    ```
-    
-    ```bash
-    git add lib/archetype_definitions/
-    git commit -m "feat: Backupタグポリシーの割り当てを削除"
-    # PR → マージ → デプロイ
-    ```
-
-=== "定義自体を削除"
-
-    ```bash title="定義ファイル削除"
-    git rm lib/policy_definitions/Require-Backup-Tag.json
-    git commit -m "feat: Backupタグポリシー定義を削除"
-    # PR → マージ → デプロイ
-    ```
-    
-    !!! warning "注意"
-        - 割り当てを先に削除
-        - 定義削除は最後
-
-### カスタムポリシーの作成
-
-独自のポリシーを作成します。
-
-=== "要件定義"
-
-    **例: 特定リージョン限定ポリシー**
-    
-    - 目的: コストとコンプライアンスのため、japaneastとjapanwestのみ許可
-    - 対象: すべてのリソース
-    - 効果: Deny
-
-=== "ポリシー定義作成"
-
-    ```json title="lib/policy_definitions/Allowed-Locations.json"
-    {
-      "name": "Allowed-Locations",
-      "type": "Microsoft.Authorization/policyDefinitions",
-      "properties": {
-        "displayName": "Allowed locations for resources",
-        "policyType": "Custom",
-        "mode": "Indexed",
-        "description": "This policy restricts locations where resources can be deployed",
-        "metadata": {
-          "category": "General"
-        },
-        "parameters": {
-          "listOfAllowedLocations": {
-            "type": "Array",
-            "metadata": {
-              "displayName": "Allowed locations",
-              "description": "The list of locations that resources can be deployed to",
-              "strongType": "location"
-            }
-          }
-        },
-        "policyRule": {
-          "if": {
-            "not": {
-              "field": "location",
-              "in": "[parameters('listOfAllowedLocations')]"
-            }
-          },
-          "then": {
-            "effect": "deny"
-          }
-        }
-      }
-    }
-    ```
-
-=== "割り当て設定"
-
-    ```yaml title="lib/archetype_definitions/root_custom.yaml"
-    name: root_custom
-    base_archetype: root
-    
-    policy_assignments_to_add:
-      - Allowed-Locations
-    
-    policy_assignment_properties:
-      Allowed-Locations:
-        enforcement_mode: Default
-        parameters:
-          listOfAllowedLocations:
-            value:
-              - "japaneast"
-              - "japanwest"
-    ```
-
-=== "テストとデプロイ"
-
-    ```bash title="デプロイ"
-    git add lib/policy_definitions/Allowed-Locations.json
-    git add lib/archetype_definitions/root_custom.yaml
-    git commit -m "feat: 許可リージョン制限ポリシーを追加"
-    git push origin feature/add-location-policy
-    
-    # PR → レビュー → マージ → デプロイ
-    ```
-    
-    ```bash title="動作確認"
-    # 許可されていないリージョンでリソース作成を試みる
-    az vm create \
-      --name test-vm \
-      --resource-group test-rg \
-      --location koreacentral  # 許可されていないリージョン
-    # → Error: Policy violation
-    ```
 
 ---
 
