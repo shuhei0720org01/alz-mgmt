@@ -110,7 +110,7 @@ sequenceDiagram
 
 以下のようになるとデプロイ成功です！
 
-<img>
+![alt text](./img/image40.png)
 
 
 ## Part 2: デプロイ後の検証
@@ -179,9 +179,50 @@ Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワーク�
 
 ## Part 3: カスタマイズの実践
 
-### tfvarsのカスタマイズ
+### 変更の適用方法
 
-設定をカスタマイズしてみましょう！
+カスタマイズした設定の適用方法は以下のイメージになります。
+
+詳しくは運用編で解説しますので、だいたいの理解でOKです。
+
+```mermaid
+graph LR
+    A[ローカル（codespace）で編集] --> B[Git Commit]
+    B --> C[Git Push]
+    C --> D[PR作成]
+    D --> E[CI実行/Plan]
+    E --> F{Plan OK?}
+    F -->|No| G[修正]
+    G --> A
+    F -->|Yes| H[レビュー]
+    H --> I[マージ]
+    I --> J[CD実行/Apply]
+    J --> K[デプロイ完了]
+```
+
+**手順**:
+
+1. **ローカル（codespace）で編集**: tfvars、libファイルを変更
+2. **Commit & Push**: feature ブランチにpush
+3. **PR作成**: feature → main のPR
+4. **CI実行**: 自動でPlan実行
+5. **Plan確認**: 変更内容を確認
+6. **マージ**: mainブランチにマージ
+7. **CD実行**: 自動でApply実行
+8. **承認**: Apply承認者が承認
+9. **デプロイ**: 変更が適用される
+
+!!! tip "安全なカスタマイズ"
+    - 必ずfeatureブランチで作業
+    - PRでPlanを確認
+    - 小さい変更から始める
+    - レビューを必ず受ける
+
+---
+
+### 高額リソースの排除
+
+今回は検証のために、高額リソースを消しておきましょう。
 
 あなたの「alz-mgmt」リポジトリを開いて、「Code」→「Create Codespace on main」からgithub codespaceを作成し、ここで編集していきます。
 
@@ -192,6 +233,64 @@ Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワーク�
 ![alt text](./img/image31.png)
 
 「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
+
+
+まずプライマリの高額リソースをfalseにします。（プライベートDNSゾーンは無料なのでtrueのままにしてます）
+
+![alt text](./img/image38.png)
+
+すぐ下のセカンダリの部分も同じように設定します。
+
+![alt text](./img/image39.png)
+
+
+変更したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
+
+```
+# feature ブランチ作成
+git checkout -b feature/delete-resources
+
+# 変更をコミット、プッシュ
+git add .
+git commit -m "高額リソースを削除"
+git push origin feature/delete-resources
+
+# PR作成
+gh pr create --base main --head feature/delete-resources --title "delete-resources" --body "delete-resources"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/delete-resources
+
+```
+
+![alt text](./img/image43.png)
+
+あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されています。
+
+![alt text](./img/image44.png)
+
+CIが終わったら、承認待ちになるので、先ほどと同じようにプランの変更点を確認して承認しましょう。
+
+![alt text](./img/image42.png)
+
+デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
+
+<img>
+
+### tfvarsのカスタマイズ
+
+設定をカスタマイズしてみましょう！
+
+先ほどと同じようにgithub codespaceで「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
 
 今回は、IPアドレス範囲をカスタマイズしてみます。
 
@@ -236,545 +335,19 @@ git branch -D feature/ip-range-change
 
 あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、自動でCI（terraform plan）が実行されています。
 
-<img>
+※主はこの教科書のためにいろいろ試行錯誤しながらやってるので、過去の失敗のログが出てますが許して、、、
 
-CIが終わったら、承認待ちになるので、先ほどと同じように承認しましょう。
+![alt text](./img/image41.png)
 
-<img>
+CIが終わったら、承認待ちになるので、先ほどと同じようにプランの変更点を確認して承認しましょう。
 
-### 高額リソースの排除
+![alt text](./img/image42.png)
 
-今回は検証のために、高額リソースを消しておきましょう。
-
-先ほどと同じようにgithub codespaceで「platform-landing-zone.auto.tfvars」を開いて編集していきましょう。
-
-まずプライマリの高額リソースをfalseにします。（プライベートDNSゾーンは無料なのでtrueのままにしてます）
-
-![alt text](./img/image38.png)
-
-すぐ下のセカンダリの部分も同じように設定します。
-
-![alt text](./img/image39.png)
-
-
-変更したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
-
-```
-# feature ブランチ作成
-git checkout -b feature/delete-resources
-
-# 変更をコミット、プッシュ
-git add .
-git commit -m "高額リソースを削除"
-git push origin feature/delete-resources
-
-# PR作成
-gh pr create --base main --head feature/delete-resources --title "delete-resources" --body "delete-resources"
-
-# PR番号を確認してマージ（squash mergeの例）
-gh pr merge --squash
-
-# mainブランチに戻る
-git checkout main
-
-# 最新を取得
-git pull origin main
-
-# ローカルブランチを強制削除
-git branch -D feature/delete-resources
-
-```
-
-あなたのgithubの「alz-mgmt」リポジトリの画面に戻り、Actionsを見てみると、先ほどと同じように自動でCI（terraform plan）が実行されています。
+デプロイが終了したらAzureポータルでプライマリのHub VNetのIPを確認してみましょう。
 
 <img>
 
-CIが終わったら、承認待ちになるので、先ほどと同じように承認しましょう。
 
-<img>
-
-デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
-
-<img>
-
-### libフォルダのカスタマイズ
-
-管理グループに割り当てるAzureポリシーをカスタマイズしてみましょう。
-
-先ほどと同じgithub codespace上で、「lib/archetype_definitions/corp_custom.alz_archetype_override.yaml」を開きましょう。
-
-=== "archetype定義のカスタマイズ"
-
-    ```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml"
-    name: corp_custom
-    base_archetype: corp
-    
-    policy_assignments_to_add:
-      - Deny-Storage-http  # HTTPを禁止
-      - Require-Tag-Environment  # 環境タグ必須
-    
-    policy_assignments_to_remove:
-      - Deploy-VM-Backup  # バックアップポリシーを削除
-    ```
-
-
-=== "変更を適用"
-
-    ```bash title="変更をPR"
-    git add lib/
-    git commit -m "feat: SAP用Management Groupを追加"
-    git push origin feature/customize-settings
-    
-    # GitHub でPR作成
-    # → CIが自動実行（Plan）
-    # → レビュー後マージ
-    # → CDが自動実行（Apply）
-    ```
-
-### 独自ポリシーの追加
-
-カスタムポリシーを追加します。
-
-=== "ポリシー定義ファイル作成"
-
-    ```json title="lib/policy_definitions/Require-Tag-Environment.json"
-    {
-      "name": "Require-Tag-Environment",
-      "type": "Microsoft.Authorization/policyDefinitions",
-      "properties": {
-        "displayName": "Require Environment tag",
-        "policyType": "Custom",
-        "mode": "Indexed",
-        "description": "Requires Environment tag on all resources",
-        "metadata": {
-          "category": "Tags"
-        },
-        "policyRule": {
-          "if": {
-            "field": "tags['Environment']",
-            "exists": "false"
-          },
-          "then": {
-            "effect": "deny"
-          }
-        }
-      }
-    }
-    ```
-
-=== "ポリシー割り当て追加"
-
-    ```yaml title="lib/archetype_definitions/landingzones_custom.yaml"
-    name: landingzones_custom
-    base_archetype: default
-    
-    policy_assignments_to_add:
-      - Require-Tag-Environment
-    
-    policy_assignment_properties:
-      Require-Tag-Environment:
-        enforcement_mode: Default
-        parameters: {}
-    ```
-
-=== "デプロイ"
-
-    ```bash
-    git add lib/policy_definitions/ lib/archetype_definitions/
-    git commit -m "feat: 環境タグ必須ポリシーを追加"
-    git push origin feature/add-tag-policy
-    
-    # PR作成 → マージ → 自動デプロイ
-    ```
-
-### ネットワーク設定の調整
-
-ネットワーク設定を変更します。
-
-=== "Spoke VNet追加"
-
-    ```hcl title="terraform.tfvars"
-    connectivity_resources_config = {
-      hub_networks = {
-        japaneast = {
-          # ... Hub設定 ...
-        }
-      }
-      spoke_networks = {
-        app-spoke = {
-          address_space = ["10.1.0.0/16"]
-          location = "japaneast"
-          hub_network_key = "japaneast"
-          subnets = {
-            app-subnet = {
-              address_prefix = "10.1.0.0/24"
-            }
-          }
-        }
-      }
-    }
-    ```
-
-=== "Firewallルール追加"
-
-    ```hcl title="terraform.tfvars"
-    connectivity_resources_config = {
-      hub_networks = {
-        japaneast = {
-          # ... 既存設定 ...
-          
-          firewall = {
-            network_rules = [
-              {
-                name = "Allow-Outbound-HTTP"
-                priority = 100
-                action = "Allow"
-                rules = [
-                  {
-                    name = "HTTP"
-                    protocols = ["TCP"]
-                    source_addresses = ["10.1.0.0/16"]
-                    destination_addresses = ["*"]
-                    destination_ports = ["80", "443"]
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      }
-    }
-    ```
-
-=== "VPN Gateway追加"
-
-    ```hcl title="terraform.tfvars"
-    connectivity_resources_config = {
-      hub_networks = {
-        japaneast = {
-          # ... 既存設定 ...
-          
-          vpn_gateway = {
-            enabled = true
-            sku = "VpnGw1"
-            connections = [
-              {
-                name = "OnPrem-Connection"
-                type = "IPsec"
-                shared_key = var.vpn_shared_key
-                remote_gateway_ip = "203.0.113.1"
-              }
-            ]
-          }
-        }
-      }
-    }
-    ```
-
-### 変更の適用方法
-
-カスタマイズした設定をデプロイします。
-
-```mermaid
-graph LR
-    A[ローカルで編集] --> B[Git Commit]
-    B --> C[Git Push]
-    C --> D[PR作成]
-    D --> E[CI実行/Plan]
-    E --> F{Plan OK?}
-    F -->|No| G[修正]
-    G --> A
-    F -->|Yes| H[レビュー]
-    H --> I[マージ]
-    I --> J[CD実行/Apply]
-    J --> K[デプロイ完了]
-```
-
-**手順**:
-
-1. **ローカルで編集**: tfvars、libファイルを変更
-2. **Commit & Push**: feature ブランチにpush
-3. **PR作成**: feature → main のPR
-4. **CI実行**: 自動でPlan実行
-5. **Plan確認**: 変更内容を確認
-6. **マージ**: mainブランチにマージ
-7. **CD実行**: 自動でApply実行
-8. **承認**: Apply承認者が承認
-9. **デプロイ**: 変更が適用される
-
-!!! tip "安全なカスタマイズ"
-    - 必ずfeatureブランチで作業
-    - PRでPlanを確認
-    - 小さい変更から始める
-    - レビューを必ず受ける
-
----
-
-## Part 4: トラブルシューティング
-
-### よくあるデプロイエラー
-
-デプロイ時によくあるエラーと対処法です。
-
-=== "エラー1: OIDC認証失敗"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
-    ```
-    
-    **原因**: permissions設定がない
-    
-    **対処法**:
-    
-    ```yaml title=".github/workflows/cd.yaml"
-    jobs:
-      apply:
-        permissions:
-          id-token: write  # これを追加
-          contents: read
-    ```
-
-=== "エラー2: Subscription権限不足"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: insufficient privileges to complete the operation
-    ```
-    
-    **原因**: Managed IdentityにOwner権限がない
-    
-    **対処法**:
-    
-    ```bash title="権限付与"
-    az role assignment create \
-      --assignee <identity-client-id> \
-      --role "Owner" \
-      --scope "/subscriptions/<subscription-id>"
-    ```
-
-=== "エラー3: State Lock"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: Error acquiring the state lock
-    Lock Info:
-      ID: xxxxx-xxxxx-xxxxx
-    ```
-    
-    **原因**: 前回のデプロイが異常終了
-    
-    **対処法**:
-    
-    ```bash title="Lock解除"
-    az storage blob lease break \
-      --account-name stoalzmgmt001 \
-      --container-name tfstate \
-      --blob-name terraform.tfstate
-    ```
-
-### OIDC認証エラーの対処
-
-OIDC関連のエラー対処です。
-
-=== "Federated Credential不一致"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: AADSTS70021: No matching federated identity record found
-    ```
-    
-    **原因**: subjectが一致しない
-    
-    **確認**:
-    
-    ```bash title="Federated Credential確認"
-    az identity federated-credential show \
-      --identity-name alz-apply-identity \
-      --resource-group alz-identity-rg \
-      --name github-actions-apply
-    ```
-    
-    **対処法**:
-    
-    subjectを修正：
-    
-    ```bash title="Federated Credential更新"
-    az identity federated-credential update \
-      --identity-name alz-apply-identity \
-      --resource-group alz-identity-rg \
-      --name github-actions-apply \
-      --subject "repo:org/repo:environment:alz-mgmt-apply"
-    ```
-
-=== "Environment名の不一致"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: The workflow job is not running in the expected environment
-    ```
-    
-    **原因**: ワークフローのenvironment名とFederated Credentialのsubjectが不一致
-    
-    **対処法**:
-    
-    ```yaml title=".github/workflows/cd.yaml"
-    jobs:
-      apply:
-        environment: alz-mgmt-apply  # Federated Credentialと一致させる
-    ```
-
-### Terraform Stateのトラブル
-
-State関連のトラブル対処です。
-
-=== "State破損"
-
-    **症状**: Stateファイルが壊れている
-    
-    **対処法**:
-    
-    ```bash title="バックアップからリストア"
-    # バックアップを確認
-    az storage blob list \
-      --account-name stoalzmgmt001 \
-      --container-name tfstate
-    
-    # バックアップをダウンロード
-    az storage blob download \
-      --account-name stoalzmgmt001 \
-      --container-name tfstate \
-      --name terraform.tfstate.backup \
-      --file terraform.tfstate
-    
-    # 現在のStateを置き換え
-    terraform state push terraform.tfstate
-    ```
-
-=== "State不整合"
-
-    **症状**: Stateと実際のリソースが一致しない
-    
-    **対処法**:
-    
-    ```bash title="State更新"
-    # 現在のStateを確認
-    terraform state list
-    
-    # 特定リソースをimport
-    terraform import \
-      azurerm_resource_group.example \
-      /subscriptions/.../resourceGroups/my-rg
-    
-    # Stateをリフレッシュ
-    terraform refresh
-    ```
-
-### リソース作成エラーの解決
-
-リソース作成時のエラー対処です。
-
-=== "リソース名重複"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: A resource with the ID already exists
-    ```
-    
-    **対処法**:
-    
-    ```hcl title="terraform.tfvars"
-    # 名前を変更
-    resource_prefix = "alz2"  # "alz" → "alz2"
-    ```
-
-=== "リージョン制約"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: The location 'japaneast' is not available for resource type
-    ```
-    
-    **対処法**:
-    
-    ```bash title="利用可能リージョン確認"
-    az provider show \
-      --namespace Microsoft.Network \
-      --query "resourceTypes[?resourceType=='virtualNetworks'].locations"
-    ```
-    
-    利用可能なリージョンに変更します。
-
-=== "クォータ超過"
-
-    **エラーメッセージ**:
-    
-    ```
-    Error: Quota exceeded for resource
-    ```
-    
-    **対処法**:
-    
-    ```bash title="クォータ確認"
-    az vm list-usage --location japaneast --output table
-    ```
-    
-    Azureサポートにクォータ引き上げを依頼します。
-
-### ロールバック方法
-
-デプロイ失敗時のロールバック手順です。
-
-=== "方法1: Git Revert"
-
-    ```bash title="最新コミットを取り消す"
-    git revert HEAD
-    git push origin main
-    
-    # CDワークフローが自動実行され、前の状態に戻る
-    ```
-
-=== "方法2: 手動Apply"
-
-    ```bash title="前のバージョンをチェックアウト"
-    git checkout <前のコミットHash>
-    
-    # ローカルでApply
-    terraform init
-    terraform apply
-    
-    # 成功したら、mainに戻す
-    git checkout main
-    git revert HEAD
-    git push origin main
-    ```
-
-=== "方法3: 特定リソース削除"
-
-    ```bash title="問題のあるリソースのみ削除"
-    # Stateから削除（実リソースは削除しない）
-    terraform state rm azurerm_resource_group.problem
-    
-    # 実リソースを手動削除
-    az group delete --name problem-rg --yes
-    
-    # 再デプロイ
-    terraform apply
-    ```
-
-!!! danger "ロールバック時の注意"
-    - データの損失に注意
-    - Stateバックアップを必ず取る
-    - 本番環境では慎重に
-
----
 
 ## まとめ
 
@@ -804,13 +377,6 @@ State関連のトラブル対処です。
 - ネットワーク設定の調整
 - 変更の適用方法
 
-### ✅ Part 4: トラブルシューティング
-
-- よくあるデプロイエラー
-- OIDC認証エラーの対処
-- Terraform Stateのトラブル
-- リソース作成エラーの解決
-- ロールバック方法
 
 次の章では、Landing Zonesの運用管理の基礎を学びます。
 
