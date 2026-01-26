@@ -1018,104 +1018,10 @@ output "vended_subscriptions" {
 }
 ```
 
-#### Step 6: .gitignoreを更新
-
-`subscriptions/`ディレクトリは追跡するが、中身は追跡する：
-
-```bash title=".gitignore（確認）"
-# subscriptions/ディレクトリは追跡する
-# （特に除外設定は不要）
-```
-
-#### Step 7: READMEを作成
-
-`subscriptions/README.md`を作成：
-
-```markdown title="subscriptions/README.md（新規作成）"
-# Subscription Definitions
-
-このディレクトリにYAMLファイルを追加すると、サブスクリプションが自動作成されます。
-
-## ファイル名のルール
-
-ファイル名がサブスクリプションのエイリアス名になります。
-
-例: `demo-app-dev.yaml` → サブスクリプションエイリアス: `demo-app-dev`
-
-## YAMLファイルの書き方
-
-### 最小構成
-
-\`\`\`yaml
-display_name: "Demo App - Development"
-workload_type: "DevTest"
-management_group_id: "landing-zones"
-
-tags:
-  Environment: "Development"
-  Project: "Demo-App"
-  CostCenter: "Engineering"
-\`\`\`
-
-### リソースグループ付き
-
-\`\`\`yaml
-display_name: "Demo App - Development"
-workload_type: "DevTest"
-management_group_id: "landing-zones"
-
-resource_groups:
-  network:
-    name: "rg-demo-network"
-    location: "japaneast"
-  app:
-    name: "rg-demo-app"
-    location: "japaneast"
-
-tags:
-  Environment: "Development"
-  Project: "Demo-App"
-  CostCenter: "Engineering"
-\`\`\`
-
-### VNet付き（Hub-and-Spoke）
-
-\`\`\`yaml
-display_name: "Demo App - Development"
-workload_type: "DevTest"
-management_group_id: "landing-zones"
-
-resource_groups:
-  network:
-    name: "rg-demo-network"
-    location: "japaneast"
-
-virtual_network:
-  name: "vnet-demo-dev"
-  resource_group_key: "network"
-  address_space: "10.100.0.0/16"
-  hub_vnet_id: "/subscriptions/xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
-  hub_peering_enabled: true
-
-tags:
-  Environment: "Development"
-  Project: "Demo-App"
-  CostCenter: "Engineering"
-\`\`\`
-
-## 運用フロー
-
-1. このディレクトリに新しいYAMLファイルを追加
-2. PRを作成
-3. CI/CDでPlan確認
-4. PRをマージ
-5. サブスクリプション自動作成
-```
-
-#### Step 8: コミット&PR作成
+#### Step 6: コミット&PR作成
 
 ```bash
-git add main.subscription.vending.tf variables.tf terraform.tfvars.json outputs.tf subscriptions/README.md
+git add main.subscription.vending.tf variables.tf terraform.tfvars.json outputs.tf
 git commit -m "feat: Setup subscription vending with YAML-based configuration"
 git push origin feature/setup-subscription-vending
 
@@ -1132,9 +1038,16 @@ gh pr create --base main --head feature/setup-subscription-vending \
 ## 動作確認
 - [ ] CI/CDでPlan確認
 - [ ] subscriptions/ディレクトリが空なので変更なし"
+
+# マージ
+gh pr merge --squash
+
+git checkout main
+git pull origin main
+git branch -D feature/setup-subscription-vending
 ```
 
-#### Step 9: CI/CDでPlan確認
+#### Step 7: CI/CDでPlan確認
 
 PRを作成すると、GitHub Actionsが自動実行されます。
 
@@ -1145,22 +1058,6 @@ No changes. Your infrastructure matches the configuration.
 # ↑ subscriptions/ディレクトリにYAMLがないので、変更なし = 正常
 ```
 
-#### Step 10: マージ
-
-```bash
-gh pr merge --squash
-
-git checkout main
-git pull origin main
-git branch -D feature/setup-subscription-vending
-```
-
-!!! success "基盤完成！"
-    サブスクリプション払い出しの仕組みが完成しました。
-    
-    次のステップで、実際にYAMLファイルを追加してサブスクリプションを作成します。
-
----
 
 ### 🚀 サブスクリプションを作成してみよう
 
