@@ -802,24 +802,38 @@ PRで実行されるPlanを確認します。
 
 新しいプロジェクトが始まるたび、「Azureサブスクリプションが欲しい！」って要望が来る。毎回手作業で対応するのは大変だし、設定漏れも起きやすい。
 
-そこで、**YAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組み**を作ろう。
+そこで、**`subscriptions/`ディレクトリにYAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組み**を作ろう。
 
 !!! info "Subscription Vendingの仕組み"
     ```mermaid
     graph LR
-        A[開発者] -->|YAMLファイル作成| B[parameters/myapp.yaml]
+        A[開発者] -->|YAMLファイル作成| B[subscriptions/myapp.yaml]
         B -->|PR作成| C[GitHub]
         C -->|CI/CD実行| D[Terraform]
         D -->|自動作成| E[サブスクリプション]
         D -->|自動配置| F[Management Group]
-        D -->|自動設定| G[VNet/RBAC/タグ]
+        D -->|自動設定| G[VNet/RG/タグ]
     ```
     
-    開発者がやることは**YAMLファイルを1つ追加するだけ**！
+    **開発者がやること:**
+    
+    1. `subscriptions/myapp-prod.yaml`を作成
+    2. PRを作成
+    3. レビュー待ち
+    
+    **自動で実行されること:**
+    
+    - サブスクリプション作成
+    - 管理グループへの配置
+    - リソースグループ作成
+    - VNet作成（オプション）
+    - タグ設定
 
 ---
 
 ### 🎯 やってみよう: サブスクリプション自動払い出し
+
+**YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組み**を作ります。
 
 !!! warning "前提条件"
     - Enterprise Agreement (EA) または Microsoft Customer Agreement (MCA) が必要
@@ -827,193 +841,286 @@ PRで実行されるPlanを確認します。
     
     **権限がない場合は、コードの確認だけでもOK！**
 
-#### 手順1: 基盤のセットアップ
-
-まず、サブスクリプション払い出しの仕組みを作ります。
+#### Step 1: ブランチ作成とディレクトリ準備
 
 ```bash
-# ブランチ作成
 git checkout main
 git pull origin main
 git checkout -b feature/setup-subscription-vending
 
-# ディレクトリ作成
-mkdir -p subscription-vending/parameters
-cd subscription-vending
+# サブスクリプション定義用のディレクトリ作成
+mkdir -p subscriptions
 ```
 
-#### 手順2: Terraformファイルを作成
+#### Step 2: Terraformファイルを作成
 
-**`main.tf`を作成：**
+既存の`main.*.tf`形式に合わせて、新しいファイルを作成：
 
-```hcl title="subscription-vending/main.tf"
-terraform {
-  required_version = "~> 1.12"
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 4.0"
-    }
-  }
-}
+**`main.subscription.vending.tf`を作成：**
 
-# YAMLファイルを読み込む
+```hcl title="main.subscription.vending.tf（新規作成）"
+# ========================================
+# Subscription Vending
+# ========================================
+
 locals {
-  subscription_files = fileset("${path.module}/parameters", "*.yaml")
+  # subscriptions/ディレクトリからYAMLファイルを読み込む
+  subscription_files = fileset("${path.module}/subscriptions", "*.yaml")
   
+  # YAMLをパースして設定を作成
   subscriptions = {
     for file in local.subscription_files :
-    trimsuffix(file, ".yaml") => yamldecode(file("${path.module}/parameters/${file}"))
+    trimsuffix(file, ".yaml") => yamldecode(file("${path.module}/subscriptions/${file}"))
   }
 }
 
-# 各サブスクリプションを作成
+# 各サブスクリプションをループで作成
 module "subscription_vending" {
-  source   = "Azure/lz-vending/azurerm"
-  version  = "~> 4.1.3"
+  source  = "Azure/avm-ptn-alz-sub-vending/azurerm"
+  version = "~> 0.1.0"
   
   for_each = local.subscriptions
   
-  subscription_alias_enabled       = true
-  subscription_display_name        = each.value.subscription_name
-  subscription_alias_name          = each.key
-  subscription_billing_scope       = var.billing_scope
-  subscription_workload            = each.value.workload_type
-  subscription_management_group_id = each.value.management_group_id
+  # サブスクリプション設定
+  subscription_alias_enabled = true
+  subscription_alias_name    = each.key
+  subscription_display_name  = each.value.display_name
+  subscription_billing_scope = var.billing_scope
+  subscription_workload      = each.value.workload_type
   
-  subscription_tags = merge(
-    each.value.tags,
-    { "managed-by" = "terraform" }
-  )
+  # 管理グループへの配置
+  subscription_management_group_association_enabled = true
+  subscription_management_group_id                  = each.value.management_group_id
   
-  # Virtual Network（オプション）
+  # 基本設定
+  location          = lookup(each.value, "location", "japaneast")
+  disable_telemetry = false
+  
+  # リソースグループ作成
+  resource_group_creation_enabled = lookup(each.value, "resource_groups", null) != null
+  resource_groups = lookup(each.value, "resource_groups", null) != null ? {
+    for rg_key, rg in each.value.resource_groups :
+    rg_key => {
+      name     = rg.name
+      location = lookup(rg, "location", "japaneast")
+    }
+  } : {}
+  
+  # VNet作成とHub接続
   virtual_network_enabled = lookup(each.value, "virtual_network", null) != null
   virtual_networks = lookup(each.value, "virtual_network", null) != null ? {
     primary = {
-      name                = each.value.virtual_network.name
-      address_space       = [each.value.virtual_network.address_space]
-      location            = each.value.virtual_network.location
-      resource_group_name = each.value.virtual_network.resource_group_name
-      
-      subnets = {
-        for subnet in lookup(each.value.virtual_network, "subnets", []) :
-        subnet.name => {
-          name             = subnet.name
-          address_prefixes = [subnet.address_prefix]
-        }
-      }
+      name                    = each.value.virtual_network.name
+      resource_group_key      = each.value.virtual_network.resource_group_key
+      address_space           = [each.value.virtual_network.address_space]
+      hub_network_resource_id = lookup(each.value.virtual_network, "hub_vnet_id", "")
+      hub_peering_enabled     = lookup(each.value.virtual_network, "hub_peering_enabled", false)
+      mesh_peering_enabled    = false
     }
   } : {}
   
-  # ロール割り当て（オプション）
-  role_assignment_enabled = lookup(each.value, "role_assignments", null) != null
-  role_assignments = lookup(each.value, "role_assignments", null) != null ? {
-    for idx, role in each.value.role_assignments :
-    "${role.role}-${idx}" => {
-      principal_id         = role.principal_id
-      role_definition_name = role.role
-      scope                = "subscription"
+  # タグ
+  subscription_tags = merge(
+    lookup(each.value, "tags", {}),
+    {
+      ManagedBy = "Terraform"
     }
-  } : {}
+  )
+  
+  depends_on = [
+    module.management_groups
+  ]
 }
 ```
 
-**`variables.tf`を作成：**
+#### Step 3: 変数を追加
 
-```hcl title="subscription-vending/variables.tf"
+`variables.tf`に以下を追加：
+
+```hcl title="variables.tf（末尾に追加）"
+# ========================================
+# Subscription Vending Variables
+# ========================================
+
 variable "billing_scope" {
-  description = "The billing scope for subscription creation (EA or MCA)"
+  description = "Billing scope for subscription creation (EA or MCA)"
   type        = string
   sensitive   = true
+  default     = ""
 }
 ```
 
-**`outputs.tf`を作成：**
+#### Step 4: tfvarsファイルを更新
 
-```hcl title="subscription-vending/outputs.tf"
-output "subscriptions" {
-  description = "Created subscriptions"
+`terraform.tfvars.json`に追加：
+
+```json title="terraform.tfvars.json（追加）"
+{
+  // ... 既存の設定 ...
+  
+  // Subscription Vending
+  "billing_scope": ""
+}
+```
+
+!!! tip "billing_scopeの取得方法"
+    ```bash
+    # EA契約の場合
+    az billing enrollment-account list --query "[].id" -o tsv
+    
+    # MCA契約の場合
+    az billing account list
+    ```
+
+#### Step 5: outputs定義を追加
+
+`outputs.tf`に追加：
+
+```hcl title="outputs.tf（末尾に追加）"
+# ========================================
+# Subscription Vending Outputs
+# ========================================
+
+output "vended_subscriptions" {
+  description = "All vended subscriptions"
   value = {
     for k, v in module.subscription_vending :
     k => {
       subscription_id = v.subscription_id
+      display_name    = v.subscription_resource_id
     }
   }
 }
 ```
 
-#### 手順3: 最初のサブスクリプションを定義
+#### Step 6: .gitignoreを更新
 
-**YAMLファイルを作成：**
+`subscriptions/`ディレクトリは追跡するが、中身は追跡する：
 
-```yaml title="subscription-vending/parameters/demo-dev.yaml"
-subscription_name: "Demo App - Development"
+```bash title=".gitignore（確認）"
+# subscriptions/ディレクトリは追跡する
+# （特に除外設定は不要）
+```
+
+#### Step 7: READMEを作成
+
+`subscriptions/README.md`を作成：
+
+```markdown title="subscriptions/README.md（新規作成）"
+# Subscription Definitions
+
+このディレクトリにYAMLファイルを追加すると、サブスクリプションが自動作成されます。
+
+## ファイル名のルール
+
+ファイル名がサブスクリプションのエイリアス名になります。
+
+例: `demo-app-dev.yaml` → サブスクリプションエイリアス: `demo-app-dev`
+
+## YAMLファイルの書き方
+
+### 最小構成
+
+\`\`\`yaml
+display_name: "Demo App - Development"
 workload_type: "DevTest"
 management_group_id: "landing-zones"
 
 tags:
-  environment: "development"
-  cost-center: "engineering"
-  project: "demo-app"
-  owner: "demo-team"
+  Environment: "Development"
+  Project: "Demo-App"
+  CostCenter: "Engineering"
+\`\`\`
+
+### リソースグループ付き
+
+\`\`\`yaml
+display_name: "Demo App - Development"
+workload_type: "DevTest"
+management_group_id: "landing-zones"
+
+resource_groups:
+  network:
+    name: "rg-demo-network"
+    location: "japaneast"
+  app:
+    name: "rg-demo-app"
+    location: "japaneast"
+
+tags:
+  Environment: "Development"
+  Project: "Demo-App"
+  CostCenter: "Engineering"
+\`\`\`
+
+### VNet付き（Hub-and-Spoke）
+
+\`\`\`yaml
+display_name: "Demo App - Development"
+workload_type: "DevTest"
+management_group_id: "landing-zones"
+
+resource_groups:
+  network:
+    name: "rg-demo-network"
+    location: "japaneast"
+
+virtual_network:
+  name: "vnet-demo-dev"
+  resource_group_key: "network"
+  address_space: "10.100.0.0/16"
+  hub_vnet_id: "/subscriptions/xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
+  hub_peering_enabled: true
+
+tags:
+  Environment: "Development"
+  Project: "Demo-App"
+  CostCenter: "Engineering"
+\`\`\`
+
+## 運用フロー
+
+1. このディレクトリに新しいYAMLファイルを追加
+2. PRを作成
+3. CI/CDでPlan確認
+4. PRをマージ
+5. サブスクリプション自動作成
 ```
 
-#### 手順4: ルートのTerraformに統合
-
-プロジェクトルートに戻って：
+#### Step 8: コミット&PR作成
 
 ```bash
-cd ..
-```
-
-**`main.tf`に追加：**
-
-```hcl title="main.tf"
-# ... 既存のLanding Zones設定 ...
-
-# Subscription Vending
-module "subscription_vending" {
-  source = "./subscription-vending"
-  
-  billing_scope = var.billing_scope
-}
-```
-
-**`variables.tf`に追加：**
-
-```hcl title="variables.tf"
-variable "billing_scope" {
-  description = "Billing scope for subscription creation"
-  type        = string
-  sensitive   = true
-}
-```
-
-**`terraform.tfvars`に追加：**
-
-```hcl title="terraform.tfvars"
-# あなたのBilling Scope IDに置き換え
-# EA: /providers/Microsoft.Billing/billingAccounts/{billing_account_id}/enrollmentAccounts/{enrollment_account_id}
-# MCA: /providers/Microsoft.Billing/billingAccounts/{billing_account_id}/billingProfiles/{billing_profile_id}/invoiceSections/{invoice_section_id}
-billing_scope = "/providers/Microsoft.Billing/billingAccounts/xxxxx/enrollmentAccounts/xxxxx"
-```
-
-#### 手順5: コミット&PR作成
-
-```bash
-git add subscription-vending/ main.tf variables.tf terraform.tfvars
-git commit -m "feat: Setup subscription vending"
+git add main.subscription.vending.tf variables.tf terraform.tfvars.json outputs.tf subscriptions/README.md
+git commit -m "feat: Setup subscription vending with YAML-based configuration"
 git push origin feature/setup-subscription-vending
 
 # PR作成
 gh pr create --base main --head feature/setup-subscription-vending \
   --title "feat: Setup subscription vending" \
-  --body "YAMLファイルベースのサブスクリプション払い出し機能を追加"
+  --body "YAMLファイルベースのサブスクリプション払い出し機能を追加
+
+## 追加内容
+- \`main.subscription.vending.tf\`（新規作成）
+- \`subscriptions/\`ディレクトリとREADME
+- YAMLファイルを追加するだけでサブスクリプション作成
+
+## 動作確認
+- [ ] CI/CDでPlan確認
+- [ ] subscriptions/ディレクトリが空なので変更なし"
 ```
 
-#### 手順6: CI/Planで確認してマージ
+#### Step 9: CI/CDでPlan確認
 
-PRページでPlan結果を確認後、マージ：
+PRを作成すると、GitHub Actionsが自動実行されます。
+
+**Plan結果:**
+```
+No changes. Your infrastructure matches the configuration.
+
+# ↑ subscriptions/ディレクトリにYAMLがないので、変更なし = 正常
+```
+
+#### Step 10: マージ
 
 ```bash
 gh pr merge --squash
@@ -1024,143 +1131,350 @@ git branch -D feature/setup-subscription-vending
 ```
 
 !!! success "基盤完成！"
-    これで、YAMLファイルを追加するだけでサブスクリプションが作れるようになりました！
+    サブスクリプション払い出しの仕組みが完成しました。
+    
+    次のステップで、実際にYAMLファイルを追加してサブスクリプションを作成します。
 
 ---
 
-### 🚀 2つ目以降のサブスクリプション作成
+### 🚀 サブスクリプションを作成してみよう
 
-基盤ができたので、**YAMLファイルを追加するだけ**でサブスクリプションを作れます！
+YAMLファイルを追加するだけで、サブスクリプションが作成されます。
 
-#### 例1: シンプルなサブスクリプション
+#### Step 1: billing_scopeを設定
 
-```bash
-git checkout -b feature/add-webapp-sub
-```
-
-**YAMLファイルを作成：**
-
-```yaml title="subscription-vending/parameters/webapp-prod.yaml"
-subscription_name: "WebApp - Production"
-workload_type: "Production"
-management_group_id: "corp"
-
-tags:
-  environment: "production"
-  cost-center: "product"
-  project: "webapp"
-  owner: "webapp-team"
-```
+まず、billing_scopeを設定しないとサブスクリプション作成できないので設定します。
 
 ```bash
-git add subscription-vending/parameters/webapp-prod.yaml
-git commit -m "feat: Add WebApp production subscription"
-git push origin feature/add-webapp-sub
+git checkout -b feature/set-billing-scope
+```
 
-gh pr create --base main --head feature/add-webapp-sub \
-  --title "feat: Add WebApp production subscription" \
-  --body "WebApp本番環境用のサブスクリプションを追加"
+`terraform.tfvars.json`を編集：
+
+```json title="terraform.tfvars.json"
+{
+  // ... 既存の設定 ...
+  
+  // Subscription Vending
+  "billing_scope": "/providers/Microsoft.Billing/billingAccounts/1234567/enrollmentAccounts/123456"
+}
+```
+
+```bash
+git add terraform.tfvars.json
+git commit -m "feat: Set billing scope for subscription vending"
+git push origin feature/set-billing-scope
+
+gh pr create --base main --head feature/set-billing-scope \
+  --title "feat: Set billing scope" \
+  --body "Billing scopeを設定"
 
 # Plan確認後、マージ
 gh pr merge --squash
 ```
 
-#### 例2: VNet付きサブスクリプション
+#### Step 2: 最初のサブスクリプションを追加
 
-```yaml title="subscription-vending/parameters/myapp-dev.yaml"
-subscription_name: "MyApp - Development"
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/add-demo-subscription
+```
+
+`subscriptions/demo-app-dev.yaml`を作成：
+
+```yaml title="subscriptions/demo-app-dev.yaml（新規作成）"
+display_name: "Demo App - Development"
 workload_type: "DevTest"
 management_group_id: "landing-zones"
+location: "japaneast"
+
+resource_groups:
+  network:
+    name: "rg-demo-network"
+    location: "japaneast"
+  app:
+    name: "rg-demo-app"
+    location: "japaneast"
 
 tags:
-  environment: "development"
-  cost-center: "engineering"
-  project: "myapp"
-  owner: "myteam"
-
-# Virtual Networkも作成
-virtual_network:
-  name: "vnet-myapp-dev"
-  address_space: "10.100.0.0/16"
-  location: "japaneast"
-  resource_group_name: "rg-network-dev"
-  subnets:
-    - name: "snet-app"
-      address_prefix: "10.100.1.0/24"
-    - name: "snet-data"
-      address_prefix: "10.100.2.0/24"
+  Environment: "Development"
+  Project: "Demo-App"
+  CostCenter: "Engineering"
+  Owner: "demo-team"
 ```
 
-#### 例3: RBAC設定付き
+#### Step 3: PR作成&Plan確認
 
-```yaml title="subscription-vending/parameters/critical-prod.yaml"
-subscription_name: "Critical System - Production"
-workload_type: "Production"
-management_group_id: "corp"
+```bash
+git add subscriptions/demo-app-dev.yaml
+git commit -m "feat: Add demo-app-dev subscription"
+git push origin feature/add-demo-subscription
 
-tags:
-  environment: "production"
-  cost-center: "it"
-  project: "critical-system"
-  criticality: "high"
+gh pr create --base main --head feature/add-demo-subscription \
+  --title "feat: Add Demo App Development subscription" \
+  --body "Demo App開発環境用のサブスクリプションを追加
 
-role_assignments:
-  - principal_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # プラットフォームチーム
-    role: "Owner"
-  - principal_id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"  # 開発チーム
-    role: "Reader"  # 本番は閲覧のみ
+## サブスクリプション情報
+- 名前: Demo App - Development
+- ワークロード: DevTest
+- 管理グループ: landing-zones
+
+## Plan確認事項
+- [ ] サブスクリプション作成
+- [ ] 管理グループ配置
+- [ ] リソースグループ2つ作成"
 ```
+
+**CI/CDのPlan結果を確認：**
+
+```hcl
+Terraform will perform the following actions:
+
+  # module.subscription_vending["demo-app-dev"].azurerm_subscription.this will be created
+  + resource "azurerm_subscription" "this" {
+      + subscription_name = "demo-app-dev"
+      + display_name      = "Demo App - Development"
+      + workload          = "DevTest"
+    }
+
+  # module.subscription_vending["demo-app-dev"].azurerm_management_group_subscription_association.this will be created
+  + resource "azurerm_management_group_subscription_association" "this" {
+      + management_group_id = "landing-zones"
+    }
+
+  # module.subscription_vending["demo-app-dev"]...azurerm_resource_group.network will be created
+  + resource "azurerm_resource_group" "network" {
+      + name     = "rg-demo-network"
+      + location = "japaneast"
+    }
+
+  # module.subscription_vending["demo-app-dev"]...azurerm_resource_group.app will be created
+  + resource "azurerm_resource_group" "app" {
+      + name     = "rg-demo-app"
+      + location = "japaneast"
+    }
+
+Plan: 4 to add, 0 to change, 0 to destroy.
+```
+
+#### Step 4: マージして適用
+
+```bash
+gh pr merge --squash
+
+git checkout main
+git pull origin main
+git branch -D feature/add-demo-subscription
+```
+
+#### Step 5: 作成確認
+
+```bash
+# サブスクリプション確認
+az account list --query "[?name=='Demo App - Development']" -o table
+
+# リソースグループ確認
+az group list --subscription "Demo App - Development" -o table
+```
+
+!!! success "サブスクリプション作成完了！"
+    YAMLファイルを1つ追加するだけで、以下が自動作成されました：
+    - ✅ サブスクリプション `Demo App - Development`
+    - ✅ 管理グループ `landing-zones` に配置
+    - ✅ リソースグループ `rg-demo-network`
+    - ✅ リソースグループ `rg-demo-app`
 
 ---
 
+### 応用: VNet付きサブスクリプション
 
-### 運用のポイント
+Hub-and-Spoke構成で、VNetも一緒に作成してみよう。
 
-=== "申請から払い出しまで"
+#### Step 1: Hub VNet IDを取得
 
-    **開発者がやること：**
-    
-    1. YAMLファイルを作成
-    2. PRを作成
-    3. レビュー待ち
-    
-    **プラットフォームチームがやること：**
-    
-    1. YAMLファイルのレビュー（設定が適切か確認）
-    2. PRを承認
-    3. マージ
-    
-    **自動で実行されること：**
-    
-    - サブスクリプション作成
-    - Management Group配置
-    - タグ付与
-    - VNet作成（指定された場合）
-    - RBAC設定（指定された場合）
-    - ポリシー自動適用
+```bash
+# Connectivity HubのVNet IDを取得
+az network vnet show \
+  --resource-group rg-connectivity-hub \
+  --name vnet-hub-japaneast \
+  --query id -o tsv
+```
 
-=== "YAMLファイルのレビューポイント"
+#### Step 2: VNet付きYAMLファイルを作成
 
-    PRレビュー時に確認すること：
-    
-    - ✅ **Management Group**: 環境に適したMGが選択されているか
-    - ✅ **タグ**: 必須タグ（cost-center, project, owner）があるか
-    - ✅ **ワークロードタイプ**: DevTestとProductionが正しいか
-    - ✅ **VNetアドレス**: 他のVNetと重複していないか
-    - ✅ **ロール割り当て**: 適切な権限か（Production環境でContributorは避ける）
-    
+```bash
+git checkout -b feature/add-webapp-subscription
+```
+
+`subscriptions/webapp-prod.yaml`を作成：
+
+```yaml title="subscriptions/webapp-prod.yaml（新規作成）"
+display_name: "WebApp - Production"
+workload_type: "Production"
+management_group_id: "corp"
+location: "japaneast"
+
+resource_groups:
+  network:
+    name: "rg-webapp-network"
+    location: "japaneast"
+  app:
+    name: "rg-webapp-app"
+    location: "japaneast"
+
+virtual_network:
+  name: "vnet-webapp-prod"
+  resource_group_key: "network"
+  address_space: "10.101.0.0/16"
+  hub_vnet_id: "/subscriptions/xxxxx-xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
+  hub_peering_enabled: true
+
+tags:
+  Environment: "Production"
+  Project: "WebApp"
+  CostCenter: "Product"
+  Owner: "webapp-team"
+```
+
+#### Step 3: PR作成&確認
+
+```bash
+git add subscriptions/webapp-prod.yaml
+git commit -m "feat: Add webapp-prod subscription with VNet"
+git push origin feature/add-webapp-subscription
+
+gh pr create --base main --head feature/add-webapp-subscription \
+  --title "feat: Add WebApp Production subscription" \
+  --body "WebApp本番環境用のサブスクリプションを追加
+
+## サブスクリプション情報
+- 名前: WebApp - Production
+- ワークロード: Production
+- 管理グループ: corp
+- VNet: 10.101.0.0/16（Hub接続あり）
+
+## Plan確認事項
+- [ ] サブスクリプション作成
+- [ ] VNet作成
+- [ ] Hub Peering作成"
+```
+
+**Plan結果に追加される内容:**
+```hcl
+  # VNet作成
+  + resource "azurerm_virtual_network" "primary" {
+      + name                = "vnet-webapp-prod"
+      + address_space       = ["10.101.0.0/16"]
+      + resource_group_name = "rg-webapp-network"
+    }
+
+  # Hub Peering
+  + resource "azurerm_virtual_network_peering" "hub" {
+      + name                = "peer-webapp-to-hub"
+      + remote_virtual_network_id = "/subscriptions/.../vnet-hub-japaneast"
+    }
+```
+
+#### Step 4: マージ
+
+```bash
+gh pr merge --squash
+```
+
+!!! success "完了！"
+    - ✅ サブスクリプション
+    - ✅ VNet（10.101.0.0/16）
+    - ✅ Hub VNetとのピアリング
+
+---
+
+### 複数サブスクリプションの一括管理
+
+YAMLファイルをどんどん追加していけば、複数のサブスクリプションを管理できます。
+
+**プロジェクト構造:**
+```
+alz-mgmt/
+├── subscriptions/
+│   ├── README.md
+│   ├── demo-app-dev.yaml       # 開発環境
+│   ├── webapp-prod.yaml        # WebApp本番
+│   ├── dataapp-dev.yaml        # DataApp開発
+│   └── dataapp-prod.yaml       # DataApp本番
+├── main.subscription.vending.tf
+├── variables.tf
+└── terraform.tfvars.json
+```
+
+**YAMLファイルのテンプレート集:**
+
+=== "最小構成"
     ```yaml
-    # 悪い例（本番にContributor）
-    role_assignments:
-      - principal_id: "..."
-        role: "Contributor"  # ❌ 本番環境では危険
+    display_name: "My Project - Development"
+    workload_type: "DevTest"
+    management_group_id: "landing-zones"
     
-    # 良い例（本番はReaderのみ）
-    role_assignments:
-      - principal_id: "..."
-        role: "Reader"  # ✅ 本番は閲覧のみ
+    tags:
+      Environment: "Development"
+      Project: "MyProject"
     ```
 
+=== "リソースグループ付き"
+    ```yaml
+    display_name: "My Project - Production"
+    workload_type: "Production"
+    management_group_id: "corp"
+    
+    resource_groups:
+      network:
+        name: "rg-myproject-network"
+      app:
+        name: "rg-myproject-app"
+      data:
+        name: "rg-myproject-data"
+    
+    tags:
+      Environment: "Production"
+      Project: "MyProject"
+    ```
+
+=== "VNet付き（完全版）"
+    ```yaml
+    display_name: "My Project - Production"
+    workload_type: "Production"
+    management_group_id: "corp"
+    location: "japaneast"
+    
+    resource_groups:
+      network:
+        name: "rg-myproject-network"
+        location: "japaneast"
+      app:
+        name: "rg-myproject-app"
+        location: "japaneast"
+    
+    virtual_network:
+      name: "vnet-myproject-prod"
+      resource_group_key: "network"
+      address_space: "10.102.0.0/16"
+      hub_vnet_id: "/subscriptions/xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
+      hub_peering_enabled: true
+    
+    tags:
+      Environment: "Production"
+      Project: "MyProject"
+      CostCenter: "Engineering"
+      Owner: "myproject-team"
+    ```
+
+!!! tip "運用のベストプラクティス"
+    - **ファイル名のルール**: `{project}-{environment}.yaml`（例: `webapp-prod.yaml`）
+    - **アドレス空間の管理**: 10.100.0.0/16, 10.101.0.0/16, ... と順番に割り当て
+    - **管理グループの使い分け**: 開発は`landing-zones`、本番は`corp`
+    - **必須タグ**: Environment, Project, CostCenter, Owner
+    - **PR単位**: 1つのPRで1つのサブスクリプション追加（レビューしやすい）
+    - **Plan確認**: 必ずCI/CDのPlan結果をレビューしてからマージ
 
 ---
 
