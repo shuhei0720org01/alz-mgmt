@@ -854,7 +854,7 @@ PRで実行されるPlanを確認します。
 
 ### 🎯 やってみよう: サブスクリプション自動払い出し
 
-**YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組み**を作ります。
+YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組みを作ります。
 
 !!! warning "前提条件"
     - Enterprise Agreement (EA) または Microsoft Customer Agreement (MCA) が必要
@@ -863,6 +863,10 @@ PRで実行されるPlanを確認します。
     **権限がない場合は、コードの確認だけでもOK！**
 
 #### Step 1: ブランチ作成とディレクトリ準備
+
+実践編と同じようにcodespacesを開いていきましょう。
+
+ターミナルで以下のコマンドを実行します。
 
 ```bash
 git checkout main
@@ -875,7 +879,7 @@ mkdir -p subscriptions
 
 #### Step 2: Terraformファイルを作成
 
-既存の`main.*.tf`形式に合わせて、新しいファイルを作成：
+以下の名称で新しいファイルを作成します。
 
 **`main.subscription.vending.tf`を作成：**
 
