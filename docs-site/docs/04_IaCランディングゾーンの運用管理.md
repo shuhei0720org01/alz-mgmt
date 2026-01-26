@@ -307,7 +307,7 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 #### バージョン管理の仕組み
 
-Landing Zonesでは、主要なバージョン更新箇所は二つあります。
+Landing Zonesでは、主要なバージョン更新箇所は3つあります。
 
 **1. `terraform.tf` - ALZプロバイダーのバージョン**
 
@@ -334,10 +334,28 @@ terraform {
 ```hcl title="modules/management_groups/main.tf"
 module "management_groups" {
   source  = "Azure/avm-ptn-alz/azurerm"
-  version = "0.14.1"  # ← これも！AVMパターンモジュール
+  version = "0.14.1"  # ← これ！AVMパターンモジュール
   
   # ... 設定 ...
 }
+```
+
+**3. `lib/alz_library_metadata.json` - Azureポリシーライブラリのバージョン**
+
+```hcl title="lib/alz_library_metadata.json"
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/Azure-Landing-Zones-Library/main/schemas/library_metadata.json",
+  "name": "local",
+  "display_name": "ALZ Accelerator - Azure Verified Modules for ALZ Platform Landing Zone",
+  "description": "This library allows overriding policies, archetypes, and management group architecture in the ALZ Accelerator.",
+  "dependencies": [
+    {
+      "path": "platform/alz",
+      "ref": "2025.09.3"　# ← これ！Azureポリシーライブラリのバージョン
+    }
+  ]
+}
+
 ```
 
 !!! warning "更新時にリリースノートは絶対確認！"
@@ -346,6 +364,7 @@ module "management_groups" {
 
     - [ALZプロバイダー リリースノート](https://github.com/Azure/terraform-provider-alz/releases)
     - [AVMパターンモジュール リリースノート](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases)
+    - [Azureポリシーライブラリ リリースノート](https://github.com/Azure/Azure-Landing-Zones-Library/releases)
 
 #### バージョン更新の手順
 
@@ -363,6 +382,8 @@ module "management_groups" {
 #### やってみよう: バージョンアップデートの実践
 
 実際にバージョン更新を体験してみよう。
+
+本書作成時は、Azureポリシーライブラリの更新がなかったので、今回はALZプロバイダーとAVMモジュールを更新します。
 
 ※バージョンは筆者がやってる時と違う場合があります。リリースノートを確認して最新のバージョンに更新してみましょう。
 
@@ -1478,11 +1499,743 @@ alz-mgmt/
 
 ---
 
-## Part 4: ポリシーの更新管理
+## Part 4: カスタムポリシーの作成と管理
 
-### ポリシー定義の追加
+### カスタムポリシーとは？
 
+Azureには標準で数百のポリシーが用意されていますが、組織独自のルールを適用したいこともあります。
 
+**カスタムポリシーが必要になるケース:**
+
+- 会社独自のタグ付けルール
+- 特定のリソース設定の強制
+- コストコントロールのための独自制限
+- セキュリティ要件に合わせた独自チェック
+
+ALZでは、カスタムポリシーを**コードで管理**できます。
+
+---
+
+### 🎯 やってみよう: カスタムポリシーを作成
+
+実際に3ステップでカスタムポリシーを作ってみましょう。
+
+#### シナリオ
+
+「本番環境のリソースには必ず`Owner`タグを付ける」というルールを、ポリシーで強制したい。
+
+#### 構成
+
+1. **ポリシー定義**: 「Ownerタグがない本番リソースを検出」
+2. **イニシアティブ**: 関連するタグポリシーをまとめる
+3. **割り当て**: corp管理グループに適用
+
+---
+
+### Step 1: カスタムポリシー定義を作成
+
+#### 1-1: ブランチ作成
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/add-custom-tag-policy
+```
+
+#### 1-2: ポリシー定義ファイルを作成
+
+`lib/policy_definitions/`ディレクトリに新しいファイルを作成：
+
+```bash
+mkdir -p lib/policy_definitions
+```
+
+```json title="lib/policy_definitions/policy_definition_require_owner_tag.json（新規作成）"
+{
+  "name": "Require-Owner-Tag",
+  "type": "Microsoft.Authorization/policyDefinitions",
+  "apiVersion": "2021-06-01",
+  "properties": {
+    "displayName": "本番リソースにOwnerタグを必須化",
+    "description": "Environmentタグが'Production'のリソースには、Ownerタグが必須です",
+    "policyType": "Custom",
+    "mode": "All",
+    "metadata": {
+      "category": "Tags",
+      "version": "1.0.0",
+      "source": "Custom"
+    },
+    "parameters": {
+      "effect": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Effect",
+          "description": "監査のみ、または作成を拒否"
+        },
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Audit"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "tags['Environment']",
+            "equals": "Production"
+          },
+          {
+            "field": "tags['Owner']",
+            "exists": "false"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}
+```
+
+!!! info "ポリシー定義の構造"
+    - **name**: ポリシーのID（英数字とハイフンのみ）
+    - **displayName**: Azure Portalで表示される名前
+    - **mode**: `All`（全リソース）または`Indexed`（タグ対応リソース）
+    - **policyRule**: 条件（if）と処理（then）
+    - **effect**: Audit（監査）、Deny（拒否）、Disabled（無効）
+
+---
+
+### Step 2: カスタムポリシーイニシアティブを作成
+
+複数のポリシーをまとめて管理するために、イニシアティブ（ポリシーセット）を作ります。
+
+#### 2-1: イニシアティブ定義ファイルを作成
+
+```bash
+mkdir -p lib/policy_set_definitions
+```
+
+```json title="lib/policy_set_definitions/policy_set_definition_custom_tagging.json（新規作成）"
+{
+  "name": "Custom-Tagging-Initiative",
+  "type": "Microsoft.Authorization/policySetDefinitions",
+  "apiVersion": "2021-06-01",
+  "properties": {
+    "displayName": "カスタムタグ付けポリシーセット",
+    "description": "組織のタグ付けルールを強制するポリシーセット",
+    "policyType": "Custom",
+    "metadata": {
+      "category": "Tags",
+      "version": "1.0.0",
+      "source": "Custom"
+    },
+    "parameters": {
+      "ownerTagEffect": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Ownerタグの効果",
+          "description": "Ownerタグポリシーの動作"
+        },
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Audit"
+      }
+    },
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "RequireOwnerTag",
+        "policyDefinitionName": "Require-Owner-Tag",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('ownerTagEffect')]"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+!!! tip "イニシアティブを使う理由"
+    1つずつポリシーを割り当てると管理が大変。イニシアティブにまとめると：
+    
+    - **一括適用**: 関連ポリシーを一度に適用
+    - **パラメータ管理**: 全体のパラメータを一元管理
+    - **バージョン管理**: ポリシーセット全体のバージョン管理が可能
+
+---
+
+### Step 3: ポリシー・イニシアティブを割り当て
+
+作成したポリシーとイニシアティブを、管理グループに割り当てます。
+
+#### 3-1: アーキタイプに登録
+
+`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
+
+```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml"
+name: corp_custom
+parent_id: corp
+
+# ポリシー定義を登録
+policy_definitions:
+  - Require-Owner-Tag
+
+# イニシアティブ（ポリシーセット）を登録
+policy_set_definitions:
+  - Custom-Tagging-Initiative
+
+# イニシアティブを割り当て
+policy_assignments:
+  - policy_assignment_name: Custom-Tagging
+    display_name: "カスタムタグ付けポリシー"
+    policy_set_definition_name: Custom-Tagging-Initiative
+    scope_type: "management_group"
+    parameters:
+      ownerTagEffect:
+        value: "Audit"  # まずは監査モードで
+    enforcement_mode: "Default"
+    identity:
+      type: "None"
+```
+
+!!! info "割り当て先の選び方"
+    - **root**: すべての管理グループに適用（全社ルール）
+    - **platform**: プラットフォームリソースのみ
+    - **landing-zones**: アプリケーションLZ全体
+    - **corp**: 本番環境のみ
+    - **online**: インターネット公開リソースのみ
+
+---
+
+### 🎯 やってみよう: 適用とテスト
+
+#### 4-1: コミット&PR作成
+
+```bash
+# 作成したファイルをステージング
+git add lib/policy_definitions/policy_definition_require_owner_tag.json \
+        lib/policy_set_definitions/policy_set_definition_custom_tagging.json \
+        lib/archetype_definitions/corp_custom.alz_archetype_override.yaml
+
+# コミット
+git commit -m "feat: Add custom Owner tag policy for production resources
+
+- カスタムポリシー定義を追加
+- タグ付けイニシアティブを作成
+- corp管理グループに割り当て（Auditモード）"
+
+# プッシュ
+git push origin feature/add-custom-tag-policy
+
+# PR作成
+gh pr create --base main --head feature/add-custom-tag-policy \
+  --title "feat: Add custom Owner tag policy" \
+  --body "Add custom Owner tag policy"
+```
+
+#### 4-2: GitHub ActionsでPlan確認
+
+PRを作成すると、GitHub Actionsが自動でTerraform Planを実行します。
+
+**期待される出力:**
+
+```hcl
+Terraform will perform the following actions:
+
+  # module.management_groups.azurerm_management_group_policy_definition.this["Require-Owner-Tag"] will be created
+  + resource "azurerm_management_group_policy_definition" "this" {
+      + name                  = "Require-Owner-Tag"
+      + display_name          = "本番リソースにOwnerタグを必須化"
+      + policy_type           = "Custom"
+      + management_group_name = "corp"
+    }
+
+  # module.management_groups.azurerm_management_group_policy_set_definition.this["Custom-Tagging-Initiative"] will be created
+  + resource "azurerm_management_group_policy_set_definition" "this" {
+      + name                  = "Custom-Tagging-Initiative"
+      + display_name          = "カスタムタグ付けポリシーセット"
+      + policy_type           = "Custom"
+      + management_group_name = "corp"
+    }
+
+  # module.management_groups.azurerm_management_group_policy_assignment.this["Custom-Tagging"] will be created
+  + resource "azurerm_management_group_policy_assignment" "this" {
+      + name                 = "Custom-Tagging"
+      + management_group_id  = "/providers/Microsoft.Management/managementGroups/corp"
+      + enforcement_mode     = "Default"
+      + policy_definition_id = "..."
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+```
+
+!!! success "3つのリソースが作成される"
+    1. ポリシー定義（Require-Owner-Tag）
+    2. イニシアティブ（Custom-Tagging-Initiative）
+    3. ポリシー割り当て（corp管理グループ）
+
+#### 4-3: マージ&適用
+
+Plan結果を確認して問題なければマージ：
+
+```bash
+# PRをマージ
+gh pr merge --squash
+
+# ローカルのmainを更新
+git checkout main
+git pull origin main
+
+# 作業ブランチを削除
+git branch -D feature/add-custom-tag-policy
+```
+
+#### 4-4: Azure Portalで確認
+
+マージから数分後、Azure Portalで確認できます：
+
+```bash
+# ポリシー定義を確認
+az policy definition show \
+  --management-group corp \
+  --name "Require-Owner-Tag" \
+  --query "{Name:name, DisplayName:displayName, PolicyType:policyType}" -o table
+
+# イニシアティブを確認
+az policy set-definition show \
+  --management-group corp \
+  --name "Custom-Tagging-Initiative" \
+  --query "{Name:name, DisplayName:displayName}" -o table
+
+# 割り当てを確認
+az policy assignment list \
+  --scope "/providers/Microsoft.Management/managementGroups/corp" \
+  --query "[?displayName=='カスタムタグ付けポリシー'].{Name:name, EnforcementMode:enforcementMode}" -o table
+```
+
+**出力例:**
+```
+Name                    DisplayName                          PolicyType
+----------------------  -----------------------------------  ----------
+Require-Owner-Tag       本番リソースにOwnerタグを必須化      Custom
+
+Name                        DisplayName
+--------------------------  ----------------------------
+Custom-Tagging-Initiative   カスタムタグ付けポリシーセット
+
+Name             EnforcementMode
+---------------  ---------------
+Custom-Tagging   Default
+```
+
+---
+
+### 🎯 やってみよう: Denyモードへの切り替え
+
+非準拠リソースが全て修正されたら、Denyモードに変更して、今後の作成を防ぎます。
+
+#### 5-1: Denyモードに変更
+
+```bash
+git checkout -b feature/enforce-owner-tag-policy
+```
+
+`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
+
+```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
+policy_assignments:
+  - policy_assignment_name: Custom-Tagging
+    display_name: "カスタムタグ付けポリシー"
+    policy_set_definition_name: Custom-Tagging-Initiative
+    scope_type: "management_group"
+    parameters:
+      ownerTagEffect:
+        value: "Deny"  # Audit → Deny に変更
+    enforcement_mode: "Default"
+    identity:
+      type: "None"
+```
+
+```bash
+git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml
+git commit -m "feat: Enforce Owner tag policy (Audit -> Deny)"
+git push origin feature/enforce-owner-tag-policy
+
+gh pr create --base main --head feature/enforce-owner-tag-policy \
+  --title "feat: Enforce Owner tag policy" \
+  --body "feat: Enforce Owner tag policy"
+
+gh pr merge --squash
+```
+
+!!! warning "Denyモードの影響"
+    Denyモードに変更すると、条件に合わないリソース作成は**デプロイエラー**になります。
+    
+    **エラー例:**
+    ```
+    Error: creating Virtual Machine "vm-prod-01" (Resource Group "rg-app-prod"):
+    The resource 'vm-prod-01' was disallowed by policy.
+    Policy: カスタムタグ付けポリシー
+    Reason: Resource does not have required tag 'Owner'
+    ```
+    
+    必ず事前に関係者へ通知し、既存の非準拠リソースを修正してから変更しましょう。
+
+---
+
+### 🎯 やってみよう: ポリシーの一時無効化
+
+緊急時や、メンテナンス時に、ポリシーを一時的に無効化する方法です。
+
+#### シナリオ
+
+大規模なインフラ変更を行う際、Ownerタグポリシーが邪魔になっている。作業中だけ一時的に無効化したい。
+
+#### 6-1: ブランチ作成
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/disable-owner-tag-policy
+```
+
+#### 6-2: enforcement_modeをDoNotEnforceに変更
+
+`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
+
+```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
+policy_assignments:
+  - policy_assignment_name: Custom-Tagging
+    display_name: "カスタムタグ付けポリシー"
+    policy_set_definition_name: Custom-Tagging-Initiative
+    scope_type: "management_group"
+    parameters:
+      ownerTagEffect:
+        value: "Deny"
+    enforcement_mode: "DoNotEnforce"  # Default → DoNotEnforce に変更
+    identity:
+      type: "None"
+```
+
+#### 6-3: コミット&PR作成
+
+```bash
+git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml
+
+git commit -m "chore: Temporarily disable Owner tag policy for maintenance
+
+作業期間: 2026/01/26 - 2026/01/27
+作業完了後に再度有効化する"
+
+git push origin feature/disable-owner-tag-policy
+
+gh pr create --base main --head feature/disable-owner-tag-policy \
+  --title "chore: Temporarily disable Owner tag policy" \
+  --body "メンテナンス作業のため、Ownerタグポリシーを一時無効化
+
+## 無効化期間
+- 開始: 2026/01/26
+- 終了予定: 2026/01/27
+
+## Plan確認事項
+- [ ] enforcement_mode が DoNotEnforce に変更される
+- [ ] ポリシー定義とイニシアティブは削除されない
+- [ ] 既存リソースへの影響なし"
+```
+
+#### 6-4: Plan確認
+
+GitHub Actionsの出力：
+
+```hcl
+Terraform will perform the following actions:
+
+  # module.management_groups.azurerm_management_group_policy_assignment.this["Custom-Tagging"] will be updated in-place
+  ~ resource "azurerm_management_group_policy_assignment" "this" {
+        name               = "Custom-Tagging"
+        management_group_id = "/providers/Microsoft.Management/managementGroups/corp"
+      ~ enforcement_mode   = "Default" -> "DoNotEnforce"
+        # (4 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+#### 6-5: マージ&確認
+
+```bash
+gh pr merge --squash
+git checkout main
+git pull origin main
+git branch -D feature/disable-owner-tag-policy
+
+# 無効化を確認
+az policy assignment show \
+  --name "Custom-Tagging" \
+  --scope "/providers/Microsoft.Management/managementGroups/corp" \
+  --query "{Name:name, EnforcementMode:enforcementMode}" -o table
+```
+
+**出力例:**
+```
+Name             EnforcementMode
+---------------  ---------------
+Custom-Tagging   DoNotEnforce
+```
+
+!!! success "ポリシーが無効化された"
+    - ポリシーは割り当てられたまま
+    - コンプライアンス評価は継続
+    - ただし、リソース作成・変更を**ブロックしない**
+    
+    作業完了後、必ず`enforcement_mode: "Default"`に戻しましょう。
+
+---
+
+### 🎯 やってみよう: ポリシーの完全削除
+
+不要になったポリシーを、定義ごと完全に削除する方法です。
+
+#### シナリオ
+
+Ownerタグポリシーが不要になった。ポリシー割り当て、イニシアティブ、定義を全て削除したい。
+
+!!! warning "削除前の確認"
+    削除する前に、必ず以下を確認してください：
+    
+    ```bash
+    # このポリシーが他の場所で使われていないか確認
+    az policy assignment list --query "[?contains(policyDefinitionId, 'Require-Owner-Tag')]" -o table
+    
+    # イニシアティブが他の管理グループで使われていないか確認
+    az policy assignment list --query "[?contains(policyDefinitionId, 'Custom-Tagging-Initiative')]" -o table
+    ```
+    
+    他の場所で使われている場合は、そちらも削除する必要があります。
+
+#### 7-1: ブランチ作成
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/remove-owner-tag-policy
+```
+
+#### 7-2: アーキタイプから削除
+
+`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
+
+```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
+name: corp_custom
+parent_id: corp
+
+# ポリシー定義を削除
+policy_definitions:
+  # - Require-Owner-Tag  # この行を削除またはコメントアウト
+
+# イニシアティブを削除
+policy_set_definitions:
+  # - Custom-Tagging-Initiative  # この行を削除またはコメントアウト
+
+# ポリシー割り当てを削除
+policy_assignments:
+  # - policy_assignment_name: Custom-Tagging  # このブロック全体を削除
+  #   display_name: "カスタムタグ付けポリシー"
+  #   policy_set_definition_name: Custom-Tagging-Initiative
+  #   scope_type: "management_group"
+  #   parameters:
+  #     ownerTagEffect:
+  #       value: "Deny"
+  #   enforcement_mode: "Default"
+  #   identity:
+  #     type: "None"
+```
+
+#### 7-3: ポリシー定義ファイルを削除
+
+```bash
+# ポリシー定義ファイルを削除
+rm lib/policy_definitions/policy_definition_require_owner_tag.json
+
+# イニシアティブ定義ファイルを削除
+rm lib/policy_set_definitions/policy_set_definition_custom_tagging.json
+
+# 削除を確認
+git status
+```
+
+#### 7-4: コミット&PR作成
+
+```bash
+# 削除したファイルをステージング
+git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml \
+        lib/policy_definitions/policy_definition_require_owner_tag.json \
+        lib/policy_set_definitions/policy_set_definition_custom_tagging.json
+
+git commit -m "chore: Remove Owner tag policy
+
+Ownerタグポリシーが不要になったため削除
+
+削除内容:
+- ポリシー定義: Require-Owner-Tag
+- イニシアティブ: Custom-Tagging-Initiative
+- ポリシー割り当て: Custom-Tagging (corp管理グループ)"
+
+git push origin feature/remove-owner-tag-policy
+
+gh pr create --base main --head feature/remove-owner-tag-policy \
+  --title "chore: Remove Owner tag policy" \
+  --body "不要になったOwnerタグポリシーを完全削除
+
+## 削除内容
+- ✅ ポリシー定義ファイル削除
+- ✅ イニシアティブ定義ファイル削除
+- ✅ アーキタイプから削除
+
+## Plan確認事項
+- [ ] ポリシー割り当てが削除される（destroy）
+- [ ] イニシアティブが削除される（destroy）
+- [ ] ポリシー定義が削除される（destroy）
+- [ ] 既存リソースへの影響なし
+
+## 削除後の動作
+- Ownerタグがなくてもリソース作成可能になる
+- 既存のコンプライアンス評価は停止"
+```
+
+#### 7-5: Plan確認
+
+GitHub Actionsの出力：
+
+```hcl
+Terraform will perform the following actions:
+
+  # module.management_groups.azurerm_management_group_policy_assignment.this["Custom-Tagging"] will be destroyed
+  - resource "azurerm_management_group_policy_assignment" "this" {
+      - name                 = "Custom-Tagging" -> null
+      - management_group_id  = "/providers/Microsoft.Management/managementGroups/corp" -> null
+      # (5 unchanged attributes hidden)
+    }
+
+  # module.management_groups.azurerm_management_group_policy_set_definition.this["Custom-Tagging-Initiative"] will be destroyed
+  - resource "azurerm_management_group_policy_set_definition" "this" {
+      - name                  = "Custom-Tagging-Initiative" -> null
+      - display_name          = "カスタムタグ付けポリシーセット" -> null
+      # (3 unchanged attributes hidden)
+    }
+
+  # module.management_groups.azurerm_management_group_policy_definition.this["Require-Owner-Tag"] will be destroyed
+  - resource "azurerm_management_group_policy_definition" "this" {
+      - name                  = "Require-Owner-Tag" -> null
+      - display_name          = "本番リソースにOwnerタグを必須化" -> null
+      # (3 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 3 to destroy.
+```
+
+!!! success "3つのリソースが削除される"
+    1. ポリシー割り当て（Custom-Tagging）
+    2. イニシアティブ（Custom-Tagging-Initiative）
+    3. ポリシー定義（Require-Owner-Tag）
+
+#### 7-6: マージ&確認
+
+```bash
+gh pr merge --squash
+git checkout main
+git pull origin main
+git branch -D feature/remove-owner-tag-policy
+
+# 削除を確認
+az policy assignment list \
+  --scope "/providers/Microsoft.Management/managementGroups/corp" \
+  --query "[?displayName=='カスタムタグ付けポリシー']" -o table
+
+az policy set-definition show \
+  --management-group corp \
+  --name "Custom-Tagging-Initiative" 2>&1 | grep "not found"
+
+az policy definition show \
+  --management-group corp \
+  --name "Require-Owner-Tag" 2>&1 | grep "not found"
+```
+
+**出力例:**
+```
+# ポリシー割り当て → 空（削除された）
+
+# イニシアティブ → Not found
+PolicySetDefinitionNotFound: The policy set definition 'Custom-Tagging-Initiative' could not be found.
+
+# ポリシー定義 → Not found
+PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be found.
+```
+
+!!! success "ポリシーが完全に削除された"
+    - ✅ ポリシー割り当て削除
+    - ✅ イニシアティブ削除
+    - ✅ ポリシー定義削除
+    - ✅ コンプライアンス評価停止
+
+---
+
+### ポリシー管理のベストプラクティス
+
+!!! tip "削除と無効化の使い分け"
+    | 操作 | 使うケース | リソースの状態 | 復元 |
+    |------|-----------|---------------|------|
+    | **無効化** | 一時的なメンテナンス、テスト期間 | リソースは残る | すぐに再有効化可能 |
+    | **削除** | 完全に不要、ポリシー変更 | リソースは削除される | 再作成が必要 |
+
+!!! tip "削除の順序"
+    1. **ポリシー割り当て**を先に削除
+    2. **イニシアティブ**を削除
+    3. **ポリシー定義**を削除
+    
+    Terraformが自動で依存関係を解決しますが、手動削除の場合はこの順序を守りましょう。
+
+!!! tip "削除前のチェックリスト"
+    - [ ] 他の管理グループで使われていないか確認
+    - [ ] 削除の影響範囲を関係者に通知
+    - [ ] Plan結果で削除されるリソースを確認
+    - [ ] 削除後にリソース作成の動作が変わることを確認
+    - [ ] ドキュメント（README等）も更新
+
+---
+
+### ベストプラクティス
+
+!!! tip "段階的なロールアウト"
+    新しいポリシーは必ず段階的に：
+    
+    1. **Audit**: 監査モードで影響範囲を確認
+    2. **修正**: 非準拠リソースを修正
+    3. **Deny**: 全て準拠したら強制モード
+    4. **通知**: 事前に関係者へ通知
+
+!!! tip "テスト環境で検証"
+    - 先に`landing-zones`管理グループで試す
+    - 問題なければ`corp`に適用
+
+!!! tip "イニシアティブで整理"
+    - 関連ポリシーはイニシアティブにまとめる
+    - カテゴリ別（Tags、Security、Cost、Networkなど）に分類
+    - バージョン番号を付けて管理
+
+!!! tip "ドキュメント化"
+    - PR本文に必ず影響範囲を記載
+    - ポリシーの目的と背景を明記
+    - ロールバック手順も準備
 
 ---
 
@@ -1492,9 +2245,7 @@ alz-mgmt/
 
 ### ✅ Part 1: 日常運用タスク
 
-- Policy準拠状況のチェック
-- アラート対応
-- 定期メンテナンス
+
 
 ### ✅ Part 2: 変更管理フロー
 
@@ -1509,13 +2260,7 @@ alz-mgmt/
 
 ### ✅ Part 4: ポリシーの更新管理
 
-- ポリシー定義の追加
-- ポリシー割り当ての変更
-- Exclusion（除外）管理
-- ポリシーの無効化・削除
-- カスタムポリシーの作成
 
-次の章では、運用の自動化と効率化について学びます。
 
 ## 練習問題
 
