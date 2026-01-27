@@ -856,26 +856,19 @@ PRで実行されるPlanを確認します。
 
 YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組みを作ります。
 
-!!! warning "前提条件"
-    - Enterprise Agreement (EA) または Microsoft Customer Agreement (MCA) が必要
-    - Billing Account への権限（Enrollment Account Owner など）
-    
-    **権限がない場合は、コードの確認だけでもOK！**
 
-#### Step 1: ブランチ作成とディレクトリ準備
+#### Step 1: ディレクトリ準備
 
 実践編と同じようにcodespacesを開いていきましょう。
 
 ターミナルで以下のコマンドを実行します。
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b feature/setup-subscription-vending
-
 # サブスクリプション定義用のディレクトリ作成
 mkdir -p subscriptions
 ```
+
+「subscriptions」フォルダが作成されます。
 
 #### Step 2: Terraformファイルを作成
 
@@ -885,76 +878,209 @@ mkdir -p subscriptions
 
 ```hcl title="main.subscription.vending.tf（新規作成）"
 # ========================================
-# Subscription Vending
+# Terraformのサブスクリプションリソースの実装
+# モジュールを使わず、azurerm_subscriptionリソースを使用
+# ALZモジュールとの互換性維持のため
 # ========================================
 
 locals {
   # subscriptions/ディレクトリからYAMLファイルを読み込む
   subscription_files = fileset("${path.module}/subscriptions", "*.yaml")
-  
-  # YAMLをパースして設定を作成
+
+  # YAMLをパースして設定を作成（README.mdは説明用のファイルとして除外）
   subscriptions = {
     for file in local.subscription_files :
     trimsuffix(file, ".yaml") => yamldecode(file("${path.module}/subscriptions/${file}"))
+    if file != "README.md"
   }
 }
 
-# 各サブスクリプションをループで作成
-module "subscription_vending" {
-  source  = "Azure/avm-ptn-alz-sub-vending/azurerm"
-  version = "~> 0.1.0"
-  
+# 手順3: 管理グループIDの取得
+data "azurerm_management_group" "subscription_target" {
   for_each = local.subscriptions
-  
-  # サブスクリプション設定
-  subscription_alias_enabled = true
-  subscription_alias_name    = each.key
-  subscription_display_name  = each.value.display_name
-  subscription_billing_scope = var.billing_scope
-  subscription_workload      = each.value.workload_type
-  
-  # 管理グループへの配置
-  subscription_management_group_association_enabled = true
-  subscription_management_group_id                  = each.value.management_group_id
-  
-  # 基本設定
-  location          = lookup(each.value, "location", "japaneast")
-  disable_telemetry = false
-  
-  # リソースグループ作成
-  resource_group_creation_enabled = lookup(each.value, "resource_groups", null) != null
-  resource_groups = lookup(each.value, "resource_groups", null) != null ? {
-    for rg_key, rg in each.value.resource_groups :
-    rg_key => {
-      name     = rg.name
-      location = lookup(rg, "location", "japaneast")
+
+  name = each.value.management_group_id
+}
+
+# データソースでBilling Scopeを取得
+data "azurerm_billing_mca_account_scope" "this" {
+  count = var.billing_account_name != null && var.billing_profile_name != null && var.invoice_section_name != null ? 1 : 0
+
+  billing_account_name = var.billing_account_name
+  billing_profile_name = var.billing_profile_name
+  invoice_section_name = var.invoice_section_name
+}
+
+# 手順4: サブスクリプションの作成
+resource "azurerm_subscription" "this" {
+  for_each = local.subscriptions
+
+  subscription_name = each.value.display_name
+  alias             = each.key
+  billing_scope_id  = data.azurerm_billing_mca_account_scope.this[0].id
+  workload          = lookup(each.value, "workload_type", "Production")
+
+  tags = lookup(each.value, "tags", {})
+
+  # ライフサイクル: サブスクリプションは削除せず、管理グループのみ変更可能
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# 手順5: 管理グループへの関連付け
+resource "azurerm_management_group_subscription_association" "this" {
+  for_each = local.subscriptions
+
+  management_group_id = data.azurerm_management_group.subscription_target[each.key].id
+  subscription_id     = "/subscriptions/${azurerm_subscription.this[each.key].subscription_id}"
+
+  depends_on = [azurerm_subscription.this]
+}
+
+# 手順6: リソースグループの作成
+locals {
+  # 全サブスクリプションのリソースグループをフラット化
+  subscription_resource_groups = merge([
+    for sub_key, sub in local.subscriptions : {
+      for rg_key, rg in lookup(sub, "resource_groups", {}) :
+      "${sub_key}-${rg_key}" => merge(rg, {
+        subscription_id = azurerm_subscription.this[sub_key].subscription_id
+        location        = lookup(rg, "location", lookup(sub, "location", "japaneast"))
+        tags            = lookup(sub, "tags", {})
+      })
     }
-  } : {}
-  
-  # VNet作成とHub接続
-  virtual_network_enabled = lookup(each.value, "virtual_network", null) != null
-  virtual_networks = lookup(each.value, "virtual_network", null) != null ? {
-    primary = {
-      name                    = each.value.virtual_network.name
-      resource_group_key      = each.value.virtual_network.resource_group_key
-      address_space           = [each.value.virtual_network.address_space]
-      hub_network_resource_id = lookup(each.value.virtual_network, "hub_vnet_id", "")
-      hub_peering_enabled     = lookup(each.value.virtual_network, "hub_peering_enabled", false)
-      mesh_peering_enabled    = false
-    }
-  } : {}
-  
-  # タグ
-  subscription_tags = merge(
-    lookup(each.value, "tags", {}),
-    {
-      ManagedBy = "Terraform"
-    }
-  )
-  
+  ]...)
+}
+
+resource "azurerm_resource_group" "this" {
+  for_each = local.subscription_resource_groups
+
+  name     = each.value.name
+  location = each.value.location
+  tags     = each.value.tags
+
+  # プロバイダーエイリアスは使用せず、subscription_idで制御
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
+  depends_on = [azurerm_subscription.this]
+}
+
+# 手順7: VNetの作成
+locals {
+  # VNetが定義されているサブスクリプションを抽出
+  vnets = {
+    for sub_key, sub in local.subscriptions :
+    sub_key => merge(sub.virtual_network, {
+      subscription_id = azurerm_subscription.this[sub_key].subscription_id
+      location        = lookup(sub.virtual_network, "location", lookup(sub, "location", "japaneast"))
+      tags            = lookup(sub, "tags", {})
+    })
+    if lookup(sub, "virtual_network", null) != null
+  }
+}
+
+resource "azurerm_virtual_network" "this" {
+  for_each = local.vnets
+
+  name                = each.value.name
+  location            = each.value.location
+  resource_group_name = each.value.resource_group_name
+  address_space       = each.value.address_space
+  tags                = each.value.tags
+
   depends_on = [
-    module.management_groups
+    azurerm_resource_group.this,
+    azurerm_subscription.this
   ]
+}
+
+# 手順8: サブネットの作成
+locals {
+  # 全VNetのサブネットをフラット化
+  subnets = merge([
+    for sub_key, vnet in local.vnets : {
+      for subnet in lookup(vnet, "subnets", []) :
+      "${sub_key}-${subnet.name}" => {
+        name                = subnet.name
+        vnet_name           = vnet.name
+        resource_group_name = vnet.resource_group_name
+        address_prefix      = subnet.address_prefix
+        subscription_id     = vnet.subscription_id
+      }
+    }
+  ]...)
+}
+
+resource "azurerm_subnet" "this" {
+  for_each = local.subnets
+
+  name                 = each.value.name
+  resource_group_name  = each.value.resource_group_name
+  virtual_network_name = each.value.vnet_name
+  address_prefixes     = [each.value.address_prefix]
+
+  depends_on = [azurerm_virtual_network.this]
+}
+
+# 手順9: Hub VNetへのピアリング
+locals {
+  # Hub接続が必要なVNetを抽出
+  # Hub VNet情報は既存のhub_and_spoke_vnetモジュールから自動取得
+  hub_vnet_id = try(
+    values(module.hub_and_spoke_vnet[0].virtual_network_resource_ids)[0],
+    var.hub_virtual_network_id
+  )
+  hub_vnet_name = try(
+    values(module.hub_and_spoke_vnet[0].virtual_network_resource_names)[0],
+    var.hub_virtual_network_name
+  )
+  hub_vnet_resource_group = try(
+    split("/", local.hub_vnet_id)[4],
+    var.hub_virtual_network_resource_group_name
+  )
+
+  vnet_peerings = {
+    for sub_key, vnet in local.vnets :
+    sub_key => vnet
+    if lookup(vnet, "hub_peering_enabled", false) && local.hub_vnet_id != null
+  }
+}
+
+# Spoke → Hub のピアリング
+resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+  for_each = local.vnet_peerings
+
+  name                      = "${each.value.name}-to-hub"
+  resource_group_name       = each.value.resource_group_name
+  virtual_network_name      = each.value.name
+  remote_virtual_network_id = local.hub_vnet_id
+
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = false
+  use_remote_gateways          = lookup(each.value, "use_hub_gateway", false)
+
+  depends_on = [azurerm_virtual_network.this]
+}
+
+# Hub → Spoke のピアリング
+resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  for_each = local.vnet_peerings
+
+  name                      = "hub-to-${each.value.name}"
+  resource_group_name       = local.hub_vnet_resource_group
+  virtual_network_name      = local.hub_vnet_name
+  remote_virtual_network_id = azurerm_virtual_network.this[each.key].id
+
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = lookup(each.value, "use_hub_gateway", false)
+  use_remote_gateways          = false
+
+  depends_on = [azurerm_virtual_network.this]
 }
 ```
 
@@ -964,92 +1090,90 @@ module "subscription_vending" {
 
 ```hcl title="variables.tf（末尾に追加）"
 # ========================================
-# Subscription Vending Variables
+# Subscription Vending用の変数を追加
 # ========================================
 
-variable "billing_scope" {
-  description = "Billing scope for subscription creation (EA or MCA)"
+variable "billing_account_name" {
   type        = string
-  sensitive   = true
-  default     = ""
+  description = "The Billing Account name for MCA subscription creation"
+  default     = null
+}
+
+variable "billing_profile_name" {
+  type        = string
+  description = "The Billing Profile name for MCA subscription creation"
+  default     = null
+}
+
+variable "invoice_section_name" {
+  type        = string
+  description = "The Invoice Section name for MCA subscription creation"
+  default     = null
 }
 ```
 
 #### Step 4: tfvarsファイルを更新
 
-`terraform.tfvars.json`に追加：
+`terraform.tfvars.json`に以下を追加：
 
 ```json title="terraform.tfvars.json（追加）"
 {
   // ... 既存の設定 ...
   
-  // Subscription Vending
-  "billing_scope": ""
+  "billing_account_name": "以下の手順で取得して設定",
+  "billing_profile_name": "以下の手順で取得して設定",
+  "invoice_section_name": "以下の手順で取得して設定",
 }
 ```
 
-!!! tip "billing_scopeの取得方法"
-    ```bash
-    # EA契約の場合
-    az billing enrollment-account list --query "[].id" -o tsv
-    
-    # MCA契約の場合
-    az billing account list
-    ```
+**ここの値はAzureポータルで以下のように取得します。**
 
-#### Step 5: outputs定義を追加
+- Azureポータルで「コストの管理と請求」
+- 右ペインの「課金プロファイル」
+- あなたの課金プロファイル名をクリック
+- 右ペインの「請求書セクション」
+- あなたの請求書セクション名をクリック
+- 右ペインの「プロパティ」
 
-`outputs.tf`に追加：
+![alt text](./img/image55.png)
 
-```hcl title="outputs.tf（末尾に追加）"
-# ========================================
-# Subscription Vending Outputs
-# ========================================
 
-output "vended_subscriptions" {
-  description = "All vended subscriptions"
-  value = {
-    for k, v in module.subscription_vending :
-    k => {
-      subscription_id = v.subscription_id
-      display_name    = v.subscription_resource_id
-    }
-  }
-}
+
+#### Step 5: コミット&PR作成
+
+
 ```
+# feature ブランチ作成
+git checkout -b feature/setup-subscription-vending
 
-#### Step 6: コミット&PR作成
-
-```bash
-git add main.subscription.vending.tf variables.tf terraform.tfvars.json outputs.tf
-git commit -m "feat: Setup subscription vending with YAML-based configuration"
+# 変更をコミット、プッシュ
+git add .
+git commit -m "YAMLファイルベースのサブスクリプション払い出し機能を追加"
 git push origin feature/setup-subscription-vending
 
 # PR作成
-gh pr create --base main --head feature/setup-subscription-vending \
-  --title "feat: Setup subscription vending" \
-  --body "YAMLファイルベースのサブスクリプション払い出し機能を追加
+gh pr create --base main --head feature/setup-subscription-vending --title "feat: Setup subscription vending" --body "YAMLファイルベースのサブスクリプション払い出し機能を追加"
 
-## 追加内容
-- \`main.subscription.vending.tf\`（新規作成）
-- \`subscriptions/\`ディレクトリとREADME
-- YAMLファイルを追加するだけでサブスクリプション作成
-
-## 動作確認
-- [ ] CI/CDでPlan確認
-- [ ] subscriptions/ディレクトリが空なので変更なし"
-
-# マージ
+# PR番号を確認してマージ（squash mergeの例）
 gh pr merge --squash
 
+# mainブランチに戻る
 git checkout main
+
+# 最新を取得
 git pull origin main
+
+# ローカルブランチを強制削除
 git branch -D feature/setup-subscription-vending
+
 ```
 
-#### Step 7: CI/CDでPlan確認
 
-PRを作成すると、GitHub Actionsが自動実行されます。
+#### Step 6: CI/CDでPlan確認
+
+GitHub Actionsが自動実行されるので、リポジトリに戻って確認しましょう。
+
+プランの変更点を確認したら、デプロイを承認しましょう。
 
 **Plan結果:**
 ```
@@ -1063,134 +1187,84 @@ No changes. Your infrastructure matches the configuration.
 
 YAMLファイルを追加するだけで、サブスクリプションが作成されます。
 
-#### Step 1: billing_scopeを設定
 
-まず、billing_scopeを設定しないとサブスクリプション作成できないので設定します。
+#### Step 1: サブスクリプションのyamlを追加
 
-```bash
-git checkout -b feature/set-billing-scope
-```
-
-`terraform.tfvars.json`を編集：
-
-```json title="terraform.tfvars.json"
-{
-  // ... 既存の設定 ...
-  
-  // Subscription Vending
-  "billing_scope": "/providers/Microsoft.Billing/billingAccounts/1234567/enrollmentAccounts/123456"
-}
-```
-
-```bash
-git add terraform.tfvars.json
-git commit -m "feat: Set billing scope for subscription vending"
-git push origin feature/set-billing-scope
-
-gh pr create --base main --head feature/set-billing-scope \
-  --title "feat: Set billing scope" \
-  --body "Billing scopeを設定"
-
-# Plan確認後、マージ
-gh pr merge --squash
-```
-
-#### Step 2: 最初のサブスクリプションを追加
-
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/add-demo-subscription
-```
 
 `subscriptions/demo-app-dev.yaml`を作成：
 
-```yaml title="subscriptions/demo-app-dev.yaml（新規作成）"
-display_name: "Demo App - Development"
-workload_type: "DevTest"
-management_group_id: "landing-zones"
+```yaml title="subscriptions/test-subscription.yaml（新規作成）"
+display_name: "test-subscription"
+workload_type: "Production"
+management_group_id: "corp"
 location: "japaneast"
+
+tags:
+  environment: "test"
+  cost_center: "test-12345"
+  owner: "platform-team"
 
 resource_groups:
   network:
-    name: "rg-demo-network"
+    name: "rg-test-network"
     location: "japaneast"
-  app:
-    name: "rg-demo-app"
+  application:
+    name: "rg-test-app"
     location: "japaneast"
 
-tags:
-  Environment: "Development"
-  Project: "Demo-App"
-  CostCenter: "Engineering"
-  Owner: "demo-team"
+virtual_network:
+  name: "vnet-test"
+  resource_group_name: "rg-test-network"
+  address_space: ["10.200.0.0/16"]
+  hub_peering_enabled: true
+  use_hub_gateway: true
+  subnets:
+    - name: "snet-app"
+      address_prefix: "10.200.1.0/24"
+    - name: "snet-data"
+      address_prefix: "10.200.2.0/24"
+    - name: "snet-web"
+      address_prefix: "10.200.3.0/24"
 ```
 
-#### Step 3: PR作成&Plan確認
+#### Step 2: PR作成&Plan確認
 
-```bash
-git add subscriptions/demo-app-dev.yaml
-git commit -m "feat: Add demo-app-dev subscription"
-git push origin feature/add-demo-subscription
-
-gh pr create --base main --head feature/add-demo-subscription \
-  --title "feat: Add Demo App Development subscription" \
-  --body "Demo App開発環境用のサブスクリプションを追加
-
-## サブスクリプション情報
-- 名前: Demo App - Development
-- ワークロード: DevTest
-- 管理グループ: landing-zones
-
-## Plan確認事項
-- [ ] サブスクリプション作成
-- [ ] 管理グループ配置
-- [ ] リソースグループ2つ作成"
 ```
+# feature ブランチ作成
+git checkout -b feature/add-test-subscription
+
+# 変更をコミット、プッシュ
+git add .
+git commit -m "テスト用のサブスクリプションを払い出い"
+git push origin feature/add-test-subscription
+
+# PR作成
+gh pr create --base main --head feature/add-test-subscription --title "YAMLファイルベースのサブスクリプション払い出し機能を追加" --body "YAMLファイルベースのサブスクリプション払い出し機能を追加"
+
+# PR番号を確認してマージ（squash mergeの例）
+gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/add-test-subscription
+
+```
+
 
 **CI/CDのPlan結果を確認：**
 
-```hcl
-Terraform will perform the following actions:
+GitHub Actionsが自動実行されるので、リポジトリに戻って確認しましょう。
 
-  # module.subscription_vending["demo-app-dev"].azurerm_subscription.this will be created
-  + resource "azurerm_subscription" "this" {
-      + subscription_name = "demo-app-dev"
-      + display_name      = "Demo App - Development"
-      + workload          = "DevTest"
-    }
+プランの変更点を確認したら、デプロイを承認しましょう。
 
-  # module.subscription_vending["demo-app-dev"].azurerm_management_group_subscription_association.this will be created
-  + resource "azurerm_management_group_subscription_association" "this" {
-      + management_group_id = "landing-zones"
-    }
 
-  # module.subscription_vending["demo-app-dev"]...azurerm_resource_group.network will be created
-  + resource "azurerm_resource_group" "network" {
-      + name     = "rg-demo-network"
-      + location = "japaneast"
-    }
 
-  # module.subscription_vending["demo-app-dev"]...azurerm_resource_group.app will be created
-  + resource "azurerm_resource_group" "app" {
-      + name     = "rg-demo-app"
-      + location = "japaneast"
-    }
-
-Plan: 4 to add, 0 to change, 0 to destroy.
-```
-
-#### Step 4: マージして適用
-
-```bash
-gh pr merge --squash
-
-git checkout main
-git pull origin main
-git branch -D feature/add-demo-subscription
-```
-
-#### Step 5: 作成確認
+#### Step 3: 作成確認
 
 ```bash
 # サブスクリプション確認
@@ -1209,107 +1283,6 @@ az group list --subscription "Demo App - Development" -o table
 
 ---
 
-### 応用: VNet付きサブスクリプション
-
-Hub-and-Spoke構成で、VNetも一緒に作成してみよう。
-
-#### Step 1: Hub VNet IDを取得
-
-```bash
-# Connectivity HubのVNet IDを取得
-az network vnet show \
-  --resource-group rg-connectivity-hub \
-  --name vnet-hub-japaneast \
-  --query id -o tsv
-```
-
-#### Step 2: VNet付きYAMLファイルを作成
-
-```bash
-git checkout -b feature/add-webapp-subscription
-```
-
-`subscriptions/webapp-prod.yaml`を作成：
-
-```yaml title="subscriptions/webapp-prod.yaml（新規作成）"
-display_name: "WebApp - Production"
-workload_type: "Production"
-management_group_id: "corp"
-location: "japaneast"
-
-resource_groups:
-  network:
-    name: "rg-webapp-network"
-    location: "japaneast"
-  app:
-    name: "rg-webapp-app"
-    location: "japaneast"
-
-virtual_network:
-  name: "vnet-webapp-prod"
-  resource_group_key: "network"
-  address_space: "10.101.0.0/16"
-  hub_vnet_id: "/subscriptions/xxxxx-xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
-  hub_peering_enabled: true
-
-tags:
-  Environment: "Production"
-  Project: "WebApp"
-  CostCenter: "Product"
-  Owner: "webapp-team"
-```
-
-#### Step 3: PR作成&確認
-
-```bash
-git add subscriptions/webapp-prod.yaml
-git commit -m "feat: Add webapp-prod subscription with VNet"
-git push origin feature/add-webapp-subscription
-
-gh pr create --base main --head feature/add-webapp-subscription \
-  --title "feat: Add WebApp Production subscription" \
-  --body "WebApp本番環境用のサブスクリプションを追加
-
-## サブスクリプション情報
-- 名前: WebApp - Production
-- ワークロード: Production
-- 管理グループ: corp
-- VNet: 10.101.0.0/16（Hub接続あり）
-
-## Plan確認事項
-- [ ] サブスクリプション作成
-- [ ] VNet作成
-- [ ] Hub Peering作成"
-```
-
-**Plan結果に追加される内容:**
-```hcl
-  # VNet作成
-  + resource "azurerm_virtual_network" "primary" {
-      + name                = "vnet-webapp-prod"
-      + address_space       = ["10.101.0.0/16"]
-      + resource_group_name = "rg-webapp-network"
-    }
-
-  # Hub Peering
-  + resource "azurerm_virtual_network_peering" "hub" {
-      + name                = "peer-webapp-to-hub"
-      + remote_virtual_network_id = "/subscriptions/.../vnet-hub-japaneast"
-    }
-```
-
-#### Step 4: マージ
-
-```bash
-gh pr merge --squash
-```
-
-!!! success "完了！"
-    - ✅ サブスクリプション
-    - ✅ VNet（10.101.0.0/16）
-    - ✅ Hub VNetとのピアリング
-
----
 
 ### 複数サブスクリプションの一括管理
 
@@ -1329,72 +1302,11 @@ alz-mgmt/
 └── terraform.tfvars.json
 ```
 
-**YAMLファイルのテンプレート集:**
-
-=== "最小構成"
-    ```yaml
-    display_name: "My Project - Development"
-    workload_type: "DevTest"
-    management_group_id: "landing-zones"
-    
-    tags:
-      Environment: "Development"
-      Project: "MyProject"
-    ```
-
-=== "リソースグループ付き"
-    ```yaml
-    display_name: "My Project - Production"
-    workload_type: "Production"
-    management_group_id: "corp"
-    
-    resource_groups:
-      network:
-        name: "rg-myproject-network"
-      app:
-        name: "rg-myproject-app"
-      data:
-        name: "rg-myproject-data"
-    
-    tags:
-      Environment: "Production"
-      Project: "MyProject"
-    ```
-
-=== "VNet付き（完全版）"
-    ```yaml
-    display_name: "My Project - Production"
-    workload_type: "Production"
-    management_group_id: "corp"
-    location: "japaneast"
-    
-    resource_groups:
-      network:
-        name: "rg-myproject-network"
-        location: "japaneast"
-      app:
-        name: "rg-myproject-app"
-        location: "japaneast"
-    
-    virtual_network:
-      name: "vnet-myproject-prod"
-      resource_group_key: "network"
-      address_space: "10.102.0.0/16"
-      hub_vnet_id: "/subscriptions/xxxxx/resourceGroups/rg-connectivity-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub-japaneast"
-      hub_peering_enabled: true
-    
-    tags:
-      Environment: "Production"
-      Project: "MyProject"
-      CostCenter: "Engineering"
-      Owner: "myproject-team"
-    ```
 
 !!! tip "運用のベストプラクティス"
     - **ファイル名のルール**: `{project}-{environment}.yaml`（例: `webapp-prod.yaml`）
-    - **アドレス空間の管理**: 10.100.0.0/16, 10.101.0.0/16, ... と順番に割り当て
-    - **管理グループの使い分け**: 開発は`landing-zones`、本番は`corp`
-    - **必須タグ**: Environment, Project, CostCenter, Owner
+    - **アドレス空間の管理**: 10.200.0.0/16, 10.201.0.0/16, ... と順番に割り当て
+    - **管理グループの使い分け**: 開発は`sandbox`、本番は`corp`、オンライン用は`online`
     - **PR単位**: 1つのPRで1つのサブスクリプション追加（レビューしやすい）
     - **Plan確認**: 必ずCI/CDのPlan結果をレビューしてからマージ
 
