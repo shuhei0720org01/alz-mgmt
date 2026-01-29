@@ -25,6 +25,8 @@
 
 ![alt text](./img/image19.png)
 
+---
+
 
 ### GitHub Actionsでのデプロイ
 
@@ -63,6 +65,8 @@ sequenceDiagram
 
 ![alt text](./img/image21.png)
 
+---
+
 ### Plan確認とApprovalについて
 
 承認前に必ずPlanを確認します。
@@ -88,7 +92,7 @@ sequenceDiagram
 
 ![alt text](./img/image22.png)
 
-
+---
 
 ### Applyの実行
 
@@ -99,6 +103,7 @@ sequenceDiagram
 !!! info "デプロイ時間"
     - 60〜90分かかります！
     
+---
 
 ### デプロイ状況のモニタリング
 
@@ -112,6 +117,7 @@ sequenceDiagram
 
 ![alt text](./img/image40.png)
 
+---
 
 ## Part 2: デプロイ後の検証
 
@@ -128,6 +134,8 @@ Azureポータルで作成された管理グループを確認してみましょ
         - ✅ Platform配下に3つのMG（Management、Connectivity、Identity）
         - ✅ Landing Zones配下に2つのMG（Corp、Online）
         - ✅ SandboxとDecommissionedが存在
+
+---
 
 ### Policy割り当ての確認
 
@@ -148,6 +156,7 @@ alz管理グループスコープでいろいろ作成されています。
 
 https://github.com/Azure/Enterprise-Scale/wiki/ALZ-Policies
 
+---
 
 ### Management Resourcesの確認
 
@@ -156,6 +165,8 @@ Log Analyticsワークスペース、DCRなどの管理リソースが作成さ�
 リソースグループ「rg-managemanet-japaneast」に管理リソースが作成されています。
 
 ![alt text](./img/image27.png)
+
+---
 
 ### Networking（Hub/Spoke）の確認
 
@@ -285,6 +296,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 ![alt text](./img/image50.png)
 
+---
 
 ### 高額リソースの排除
 
@@ -297,7 +309,9 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 次は、プライマリの高額リソースをfalseにします。
 
-機能の有効無効の箇所を探して、falseに設定していきましょう。（プライベートDNSゾーンは無料なのでtrueのままにしてます）
+機能の有効無効の箇所を探して、falseに設定していきましょう。
+
+※画像ではdnsが「true」で残ってますが、全部「false」にしてください。
 
 ![alt text](./img/image38.png)
 
@@ -342,6 +356,8 @@ git branch -D feature/delete-resources
 ※VNet、プライベートDNSゾーン、Azureポリシーは無料のリソースなので残しておいて大丈夫
 
 ![alt text](./img/image45.png)
+
+---
 
 ### tfvarsのカスタマイズ
 
@@ -404,7 +420,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 ![alt text](./img/image51.png)
 
-
+---
 
 ## まとめ
 

@@ -138,6 +138,8 @@ graph TB
     - 一箇所直せば全体に反映
     - ベストプラクティスを標準化
 
+---
+
 
 
 ### inputs/secrets の定義
@@ -213,6 +215,8 @@ graph TB
     
     OIDCの場合、明示的にsecretsを渡す必要があります。
 
+---
+
 ### outputs の活用
 
 テンプレートから値を返すことができます。
@@ -254,6 +258,8 @@ jobs:
 - `1`: エラー
 - `2`: 変更あり
 
+---
+
 ### 実際にコードを見てみよう
 
 #### テンプレートリポジトリの設計
@@ -290,6 +296,8 @@ alz-mgmt/
     - 1つのテンプレートを複数プロジェクトで使い回せる
     - ワークフロー変更時、テンプレートだけ修正すればOK
     - プロジェクトコードとワークフローロジックを分離
+---
+
 ---
 
 #### コード解説
@@ -451,6 +459,8 @@ jobs:
       root_module_folder_relative_path: '.'
       terraform_cli_version: ${{ inputs.terraform_cli_version }}
 ```
+
+---
 
 **コードの解説**:
 
@@ -1096,6 +1106,8 @@ GitHub EnvironmentsでPlan環境とApply環境を分けます。
     - Apply環境は承認必須（誤デプロイ防止）
     - 環境ごとに異なる設定が可能
 
+---
+
 ### Protection rules の設定
 
 Apply環境には必ず承認ルールを設定しましょう。
@@ -1129,6 +1141,8 @@ jobs:
 ```
 
 このジョブ実行時、指定された承認者にGitHubから通知が来て、承認するまで待機します。
+
+---
 
 ### Plan環境とApply環境
 
@@ -1183,6 +1197,8 @@ jobs:
     - Apply環境には必ず承認ルールを設定
     - mainブランチ保護ルールも併用
 
+---
+
 ### Approval設定
 
 承認フローの詳細を見てみましょう。
@@ -1223,6 +1239,8 @@ GitHub Actions実行画面で、承認待ちの表示が出ます：
 ```
 
 承認者は「Review deployments」をクリックして承認・拒否を選択します。
+
+---
 
 ### デプロイ戦略の選択
 
@@ -1325,6 +1343,8 @@ jobs:
 4. Terraform Plan実行
 5. 結果をPRにコメント
 
+---
+
 ### Terraform Apply ワークフロー
 
 mainマージ後に自動でApplyを実行します。
@@ -1352,6 +1372,8 @@ jobs:
 3. 承認待ち
 4. 承認後、cd-template.yaml呼び出し
 5. Terraform Apply実行
+
+---
 
 ### PR時の自動Plan
 
@@ -1402,6 +1424,8 @@ jobs:
     
     - 承認はGitHub Environmentsで行う
     - Terraformでは自動実行
+
+---
 
 ### エラーハンドリング
 
@@ -1495,6 +1519,8 @@ on:
       - main
 ```
 
+---
+
 ### レビュー承認フロー
 
 PRレビュー → 承認 → マージ → 自動デプロイの流れです。
@@ -1533,6 +1559,8 @@ sequenceDiagram
 8. **Apply承認**: デプロイを承認
 9. **デプロイ実行**: リソース作成
 
+---
+
 ### mainブランチ保護ルール
 
 mainブランチには必ず保護ルールを設定します。
@@ -1563,6 +1591,8 @@ Branch name pattern: main
     - 承認必須（最低1人）
     - Status check必須（Plan成功が条件）
     - 管理者も例外なし
+
+---
 
 ### エラーハンドリング
 
@@ -1605,6 +1635,8 @@ Branch name pattern: main
           name: state-backup
           path: state-backup-*.json
     ```
+
+---
 
 ### ロールバック戦略
 
@@ -1668,6 +1700,8 @@ Branch name pattern: main
     - 一番シンプル
     - 履歴が残る
     - 再現可能
+
+---
 
 ### 通知設定
 
@@ -1738,6 +1772,8 @@ Branch name pattern: main
           Status: ${{ job.status }}
     ```
 
+---
+
 ### モニタリングとロギング
 
 デプロイの監視とログ保存です。
@@ -1768,6 +1804,8 @@ jobs:
           echo "Resources created: $(grep 'created' apply.log | wc -l)"
           echo "Resources updated: $(grep 'updated' apply.log | wc -l)"
 ```
+
+---
 
 ### 完全なワークフロー例
 
@@ -1857,6 +1895,8 @@ jobs:
 - 通知設定
 
 次の章では、Azure公式Bootstrap手順に従って実際にLanding Zonesをデプロイします。
+
+---
 
 ## 練習問題
 
