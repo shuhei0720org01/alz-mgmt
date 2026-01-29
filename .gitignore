@@ -51,3 +51,5 @@ issues.csv
 
 # Ignore Copilot instructions
 .github/copilot-instructions.md
+
+docs-site/.venv
