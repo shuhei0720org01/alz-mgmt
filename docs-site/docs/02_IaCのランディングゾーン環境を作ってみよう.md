@@ -49,6 +49,8 @@
     winget install Git.Git
     ```
 
+---
+
 
 !!! tip "PowerShellを開きなおして、すべてインストールできたか確認しましょう"
     ```powershell
@@ -62,9 +64,19 @@
     pwsh
     ```
 
-### Azure Subscriptions
+### Azureの準備
 
-4つのSubscriptionを準備します。
+まず、Azureのアカウントを作成します。
+
+すでにアカウントをお持ちの方でクリーンな環境があるならばそちらを使ってもいいです。
+
+以下のURLから作成してください。（従量課金を選んでください）
+
+https://azure.microsoft.com/ja-jp/pricing/purchase-options/azure-account
+
+![alt text](./img/image56.png)
+
+次に、4つのSubscriptionを準備します。
 
 === "必要なSubscription"
 
@@ -87,7 +99,7 @@
     5. Billing accountを選択
     6. "Create" をクリック
 
-    ※個人契約の場合、1日に1個しかサブスクリプションを作れないかもしれません
+    ※個人契約の場合、1日に1個しかサブスクリプションを作れないかもしれません。その場合、4日間かかります(-_-;)
 
 === "Subscription IDの確認"
 
@@ -110,6 +122,8 @@
 
 !!! warning "命名規則"
     Subscription名は組織の命名規則に従ってください。この教科書では「ALZ-」プレフィックスを使用します。
+
+---
 
 
 ### GitHubの設定をしていきましょう
@@ -215,6 +229,8 @@ ALZ  6.0.5              PSGallery
     # 既にインストール済みの場合
     Update-PSResource -Name ALZ
     ```
+
+---
 
 ### 対話モードでやっていきましょう
 
@@ -558,6 +574,8 @@ PS C:\Users\user>
 
 次のパートで何が作成されたか確認していきましょう。
 
+---
+
 
 ## Part 3: Phase 1デプロイ実行
 
@@ -581,6 +599,8 @@ Terraform Stateを保存するAzure Storageが作成されます。
     - チームで共有可能
     - ロック機能でコンフリクト防止
 
+---
+
 ### Managed Identityの作成
 
 OIDCで使用するManaged Identityが作成されます。
@@ -599,6 +619,8 @@ OIDCで使用するManaged Identityが作成されます。
     - `id-alz-mgmt-japaneast-apply-001`: Terraform Apply用（書き込み権限）
 
 ![alt text](./img/image13.png)
+
+---
 
 ### Federated Credentialの設定
 
@@ -633,6 +655,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
     - パスワード不要
     - 自動トークン発行
     - 短期間で期限切れ（安全）
+
+---
 
 ### GitHub Repository/Actions作成
 

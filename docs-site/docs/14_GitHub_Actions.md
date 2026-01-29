@@ -46,6 +46,8 @@
     - **手動デプロイ**: 料理を全部自分で作る
     - **CI/CD**: オートメーションキッチン（自動で調理）
 
+---
+
 ### GitHub Actionsって何？
 
 GitHub上で動くCI/CDサービスです。
@@ -74,6 +76,8 @@ jobs:
     - マーケットプレイスに豊富なActionがある
     - YAMLで設定できる
 
+---
+
 ### GitHub Actionsの開発フロー
 
 実際の開発フローを見てみましょう：
@@ -100,6 +104,8 @@ graph LR
 4. **レビュー**: チームメンバーが確認
 5. **マージ**: mainブランチに統合
 6. **自動デプロイ**: terraform apply が自動実行
+
+---
 
 ### ワークフロー・ジョブ・ステップの関係
 
@@ -163,6 +169,8 @@ jobs:
           - name: Deploy
             run: npm run deploy
     ```
+
+---
 
 ### 実例で理解するワークフロー
 
@@ -269,6 +277,8 @@ GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえま�
     - コロン`:` の後にスペースがない
     - クォート `"` の閉じ忘れ
 
+---
+
 ### on（トリガー）の設定
 
 ワークフローをいつ実行するか指定します。
@@ -322,6 +332,8 @@ GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえま�
     - **schedule**: 定期実行（バックアップ等）
     - **workflow_dispatch**: 手動実行（緊急対応）
 
+---
+
 ### jobs の定義
 
 ジョブは実際の作業を定義します。
@@ -364,6 +376,8 @@ jobs:
     steps:
       - run: npm run build
 ```
+
+---
 
 ### 並列実行と直列実行
 
@@ -410,6 +424,8 @@ jobs:
 
     build → test → deploy の順に実行されます。
 
+---
+
 ### steps の実装
 
 ステップは2種類の書き方があります。
@@ -454,6 +470,8 @@ jobs:
     - `actions/setup-node`: Node.jsのセットアップ
     - `hashicorp/setup-terraform`: Terraformのインストール
 
+---
+
 ### 環境変数とSecrets
 
 環境変数には3種類あります。
@@ -494,6 +512,8 @@ jobs:
         run: npm run deploy
     ```
 
+---
+
 ### Secretsの使い方
 
 機密情報はSecretsに保存します。
@@ -512,6 +532,8 @@ steps:
     - ログに出力されない（マスクされる）
     - PRのforkから参照できない（セキュリティ）
     - 変更履歴は残らない
+
+---
 
 ### 条件分岐
 
@@ -574,6 +596,8 @@ jobs:
         - **管理コスト**: 複数環境で管理が大変
         - **有効期限**: 期限切れで突然エラー
 
+---
+
 ### OIDCとは何か
 
 OIDC（OpenID Connect）は、パスワードなしで認証する仕組みです。
@@ -595,6 +619,8 @@ Azure
     - 自動でトークン発行
     - 短時間で期限切れ（安全）
     - ローテーション不要
+
+---
 
 ### Azure OIDC認証の流れ
 
@@ -622,6 +648,8 @@ sequenceDiagram
 4. **アクセストークン発行**: 一時的なトークンを発行
 5. **リソース操作**: Terraformでリソース作成
 6. **完了**: トークンは自動で無効化
+
+---
 
 ### Federated Identity Credentialの理解
 
@@ -651,6 +679,8 @@ az identity federated-credential create \
     ```
     
     この設定により、alz-mgmt-plan環境からのみ認証を許可します。
+
+---
 
 ### permissions設定
 
@@ -687,6 +717,8 @@ jobs:
     ```
     
     このエラーが出たら、permissions設定を確認してください。
+
+---
 
 ### OIDC設定の全体像
 
@@ -768,6 +800,8 @@ steps:
     - 証明書
     - その他の機密情報
 
+---
+
 ### Variablesとは
 
 機密でない設定値を保存します。
@@ -793,6 +827,8 @@ steps:
     - Subscription ID
     - リージョン名
     - 環境名
+
+---
 
 ### Secretsの設定方法
 
@@ -828,6 +864,8 @@ GitHub UIで設定します。
     - Protection rulesで承認制にできる
     - より細かいアクセス制御
 
+---
+
 ### Variablesの設定方法
 
 SecretsとVariablesは同じ場所にあります。
@@ -852,6 +890,8 @@ SecretsとVariablesは同じ場所にあります。
         steps:
           - run: echo ${{ vars.DEPLOYMENT_TARGET }}
     ```
+
+---
 
 ### Azure Landing Zonesでの設定例
 
@@ -891,6 +931,8 @@ SecretsとVariablesは同じ場所にあります。
     
     **Secrets**: なし（OIDC使用）
 
+---
+
 ### Environment Protection Rules
 
 環境に保護ルールを設定できます。
@@ -921,6 +963,8 @@ jobs:
 
 このジョブは、承認者の承認がないと実行されません。
 
+---
+
 ### Secrets vs Variables の使い分け
 
 どちらを使うべきか判断フローです。
@@ -948,6 +992,8 @@ graph TD
     | Client ID | Environment Variables | 非機密、環境別 |
     | リージョン名 | Repository Variables | 非機密、共通 |
     | APIキー | Repository Secrets | 機密、共通 |
+
+---
 
 ### セキュリティベストプラクティス
 
@@ -988,6 +1034,8 @@ Secrets・Variablesを安全に使うためのポイントです。
     ❌ **PRのforkに権限付与**
     
     - 外部からのPRにSecretsアクセスを許可しない
+
+---
 
 ### Secretsのローテーション
 
@@ -1056,6 +1104,8 @@ Secrets・Variablesを安全に使うためのポイントです。
 - セキュリティベストプラクティス
 
 次の章では、これらの知識を使って実際のCI/CDパイプラインを構築します。
+
+---
 
 ## 練習問題
 
@@ -1138,6 +1188,8 @@ on:
 
 - **Secrets**: 秘密情報（パスワード、トークン等）
 - **Variables**: 非機密な設定値（リージョン名、環境名等）
+
+---
 
 !!! tip "次の章へ"
     [Chapter 15: CI/CDパイプライン構築](15_CI_CD_パイプライン構築.md)で、再利用可能ワークフローを使った実践的なパイプラインを学びます。

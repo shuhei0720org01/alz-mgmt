@@ -229,6 +229,8 @@ terraform plan -detailed-exitcode
     !!! tip "Driftを解消する"
         テスト後は、CDのアプライを実行するとDriftが解消されます
 
+---
+
 
 #### Drift検出のベストプラクティス
 
@@ -289,6 +291,8 @@ terraform plan -detailed-exitcode
         }
         ```
 
+---
+
 ### Terraform Landing Zonesのバージョン更新
 
 Azure Landing Zonesは定期的にアップデートされるます。
@@ -304,6 +308,8 @@ Azure Landing Zonesは定期的にアップデートされるます。
     - **ベストプラクティス**: Microsoftの推奨設定の反映
     
     半年〜1年に一度くらいは確認して、必要に応じて更新するのがおすすめ。
+
+---
 
 #### バージョン管理の仕組み
 
@@ -366,6 +372,8 @@ module "management_groups" {
     - [AVMパターンモジュール リリースノート](https://github.com/Azure/terraform-azurerm-avm-ptn-alz/releases)
     - [Azureポリシーライブラリ リリースノート](https://github.com/Azure/Azure-Landing-Zones-Library/releases)
 
+---
+
 #### バージョン更新の手順
 
 - "Step 1: リポジトリのファイルで、現在のバージョン確認"
@@ -378,6 +386,7 @@ module "management_groups" {
 
 - "Step 5: 変更点が確認できたらCDを起動して変更をデプロイする"
 
+---
 
 #### やってみよう: バージョンアップデートの実践
 
@@ -564,6 +573,8 @@ git branch -D feature/version-change
     - ❌ セキュリティリスクあり
     - ❌ ポリシー違反
 
+---
+
 ### Branch→PR→Reviewフロー
 
 GitHubでの変更フローです。
@@ -651,6 +662,8 @@ graph LR
     Closes #123
     ```
 
+---
+
 ### Terraform Plan確認
 
 PRで実行されるPlanを確認します。
@@ -703,6 +716,8 @@ PRで実行されるPlanを確認します。
     
     承認します。マージしてください。
     ```
+
+---
 
 ### Approval Process
 
@@ -758,6 +773,8 @@ PRで実行されるPlanを確認します。
     
     修正後、再度レビュー依頼してください。
     ```
+
+---
 
 ### 変更履歴の管理
 
@@ -823,7 +840,7 @@ PRで実行されるPlanを確認します。
 
 新しいプロジェクトが始まるたび、「Azureサブスクリプションが欲しい！」って要望が来る。毎回手作業で対応するのは大変だし、設定漏れも起きやすい。
 
-そこで、**`subscriptions/`ディレクトリにYAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組み**を作ろう。
+そこで、`subscriptions/`ディレクトリにYAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組みを作ってみましょう。
 
 !!! info "Subscription Vendingの仕組み"
     ```mermaid
@@ -1182,6 +1199,7 @@ No changes. Your infrastructure matches the configuration.
 # ↑ subscriptions/ディレクトリにYAMLがないので、変更なし = 正常
 ```
 
+---
 
 ### 🚀 サブスクリプションを作成してみよう
 
@@ -2073,7 +2091,7 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 ### ✅ Part 4: ポリシーの更新管理
 
-
+---
 
 ## 練習問題
 

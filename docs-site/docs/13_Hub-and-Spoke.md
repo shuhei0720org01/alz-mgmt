@@ -15,6 +15,8 @@
 
 このプロジェクトではHub-and-Spokeを採用していますが、もう1つの選択肢としてVirtual WANもあります。
 
+---
+
 ### 2つのアーキテクチャ比較
 
 | 観点 | Hub-and-Spoke | Virtual WAN |
@@ -27,6 +29,8 @@
 | **グローバル接続** | 手動設定が必要 | 自動で最適化 |
 | **実装時間** | 2〜4時間 | 1〜2時間 |
 | **トラブルシューティング** | 自分で全部確認 | Microsoftが大部分を管理 |
+
+---
 
 ### どっちを選ぶべき？
 
@@ -177,6 +181,8 @@ connectivity_type = "hub_and_spoke_vnet"
 - `virtual_wan`：Virtual WAN構成（Chapter 11で解説）
 - `none`：ネットワーク作らない
 
+---
+
 ### connectivity_resource_groups
 
 ```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
@@ -223,6 +229,8 @@ connectivity_resource_groups = {
 
 全て`$${変数名}`形式で変数置換システムを使ってる（Chapter 09で学んだやつ）。
 
+---
+
 ### hub_and_spoke_networks_settings
 
 ```hcl title="platform-landing-zone.auto.tfvars（抜粋）"
@@ -256,6 +264,8 @@ Basic：無料（自動で有効）
 **変数置換後の値**：
 
 `custom_replacements.names`で`ddos_protection_plan_enabled = false`と定義されてることが多い（コスト削減のため）。
+
+---
 
 ### hub_virtual_networks - primary
 
@@ -376,6 +386,8 @@ primary = {
 6. **private_dns_zones**: Private DNS Zoneの設定
 7. **private_dns_resolver**: DNS Resolverの設定
 8. **bastion**: Azure Bastionの設定
+
+---
 
 ### hub_virtual_networks - secondary
 
@@ -549,6 +561,8 @@ hub_virtual_networks = (merge({
 
 https://github.com/Azure/terraform-azurerm-avm-ptn-alz-connectivity-hub-and-spoke-vnet
 
+---
+
 
 
 ### モジュール構造とファイル一覧
@@ -610,6 +624,8 @@ terraform-azurerm-avm-ptn-alz-connectivity-hub-and-spoke-vnet/
 - VNet Peering（複数Hub間メッシュ）
 - DDoS Protection Plan
 - Public IP Addresses（複数）
+
+---
 
 ### main.tf - 全モジュール呼び出し
 
@@ -968,6 +984,8 @@ Standard SKUならこれらの機能全部使える。Basic SKUだとコピペ�
 
 すべて`local.xxx`で設定を組み立ててから各モジュールに渡してる。次は`locals.tf`類を見ていこう。
 
+---
+
 ### locals.tf - Hub VNet設定の組み立て
 
 ```tf title="locals.tf（抜粋）"
@@ -1006,6 +1024,8 @@ name = coalesce(value.hub_virtual_network.name, local.default_names[key].virtual
 ```
 
 `value.hub_virtual_network.name`が指定されてたらそれを使う。nullなら`local.default_names[key].virtual_network_name`（自動生成名）を使う。
+
+---
 
 ### locals.firewall.tf - Firewall設定の組み立て
 
@@ -1061,6 +1081,8 @@ firewalls = { for key, value in var.hub_virtual_networks : key => local.firewall
 
 `firewall_enabled[key]`がtrueならFirewall設定をmerge。falseならnull（Firewall作らない）。
 
+---
+
 ### locals.bastion.tf - Bastion設定の組み立て
 
 ```tf title="locals.bastion.tf（抜粋）"
@@ -1109,6 +1131,8 @@ zones = coalesce(value.bastion.bastion_public_ip.zones, local.availability_zones
 ```
 
 Bastion Public IPのZonesも、未指定ならリージョンのAvailability Zonesを自動適用。
+
+---
 
 ### locals.gateways.tf - Gateway設定の組み立て
 
@@ -1165,6 +1189,8 @@ virtual_network_gateway_subnet_id = module.hub_and_spoke_vnet.virtual_networks[h
 ```
 
 サブモジュールが作成したGatewaySubnetのIDを取得して渡してる。これで`main.tf`の`module "virtual_network_gateway"`が使える。
+
+---
 
 ### main.ip_ranges.tf - IPアドレス範囲の自動計算
 
@@ -1246,6 +1272,8 @@ var.hub_virtual_networks = {
 
 このモジュールが`address_space`（10.0.0.0/16）と`address_prefixes`（hub = 22）を受け取って、10.0.0.0/22、10.0.4.0/22、...と自動分割してくれる。
 
+---
+
 ### modules/hub-virtual-network-mesh/main.tf - Hub VNet作成
 
 ```tf title="modules/hub-virtual-network-mesh/main.tf（抜粋）"
@@ -1315,6 +1343,8 @@ source = "Azure/avm-res-network-virtualnetwork/azurerm//modules/subnet"
 ```
 
 `//modules/subnet`はサブモジュール内のさらに下位モジュール。VNetリソース本体とは別管理。
+
+---
 
 ### modules/hub-virtual-network-mesh/main.firewall.tf - Firewall作成
 
@@ -1399,6 +1429,8 @@ firewall_management_ip_configuration = each.value.management_ip_enabled ? {
 
 Firewall SKUがBasicの場合、Management用のPublic IPとSubnetが必須。StandardやPremiumは不要。
 
+---
+
 ### modules/hub-virtual-network-mesh/main.routing.tf - Route Table作成
 
 ```tf title="modules/hub-virtual-network-mesh/main.routing.tf（抜粋）"
@@ -1481,6 +1513,8 @@ locals {
 - `merge()`でFirewall設定、Subnet設定を統合
 - IPアドレス範囲を自動計算（未指定なら10.0.0.0/16、10.1.0.0/16、...）
 
+---
+
 ### outputs.tf - モジュール出力
 
 ```tf title="outputs.tf（抜粋）"
@@ -1551,6 +1585,8 @@ output "virtual_network_resource_names" {
 - VNet：Resource ID、名前
 
 **for式で複数Hub対応**：`{ for key, value in ... : key => value.xxx }`で全Hubの情報をmap形式で出力。
+
+---
 
 ### variables.tf - 入力変数
 
@@ -1813,6 +1849,8 @@ hub_and_spoke_networks_settings = {
 
 **デメリット**：セキュリティ機能なし、VM接続不便
 
+---
+
 ### パターン2：Firewall + Bastion構成
 
 **使い道**：本番環境、セキュリティ重視
@@ -1879,6 +1917,8 @@ hub_virtual_networks = {
 
 **メリット**：トラフィック制御、安全なVM接続
 
+---
+
 ### パターン3：VPN Gateway追加
 
 **使い道**：オンプレミス接続
@@ -1924,6 +1964,8 @@ hub_virtual_networks = {
 **コスト**：約24万円/月（Part 2 + VPN Gateway 4万）
 
 **メリット**：オンプレミスとの接続
+
+---
 
 ### パターン4：マルチリージョン構成
 
@@ -1971,6 +2013,8 @@ hub_virtual_networks = {
 
 **メリット**：冗長化、地理的分散
 
+---
+
 ### パターン5：management_ip無効化でコスト削減
 
 **使い道**：開発環境、コスト削減
@@ -2002,6 +2046,8 @@ firewall = {
 ```
 
 **デメリット**：管理機能が制限される
+
+---
 
 ### パターン6：Custom Route追加
 
@@ -2046,6 +2092,8 @@ az network vnet show \
   --name vnet-jpe-hub
 ```
 
+---
+
 ### Firewallの確認
 
 ```bash title="Firewall情報とログの確認"
@@ -2058,6 +2106,8 @@ az monitor log-analytics query \
   --analytics-query "AzureDiagnostics | where Category == 'AzureFirewallApplicationRule' | take 10"
 ```
 
+---
+
 ### ルートテーブルの確認
 
 ```bash title="ルートテーブル情報の取得"
@@ -2069,6 +2119,8 @@ az network route-table show \
   --resource-group rg-jpe-connectivity \
   --name rt-user-jpe
 ```
+
+---
 
 ### Bastionの接続
 
@@ -2096,6 +2148,8 @@ Error: subnet name must be 'AzureFirewallSubnet'
 
 **対処法**：サブネット名は自動生成されるから、手動で作らない。
 
+---
+
 ### エラー2: zonesエラー（Japan region）
 
 ```
@@ -2111,6 +2165,8 @@ zones = []  # ←空リスト
 ```
 
 Chapter 3で詳しく解説したやつ。
+
+---
 
 ### エラー3: アドレス空間の重複
 
@@ -2131,6 +2187,8 @@ secondary: 10.0.0.0/16  # ←重複
 primary:   10.0.0.0/16
 secondary: 10.1.0.0/16  # ←分ける
 ```
+
+---
 
 ### エラー4: Firewallがタイムアウト
 
