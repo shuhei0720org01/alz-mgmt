@@ -1,6 +1,6 @@
-# 14. GitHub Actions基礎 - CI/CDを理解しよう
+# 14. GitHub Actions基礎 - CI/CDを理解しよう🚀
 
-!!! info "この章で学ぶこと"
+!!! info "この章で学ぶこと" 📚
     GitHub Actionsを使ったCI/CDの基礎を学びます：
 
     1. GitHub Actionsって何？
@@ -12,9 +12,9 @@
 
 ---
 
-## Part 1: GitHub Actionsとは
+## Part 1: GitHub Actionsとは🛠️
 
-### CI/CDって何？
+### CI/CDって何？💡
 
 まず、CI/CDの概念から理解しましょう。
 
@@ -28,7 +28,7 @@
     問題があれば即座に通知
     ```
 
-    **目的**: コードの品質を保つ
+    **目的**: コードの品質を保つ✨
 
 === "CD (Continuous Delivery)"
 
@@ -40,15 +40,15 @@
     本番環境に反映
     ```
 
-    **目的**: リリースを自動化
+    **目的**: リリースを自動化🚀
 
-!!! tip "例えるなら"
+!!! tip "例えるなら" 💡
     - **手動デプロイ**: 料理を全部自分で作る
     - **CI/CD**: オートメーションキッチン（自動で調理）
 
 ---
 
-### GitHub Actionsって何？
+### GitHub Actionsって何？🤖
 
 GitHub上で動くCI/CDサービスです。
 
@@ -70,7 +70,7 @@ jobs:
 
 このファイルをリポジトリに置くだけで、CI/CDが動き始めます。
 
-!!! success "GitHub Actionsの特徴"
+!!! success "GitHub Actionsの特徴" 🌟
     - GitHubに統合されている
     - 無料枠がある（Public: 無制限、Private: 2000分/月）
     - マーケットプレイスに豊富なActionがある
@@ -78,7 +78,7 @@ jobs:
 
 ---
 
-### GitHub Actionsの開発フロー
+### GitHub Actionsの開発フロー🔄
 
 実際の開発フローを見てみましょう：
 
@@ -96,7 +96,7 @@ graph LR
     I --> J[デプロイ完了]
 ```
 
-**開発の流れ**:
+**開発の流れ**:📝
 
 1. **コード変更**: feature ブランチで作業
 2. **Pull Request作成**: feature → main への PR
@@ -107,7 +107,7 @@ graph LR
 
 ---
 
-### ワークフロー・ジョブ・ステップの関係
+### ワークフロー・ジョブ・ステップの関係🧩
 
 GitHub Actionsは3階層の構造になっています：
 
@@ -149,7 +149,7 @@ jobs:
     - 順番に実行される
     - コマンド or Action
 
-!!! example "実例：ビルド・テスト・デプロイ"
+!!! example "実例：ビルド・テスト・デプロイ" 🛠️
     ```yaml title="3つのジョブ"
     jobs:
       build:
@@ -172,7 +172,7 @@ jobs:
 
 ---
 
-### 実例で理解するワークフロー
+### 実例で理解するワークフロー🔍
 
 実際のAzure Landing Zonesプロジェクトでのワークフローを見てみましょう：
 
@@ -231,9 +231,9 @@ jobs:
 
 ---
 
-## Part 2: ワークフロー構文の理解
+## Part 2: ワークフロー構文の理解 📝
 
-### YAMLの基本
+### YAMLの基本 📄
 
 GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえましょう。
 
@@ -272,14 +272,14 @@ GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえま�
           - run: test
     ```
 
-!!! warning "YAMLでよくあるミス"
+!!! warning "YAMLでよくあるミス ⚠️"
     - インデントミス（スペース2個で統一）
     - コロン`:` の後にスペースがない
     - クォート `"` の閉じ忘れ
 
 ---
 
-### on（トリガー）の設定
+### on（トリガー）の設定 ⏰
 
 ワークフローをいつ実行するか指定します。
 
@@ -326,7 +326,7 @@ GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえま�
       workflow_dispatch:
     ```
 
-!!! tip "トリガーの使い分け"
+!!! tip "トリガーの使い分け 💡"
     - **push**: デプロイ用（mainマージ後）
     - **pull_request**: テスト用（PR作成時）
     - **schedule**: 定期実行（バックアップ等）
@@ -334,7 +334,7 @@ GitHub ActionsはYAML形式で書きます。まずYAMLの基本を押さえま�
 
 ---
 
-### jobs の定義
+### jobs の定義 🛠️
 
 ジョブは実際の作業を定義します。
 
@@ -379,7 +379,7 @@ jobs:
 
 ---
 
-### 並列実行と直列実行
+### 並列実行と直列実行 🔄
 
 ジョブは並列実行できます。
 
@@ -426,7 +426,7 @@ jobs:
 
 ---
 
-### steps の実装
+### steps の実装 🏗️
 
 ステップは2種類の書き方があります。
 
@@ -463,7 +463,7 @@ jobs:
           terraform_version: 1.9.0
     ```
 
-!!! tip "Actionとは"
+!!! tip "Actionとは 🤖"
     GitHub Marketplaceで公開されている再利用可能なコード。
     
     - `actions/checkout`: コードのチェックアウト
@@ -472,7 +472,7 @@ jobs:
 
 ---
 
-### 環境変数とSecrets
+### 環境変数とSecrets 🌐🔑
 
 環境変数には3種類あります。
 
@@ -514,7 +514,7 @@ jobs:
 
 ---
 
-### Secretsの使い方
+### Secretsの使い方 🕵️‍♂️
 
 機密情報はSecretsに保存します。
 
@@ -528,14 +528,14 @@ steps:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 ```
 
-!!! warning "Secretsの注意点"
+!!! warning "Secretsの注意点 ⚠️"
     - ログに出力されない（マスクされる）
     - PRのforkから参照できない（セキュリティ）
     - 変更履歴は残らない
 
 ---
 
-### 条件分岐
+### 条件分岐 🔀
 
 ステップやジョブを条件付きで実行できます。
 
@@ -566,9 +566,9 @@ jobs:
 
 ---
 
-## Part 3: OIDC認証の仕組み
+## Part 3: OIDC認証の仕組み 🔐
 
-### 従来のSecret認証の問題点
+### 従来のSecret認証の問題点 🧨
 
 以前は、Azure認証にService Principalのパスワードを使っていました。
 
@@ -590,7 +590,7 @@ jobs:
 
 === "問題点"
 
-    !!! danger "Secretの問題"
+    !!! danger "Secretの問題 ❗"
         - **漏洩リスク**: Secretが流出すると悪用される
         - **ローテーション**: 定期的なパスワード変更が必要
         - **管理コスト**: 複数環境で管理が大変
@@ -598,7 +598,7 @@ jobs:
 
 ---
 
-### OIDCとは何か
+### OIDCとは何か 🤝
 
 OIDC（OpenID Connect）は、パスワードなしで認証する仕組みです。
 
@@ -614,7 +614,7 @@ Azure
 認証成功（パスワード不要）
 ```
 
-!!! success "OIDCのメリット"
+!!! success "OIDCのメリット ✨"
     - パスワード不要
     - 自動でトークン発行
     - 短時間で期限切れ（安全）
@@ -622,7 +622,7 @@ Azure
 
 ---
 
-### Azure OIDC認証の流れ
+### Azure OIDC認証の流れ 🌊
 
 実際の認証フローを見てみましょう。
 
@@ -651,7 +651,7 @@ sequenceDiagram
 
 ---
 
-### Federated Identity Credentialの理解
+### Federated Identity Credentialの理解 🪪
 
 Azure側でGitHub Actionsを信頼する設定をします。
 
@@ -671,7 +671,7 @@ az identity federated-credential create \
 - `subject`: どのリポジトリ・環境を信頼するか
 - `audiences`: トークンの受信者
 
-!!! example "subject（サブジェクト）の構造"
+!!! example "subject（サブジェクト）の構造 🏷️"
     ```
     repo:組織名/リポジトリ名:environment:環境名
     
@@ -682,7 +682,7 @@ az identity federated-credential create \
 
 ---
 
-### permissions設定
+### permissions設定 📝
 
 GitHub Actions側で、OIDCトークンを取得する権限を設定します。
 
@@ -711,7 +711,7 @@ jobs:
 - `id-token: write`: OIDCトークンの書き込み権限
 - `contents: read`: リポジトリの読み取り権限
 
-!!! warning "permissionsを忘れると"
+!!! warning "permissionsを忘れると ⚠️"
     ```
     Error: Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable
     ```
@@ -720,7 +720,7 @@ jobs:
 
 ---
 
-### OIDC設定の全体像
+### OIDC設定の全体像 🗺️
 
 Azure側とGitHub側の設定をまとめます。
 
@@ -772,9 +772,9 @@ Azure側とGitHub側の設定をまとめます。
 
 ---
 
-## Part 4: Secrets・Variables管理
+## Part 4: Secrets・Variables管理 🗝️
 
-### Secretsとは
+### Secretsとは 🔒
 
 機密情報を安全に保存する仕組みです。
 
@@ -793,7 +793,7 @@ steps:
 - 暗号化して保存
 - PRのforkからアクセスできない
 
-!!! tip "Secretsを使うべき情報"
+!!! tip "Secretsを使うべき情報 💡"
     - パスワード
     - APIキー
     - トークン
@@ -802,7 +802,7 @@ steps:
 
 ---
 
-### Variablesとは
+### Variablesとは 🏷️
 
 機密でない設定値を保存します。
 
@@ -821,7 +821,7 @@ steps:
 - 暗号化されない
 - PRのforkからアクセス可能
 
-!!! tip "Variablesを使うべき情報"
+!!! tip "Variablesを使うべき情報 💡"
     - Client ID
     - Tenant ID
     - Subscription ID
@@ -830,7 +830,7 @@ steps:
 
 ---
 
-### Secretsの設定方法
+### Secretsの設定方法 🛠️
 
 GitHub UIで設定します。
 
@@ -859,14 +859,14 @@ GitHub UIで設定します。
     
     特定環境でのみ参照可能。
 
-!!! success "Environment Secretsを使うメリット"
+!!! success "Environment Secretsを使うメリット ✨"
     - 環境ごとに異なる値を設定できる
     - Protection rulesで承認制にできる
     - より細かいアクセス制御
 
 ---
 
-### Variablesの設定方法
+### Variablesの設定方法 🛠️
 
 SecretsとVariablesは同じ場所にあります。
 
@@ -893,7 +893,7 @@ SecretsとVariablesは同じ場所にあります。
 
 ---
 
-### Azure Landing Zonesでの設定例
+### Azure Landing Zonesでの設定例 🏞️
 
 実際のプロジェクトでの設定を見てみましょう。
 
@@ -933,7 +933,7 @@ SecretsとVariablesは同じ場所にあります。
 
 ---
 
-### Environment Protection Rules
+### Environment Protection Rules 🛡️
 
 環境に保護ルールを設定できます。
 
@@ -965,7 +965,7 @@ jobs:
 
 ---
 
-### Secrets vs Variables の使い分け
+### Secrets vs Variables の使い分け ⚖️
 
 どちらを使うべきか判断フローです。
 
@@ -984,7 +984,7 @@ graph TD
     H -->|No| J[Repository Variables]
 ```
 
-!!! example "具体例"
+!!! example "具体例 📝"
 
     | 項目 | 種類 | 理由 |
     |------|------|------|
@@ -995,11 +995,11 @@ graph TD
 
 ---
 
-### セキュリティベストプラクティス
+### セキュリティベストプラクティス 🛡️
 
 Secrets・Variablesを安全に使うためのポイントです。
 
-!!! success "やるべきこと"
+!!! success "やるべきこと ✅"
     ✅ **最小権限の原則**
     
     - 必要最小限の権限だけ付与
@@ -1015,7 +1015,7 @@ Secrets・Variablesを安全に使うためのポイントです。
     - 使われていないSecretsを削除
     - 権限の見直し
 
-!!! danger "やってはいけないこと"
+!!! danger "やってはいけないこと ❌"
     ❌ **Secretsをログに出力**
     
     ```yaml
@@ -1037,7 +1037,7 @@ Secrets・Variablesを安全に使うためのポイントです。
 
 ---
 
-### Secretsのローテーション
+### Secretsのローテーション 🔄
 
 定期的にSecretsを更新する場合の手順です。
 
@@ -1067,36 +1067,36 @@ Secrets・Variablesを安全に使うためのポイントです。
     新しい値を入力
     ```
 
-!!! tip "OIDC推奨"
+!!! tip "OIDC推奨 💡"
     新規プロジェクトでは必ずOIDC認証を使いましょう。ローテーション不要で管理が楽になります。
 
 ---
 
-## まとめ
+## まとめ 📝
 
 この章で学んだこと：
 
-### ✅ Part 1: GitHub Actionsとは
+### ✅ Part 1: GitHub Actionsとは 🚀
 
 - CI/CDの概念
 - ワークフロー・ジョブ・ステップの関係
 - 開発フローの理解
 
-### ✅ Part 2: ワークフロー構文の理解
+### ✅ Part 2: ワークフロー構文の理解 📝
 
 - YAMLの基本
 - トリガー（on）の設定
 - jobs と steps の定義
 - 環境変数の使い方
 
-### ✅ Part 3: OIDC認証の仕組み
+### ✅ Part 3: OIDC認証の仕組み 🔐
 
 - 従来のSecret認証の問題点
 - OIDCの仕組み
 - Federated Identity Credential
 - permissions設定
 
-### ✅ Part 4: Secrets・Variables管理
+### ✅ Part 4: Secrets・Variables管理 🗝️
 
 - Secretsの特徴と使い方
 - Variablesの特徴と使い方
@@ -1107,15 +1107,15 @@ Secrets・Variablesを安全に使うためのポイントです。
 
 ---
 
-## 練習問題
+## 練習問題 🏋️‍♂️
 
 理解度チェックです。休憩中に考えてみましょう。
 
-### 問題1
+### 問題1 ❓
 GitHub ActionsでTerraformを実行する際、  
 OIDC認証を使う理由は何ですか？
 
-### 問題2
+### 問題2 ❓
 次のワークフロー定義で、ジョブが実行されるタイミングはいつですか？
 
 ```yaml
@@ -1125,14 +1125,14 @@ on:
       - main
 ```
 
-### 問題3
+### 問題3 ❓
 SecretsとVariablesの違いは何ですか？
 
 ---
 
-## 練習問題の答え
+## 練習問題の答え 📝
 
-### 答え1
+### 答え1 💡
 Secretsに認証情報を保存しなくて済むからです。
 
 従来の方法:
@@ -1159,7 +1159,7 @@ steps:
 
 OIDCでは一時的なトークンを使うため、**長期的な認証情報を保存する必要がありません**。
 
-### 答え2
+### 答え2 💡
 `main`ブランチへのPull Request作成時に実行されます。
 
 ```yaml
@@ -1175,7 +1175,7 @@ on:
 - `main`ブランチへ直接プッシュ → 実行されない
 - `develop`ブランチへのPR → 実行されない
 
-### 答え3
+### 答え3 💡
 
 | 項目 | Secrets | Variables |
 |------|---------|----------|
@@ -1191,5 +1191,5 @@ on:
 
 ---
 
-!!! tip "次の章へ"
+!!! tip "次の章へ 👉"
     [Chapter 15: CI/CDパイプライン構築](15_CI_CD_パイプライン構築.md)で、再利用可能ワークフローを使った実践的なパイプラインを学びます。

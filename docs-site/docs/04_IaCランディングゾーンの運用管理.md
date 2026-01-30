@@ -1,6 +1,6 @@
-# 04. IaCランディングゾーンの運用管理
+# 04. IaCランディングゾーンの運用管理 🚀
 
-!!! info "この章で学ぶこと"
+!!! 💡 info "この章で学ぶこと"
     Landing Zonesの日常運用と管理方法を学びます：
 
     1. terraformの運用
@@ -12,21 +12,21 @@
 
 ---
 
-## Part 1: Terraformの運用
+## 🛠️ Part 1: Terraformの運用
 
-### Configuration Driftの検出
+### 🔍 Configuration Driftの検出
 
 Landing Zonesをデプロイした後、誰かがAzure Portalから手動でリソースを変更したり、設定を変えてしまったりすることがあります。
 
 そうなると、Terraformのコードと実際のAzureの状態が違う。これを「Configuration Drift（設定のずれ）」と呼びます。
 
-!!! warning "Driftが起きる典型的なケース"
+!!! ⚠️ warning "Driftが起きる典型的なケース"
     - Azure Portalから直接リソースを変更
     - 他のツールでの変更（Azure CLI、PowerShellなど）
     
     こういう変更があると、Terraformのコードと実際の状態がずれてしまいます。
 
-#### Drift検出の仕組み
+#### 🧭 Drift検出の仕組み
 
 Terraformには、現在の状態とコードの差分を検出する機能が標準で備わっています。
 
@@ -43,7 +43,7 @@ terraform plan -detailed-exitcode
 
 このコマンドを定期的に実行すれば、Driftを早期に発見できるってわけです。
 
-#### GitHub ActionsでDrift検出を自動化
+#### 🤖 GitHub ActionsでDrift検出を自動化
 
 毎回手動でチェックするのは面倒だから、GitHub Actionsで自動化するのがベストプラクティスです。
 
@@ -51,7 +51,7 @@ terraform plan -detailed-exitcode
 
 ※ここからもしDriftがあったらTeamsに通知するなどの仕組みを実装します。
 
-=== "ワークフローの作成"
+=== "📝 ワークフローの作成"
 
     `.github/workflows/drift-detection.yml`を作成します：
 
@@ -161,7 +161,7 @@ terraform plan -detailed-exitcode
               echo "詳細: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
     ```
 
-=== "ハンズオン: ワークフローの実装"
+=== "👐 ハンズオン: ワークフローの実装"
 
     **Step 1: ワークフローファイルを作成**
 
@@ -208,7 +208,7 @@ terraform plan -detailed-exitcode
     !!! success "初回実行の結果"
         デプロイ直後なので、Driftは検出されないはず。「✅ No configuration drift detected」というメッセージが表示されるよ。
 
-=== "動作確認: わざとDriftを作ってテスト"
+=== "🧪 動作確認: わざとDriftを作ってテスト"
 
     実際にDriftが検出されるかテストしてみよう。
 
@@ -226,15 +226,15 @@ terraform plan -detailed-exitcode
 
     - ワークフローが終わると、先ほど追加したタグが、Driftとしてログに出ていることが確認できる。
 
-    !!! tip "Driftを解消する"
+    !!! 💡 tip "Driftを解消する"
         テスト後は、CDのアプライを実行するとDriftが解消されます
 
 ---
 
 
-#### Drift検出のベストプラクティス
+#### 🏅 Drift検出のベストプラクティス
 
-=== "運用のポイント"
+=== "🔑 運用のポイント"
 
     **定期実行のタイミング**:
     
@@ -263,7 +263,7 @@ terraform plan -detailed-exitcode
 
 === "注意点"
 
-    !!! warning "Driftを放置しない"
+    !!! ⚠️ warning "Driftを放置しない"
         Driftを放置すると：
         
         - 次回の`terraform apply`で予期しない変更が発生
@@ -273,7 +273,7 @@ terraform plan -detailed-exitcode
         
         検出したら必ず対応すること！
 
-    !!! info "Stateful Resourcesの扱い"
+    !!! ℹ️ info "Stateful Resourcesの扱い"
         一部のリソース（Log Analyticsのデータなど）は、手動で操作しても問題ない場合がある。
         
         そういったリソースは、`lifecycle`ブロックで管理対象外にできる：
@@ -293,7 +293,7 @@ terraform plan -detailed-exitcode
 
 ---
 
-### Terraform Landing Zonesのバージョン更新
+### 🆙 Terraform Landing Zonesのバージョン更新
 
 Azure Landing Zonesは定期的にアップデートされるます。
 
@@ -301,7 +301,7 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 ※IaCの管理でないと、Microsoftのアップデートに手動でついていく必要がある。直近などNSGフローログの廃止などがありました。今後はVMInsightsの廃止があるとの噂があります。
 
-!!! info "なぜバージョン更新が必要？"
+!!! 💡 info "なぜバージョン更新が必要？"
     - **セキュリティ**: 脆弱性への対応
     - **新機能**: Azureの新サービスへの対応
     - **バグ修正**: 既知の問題の解消
@@ -311,7 +311,7 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 ---
 
-#### バージョン管理の仕組み
+#### 🗂️ バージョン管理の仕組み
 
 Landing Zonesでは、主要なバージョン更新箇所は3つあります。
 
@@ -374,7 +374,7 @@ module "management_groups" {
 
 ---
 
-#### バージョン更新の手順
+#### 🔄 バージョン更新の手順
 
 - "Step 1: リポジトリのファイルで、現在のバージョン確認"
 
@@ -388,7 +388,7 @@ module "management_groups" {
 
 ---
 
-#### やってみよう: バージョンアップデートの実践
+#### 🎯 やってみよう: バージョンアップデートの実践
 
 実際にバージョン更新を体験してみよう。
 
@@ -398,7 +398,7 @@ module "management_groups" {
 
 実践編と同じようにcodespacesを開いて、以下の2つのファイルを更新します。
 
-!!! tip "更新が必要な2つのファイル"
+!!! 📝 tip "更新が必要な2つのファイル"
     1. `terraform.tf` - ALZプロバイダー
     2. `modules/management_groups/main.tf` - AVMモジュール
 
@@ -482,16 +482,16 @@ git branch -D feature/version-change
     - ✅ `modules/management_groups/main.tf` (AVMモジュール)
 
 
-=== "まとめ"
+=== "📝 まとめ"
 
-    !!! success "学んだこと"
+    !!! 🎉 success "学んだこと"
         ✅ バージョンファイルの場所と変更方法  
         ✅ terraform init/planでの確認方法  
         ✅ Git/GitHubでの変更フロー  
         ✅ CI/CDパイプラインの動作  
         ✅ バージョン更新の影響範囲の確認方法
 
-    !!! tip "本番での運用ポイント"
+    !!! 💡 tip "本番での運用ポイント"
         - **必ずリリースノートを読む**: 破壊的変更がないか確認
         - **テスト環境で先に試す**: 可能なら別のランディングゾーンで
         - **バックアップ**: 重要なリソースは事前にバックアップ
@@ -500,13 +500,13 @@ git branch -D feature/version-change
 
 ---
 
-## Part 2: 変更管理フロー
+## 🔄 Part 2: 変更管理フロー
 
 ### 変更リクエストの受付
 
 変更リクエストを受け付ける際のプロセスです。
 
-=== "変更リクエストテンプレート"
+=== "📝 変更リクエストテンプレート"
 
     ```markdown title=".github/ISSUE_TEMPLATE/change-request.md"
     ---
@@ -555,7 +555,7 @@ git branch -D feature/version-change
     <!-- 問題発生時の戻し方 -->
     ```
 
-=== "レビュー基準"
+=== "🔍 レビュー基準"
 
     **承認条件**:
     
@@ -575,7 +575,7 @@ git branch -D feature/version-change
 
 ---
 
-### Branch→PR→Reviewフロー
+### 🌿 Branch→PR→Reviewフロー
 
 GitHubでの変更フローです。
 
@@ -603,7 +603,7 @@ graph LR
     Q -->|No| S[Revert]
 ```
 
-=== "Feature Branch作成"
+=== "🌱 Feature Branch作成"
 
     ```bash title="ブランチ作成"
     git checkout main
@@ -611,7 +611,7 @@ graph LR
     git checkout -b feature/add-spoke-vnet
     ```
 
-=== "変更実施"
+=== "🛠️ 変更実施"
 
     ```bash title="変更とコミット"
     # terraform.tfvarsを編集
@@ -628,7 +628,7 @@ graph LR
     git push origin feature/add-spoke-vnet
     ```
 
-=== "PR作成"
+=== "📦 PR作成"
 
     ```markdown title="PRテンプレート"
     ## 変更内容
@@ -664,11 +664,11 @@ graph LR
 
 ---
 
-### Terraform Plan確認
+### 📋 Terraform Plan確認
 
 PRで実行されるPlanを確認します。
 
-=== "Plan出力の確認"
+=== "📝 Plan出力の確認"
 
     GitHub ActionsのCI実行結果を確認：
     
@@ -682,7 +682,7 @@ PRで実行されるPlanを確認します。
     + azurerm_route_table.app_routes
     ```
 
-=== "確認ポイント"
+=== "🔎 確認ポイント"
 
     **必ず確認すること**:
     
@@ -698,7 +698,7 @@ PRで実行されるPlanを確認します。
     - ⚠️ `to change` の数が多い
     - ⚠️ 意図しないリソースが含まれる
 
-=== "コメントでの承認"
+=== "✅ コメントでの承認"
 
     ```markdown title="PR承認コメント"
     ## レビュー結果
@@ -719,11 +719,11 @@ PRで実行されるPlanを確認します。
 
 ---
 
-### Approval Process
+### 📝 Approval Process
 
 本番適用の承認プロセスです。
 
-=== "承認フロー"
+=== "🔗 承認フロー"
 
     ```mermaid
     graph TD
@@ -737,7 +737,7 @@ PRで実行されるPlanを確認します。
         H --> I[通知]
     ```
 
-=== "承認者の確認事項"
+=== "🧐 承認者の確認事項"
 
     **承認前チェックリスト**:
     
@@ -762,7 +762,7 @@ PRで実行されるPlanを確認します。
     承認します。
     ```
 
-=== "却下理由例"
+=== "❌ 却下理由例"
 
     ```text
     以下の理由により却下します：
@@ -776,11 +776,11 @@ PRで実行されるPlanを確認します。
 
 ---
 
-### 変更履歴の管理
+### 🗃️ 変更履歴の管理
 
 変更履歴を記録します。
 
-=== "Gitログ"
+=== "📜 Gitログ"
 
     ```bash title="変更履歴確認"
     git log --oneline --graph --decorate --all
@@ -793,7 +793,7 @@ PRで実行されるPlanを確認します。
     * j0k1l2m feat: 環境タグ必須ポリシーを追加
     ```
 
-=== "CHANGELOG.md"
+=== "📝 CHANGELOG.md"
 
     ```markdown title="CHANGELOG.md"
     # Changelog
@@ -816,7 +816,7 @@ PRで実行されるPlanを確認します。
     - 環境タグ必須ポリシーを追加 (#115)
     ```
 
-=== "Release作成"
+=== "🏷️ Release作成"
 
     ```bash title="Gitタグ作成"
     git tag -a v1.2.0 -m "Release v1.2.0: Spoke VNet追加"
@@ -825,7 +825,7 @@ PRで実行されるPlanを確認します。
     
     GitHubでReleaseを作成します。
 
-!!! tip "変更管理のベストプラクティス"
+!!! 💡 tip "変更管理のベストプラクティス"
     - 小さい変更から始める
     - 1つのPRで1つの変更
     - テスト環境で事前検証
@@ -834,7 +834,7 @@ PRで実行されるPlanを確認します。
 
 ---
 
-## Part 3: サブスクリプション払い出しの自動化
+## ⚡ Part 3: サブスクリプション払い出しの自動化
 
 ### Subscription Vendingとは？
 
@@ -842,7 +842,7 @@ PRで実行されるPlanを確認します。
 
 そこで、`subscriptions/`ディレクトリにYAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組みを作ってみましょう。
 
-!!! info "Subscription Vendingの仕組み"
+!!! 🛒 info "Subscription Vendingの仕組み"
     ```mermaid
     graph LR
         A[開発者] -->|YAMLファイル作成| B[subscriptions/myapp.yaml]
@@ -869,12 +869,12 @@ PRで実行されるPlanを確認します。
 
 ---
 
-### 🎯 やってみよう: サブスクリプション自動払い出し
+### 🎯✨ やってみよう: サブスクリプション自動払い出し
 
 YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組みを作ります。
 
 
-#### Step 1: ディレクトリ準備
+#### 🗂️ Step 1: ディレクトリ準備
 
 実践編と同じようにcodespacesを開いていきましょう。
 
@@ -887,7 +887,7 @@ mkdir -p subscriptions
 
 「subscriptions」フォルダが作成されます。
 
-#### Step 2: Terraformファイルを作成
+#### 📄 Step 2: Terraformファイルを作成
 
 以下の名称で新しいファイルを作成します。
 
@@ -1101,7 +1101,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
 }
 ```
 
-#### Step 3: 変数を追加
+#### 📝 Step 3: 変数を追加
 
 `variables.tf`に以下を追加：
 
@@ -1129,7 +1129,7 @@ variable "invoice_section_name" {
 }
 ```
 
-#### Step 4: tfvarsファイルを更新
+#### 🗒️ Step 4: tfvarsファイルを更新
 
 `terraform.tfvars.json`に以下を追加：
 
@@ -1156,7 +1156,7 @@ variable "invoice_section_name" {
 
 
 
-#### Step 5: コミット&PR作成
+#### 📨 Step 5: コミット&PR作成
 
 
 ```
@@ -1186,7 +1186,7 @@ git branch -D feature/setup-subscription-vending
 ```
 
 
-#### Step 6: CI/CDでPlan確認
+#### 🧪 Step 6: CI/CDでPlan確認
 
 GitHub Actionsが自動実行されるので、リポジトリに戻って確認しましょう。
 
@@ -1206,7 +1206,7 @@ No changes. Your infrastructure matches the configuration.
 YAMLファイルを追加するだけで、サブスクリプションが作成されます。
 
 
-#### Step 1: サブスクリプションのyamlを追加
+#### 📝 Step 1: サブスクリプションのyamlを追加
 
 
 `subscriptions/demo-app-dev.yaml`を作成：
@@ -1245,7 +1245,7 @@ virtual_network:
       address_prefix: "10.200.3.0/24"
 ```
 
-#### Step 2: PR作成&Plan確認
+#### 📨 Step 2: PR作成&Plan確認
 
 ```
 # feature ブランチ作成
@@ -1282,7 +1282,7 @@ GitHub Actionsが自動実行されるので、リポジトリに戻って確認
 
 
 
-#### Step 3: 作成確認
+#### 🔍 Step 3: 作成確認
 
 ```bash
 # サブスクリプション確認
@@ -1292,7 +1292,7 @@ az account list --query "[?name=='Demo App - Development']" -o table
 az group list --subscription "Demo App - Development" -o table
 ```
 
-!!! success "サブスクリプション作成完了！"
+!!! 🎉 success "サブスクリプション作成完了！"
     YAMLファイルを1つ追加するだけで、以下が自動作成されました：
     - ✅ サブスクリプション `Demo App - Development`
     - ✅ 管理グループ `landing-zones` に配置
@@ -1321,7 +1321,7 @@ alz-mgmt/
 ```
 
 
-!!! tip "運用のベストプラクティス"
+!!! 💡 tip "運用のベストプラクティス"
     - **ファイル名のルール**: `{project}-{environment}.yaml`（例: `webapp-prod.yaml`）
     - **アドレス空間の管理**: 10.200.0.0/16, 10.201.0.0/16, ... と順番に割り当て
     - **管理グループの使い分け**: 開発は`sandbox`、本番は`corp`、オンライン用は`online`
@@ -1330,9 +1330,9 @@ alz-mgmt/
 
 ---
 
-## Part 4: カスタムポリシーの作成と管理
+## 🛡️ Part 4: カスタムポリシーの作成と管理
 
-### カスタムポリシーとは？
+### 🏷️ カスタムポリシーとは？
 
 Azureには標準で数百のポリシーが用意されていますが、組織独自のルールを適用したいこともあります。
 
@@ -1347,15 +1347,15 @@ ALZでは、カスタムポリシーを**コードで管理**できます。
 
 ---
 
-### 🎯 やってみよう: カスタムポリシーを作成
+### 🎯✨ やってみよう: カスタムポリシーを作成
 
 実際に3ステップでカスタムポリシーを作ってみましょう。
 
-#### シナリオ
+#### 📝 シナリオ
 
 「本番環境のリソースには必ず`Owner`タグを付ける」というルールを、ポリシーで強制したい。
 
-#### 構成
+#### 🏗️ 構成
 
 1. **ポリシー定義**: 「Ownerタグがない本番リソースを検出」
 2. **イニシアティブ**: 関連するタグポリシーをまとめる
@@ -1363,9 +1363,9 @@ ALZでは、カスタムポリシーを**コードで管理**できます。
 
 ---
 
-### Step 1: カスタムポリシー定義を作成
+### 📝 Step 1: カスタムポリシー定義を作成
 
-#### 1-1: ブランチ作成
+#### 🌱 1-1: ブランチ作成
 
 ```bash
 git checkout main
@@ -1373,7 +1373,7 @@ git pull origin main
 git checkout -b feature/add-custom-tag-policy
 ```
 
-#### 1-2: ポリシー定義ファイルを作成
+#### 📄 1-2: ポリシー定義ファイルを作成
 
 `lib/policy_definitions/`ディレクトリに新しいファイルを作成：
 
@@ -1432,7 +1432,7 @@ mkdir -p lib/policy_definitions
 }
 ```
 
-!!! info "ポリシー定義の構造"
+!!! ℹ️ info "ポリシー定義の構造"
     - **name**: ポリシーのID（英数字とハイフンのみ）
     - **displayName**: Azure Portalで表示される名前
     - **mode**: `All`（全リソース）または`Indexed`（タグ対応リソース）
@@ -1441,11 +1441,11 @@ mkdir -p lib/policy_definitions
 
 ---
 
-### Step 2: カスタムポリシーイニシアティブを作成
+### 🗂️ Step 2: カスタムポリシーイニシアティブを作成
 
 複数のポリシーをまとめて管理するために、イニシアティブ（ポリシーセット）を作ります。
 
-#### 2-1: イニシアティブ定義ファイルを作成
+#### 📄 2-1: イニシアティブ定義ファイルを作成
 
 ```bash
 mkdir -p lib/policy_set_definitions
@@ -1495,7 +1495,7 @@ mkdir -p lib/policy_set_definitions
 }
 ```
 
-!!! tip "イニシアティブを使う理由"
+!!! 💡 tip "イニシアティブを使う理由"
     1つずつポリシーを割り当てると管理が大変。イニシアティブにまとめると：
     
     - **一括適用**: 関連ポリシーを一度に適用
@@ -1504,11 +1504,11 @@ mkdir -p lib/policy_set_definitions
 
 ---
 
-### Step 3: ポリシー・イニシアティブを割り当て
+### 🏷️ Step 3: ポリシー・イニシアティブを割り当て
 
 作成したポリシーとイニシアティブを、管理グループに割り当てます。
 
-#### 3-1: アーキタイプに登録
+#### 📝 3-1: アーキタイプに登録
 
 `lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
 
@@ -1538,7 +1538,7 @@ policy_assignments:
       type: "None"
 ```
 
-!!! info "割り当て先の選び方"
+!!! ℹ️ info "割り当て先の選び方"
     - **root**: すべての管理グループに適用（全社ルール）
     - **platform**: プラットフォームリソースのみ
     - **landing-zones**: アプリケーションLZ全体
@@ -1547,9 +1547,9 @@ policy_assignments:
 
 ---
 
-### 🎯 やってみよう: 適用とテスト
+### 🎯✨ やってみよう: 適用とテスト
 
-#### 4-1: コミット&PR作成
+#### 📨 4-1: コミット&PR作成
 
 ```bash
 # 作成したファイルをステージング
@@ -1573,7 +1573,7 @@ gh pr create --base main --head feature/add-custom-tag-policy \
   --body "Add custom Owner tag policy"
 ```
 
-#### 4-2: GitHub ActionsでPlan確認
+#### 🧪 4-2: GitHub ActionsでPlan確認
 
 PRを作成すると、GitHub Actionsが自動でTerraform Planを実行します。
 
@@ -1609,12 +1609,12 @@ Terraform will perform the following actions:
 Plan: 3 to add, 0 to change, 0 to destroy.
 ```
 
-!!! success "3つのリソースが作成される"
+!!! 🎉 success "3つのリソースが作成される"
     1. ポリシー定義（Require-Owner-Tag）
     2. イニシアティブ（Custom-Tagging-Initiative）
     3. ポリシー割り当て（corp管理グループ）
 
-#### 4-3: マージ&適用
+#### ✅ 4-3: マージ&適用
 
 Plan結果を確認して問題なければマージ：
 
@@ -1630,7 +1630,7 @@ git pull origin main
 git branch -D feature/add-custom-tag-policy
 ```
 
-#### 4-4: Azure Portalで確認
+#### 🔍 4-4: Azure Portalで確認
 
 マージから数分後、Azure Portalで確認できます：
 
@@ -1670,11 +1670,11 @@ Custom-Tagging   Default
 
 ---
 
-### 🎯 やってみよう: Denyモードへの切り替え
+### 🎯✨ やってみよう: Denyモードへの切り替え
 
 非準拠リソースが全て修正されたら、Denyモードに変更して、今後の作成を防ぎます。
 
-#### 5-1: Denyモードに変更
+#### 📝 5-1: Denyモードに変更
 
 ```bash
 git checkout -b feature/enforce-owner-tag-policy
@@ -1708,7 +1708,7 @@ gh pr create --base main --head feature/enforce-owner-tag-policy \
 gh pr merge --squash
 ```
 
-!!! warning "Denyモードの影響"
+!!! ⚠️ warning "Denyモードの影響"
     Denyモードに変更すると、条件に合わないリソース作成は**デプロイエラー**になります。
     
     **エラー例:**
@@ -1723,15 +1723,15 @@ gh pr merge --squash
 
 ---
 
-### 🎯 やってみよう: ポリシーの一時無効化
+### 🎯✨ やってみよう: ポリシーの一時無効化
 
 緊急時や、メンテナンス時に、ポリシーを一時的に無効化する方法です。
 
-#### シナリオ
+#### 📝 シナリオ
 
 大規模なインフラ変更を行う際、Ownerタグポリシーが邪魔になっている。作業中だけ一時的に無効化したい。
 
-#### 6-1: ブランチ作成
+#### 🌱 6-1: ブランチ作成
 
 ```bash
 git checkout main
@@ -1739,7 +1739,7 @@ git pull origin main
 git checkout -b feature/disable-owner-tag-policy
 ```
 
-#### 6-2: enforcement_modeをDoNotEnforceに変更
+#### 📝 6-2: enforcement_modeをDoNotEnforceに変更
 
 `lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
 
@@ -1757,7 +1757,7 @@ policy_assignments:
       type: "None"
 ```
 
-#### 6-3: コミット&PR作成
+#### 📨 6-3: コミット&PR作成
 
 ```bash
 git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml
@@ -1783,7 +1783,7 @@ gh pr create --base main --head feature/disable-owner-tag-policy \
 - [ ] 既存リソースへの影響なし"
 ```
 
-#### 6-4: Plan確認
+#### 🧪 6-4: Plan確認
 
 GitHub Actionsの出力：
 
@@ -1801,7 +1801,7 @@ Terraform will perform the following actions:
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
-#### 6-5: マージ&確認
+#### ✅ 6-5: マージ&確認
 
 ```bash
 gh pr merge --squash
@@ -1823,7 +1823,7 @@ Name             EnforcementMode
 Custom-Tagging   DoNotEnforce
 ```
 
-!!! success "ポリシーが無効化された"
+!!! 🎉 success "ポリシーが無効化された"
     - ポリシーは割り当てられたまま
     - コンプライアンス評価は継続
     - ただし、リソース作成・変更を**ブロックしない**
@@ -1832,15 +1832,15 @@ Custom-Tagging   DoNotEnforce
 
 ---
 
-### 🎯 やってみよう: ポリシーの完全削除
+### 🎯✨ やってみよう: ポリシーの完全削除
 
 不要になったポリシーを、定義ごと完全に削除する方法です。
 
-#### シナリオ
+#### 📝 シナリオ
 
 Ownerタグポリシーが不要になった。ポリシー割り当て、イニシアティブ、定義を全て削除したい。
 
-!!! warning "削除前の確認"
+!!! ⚠️ warning "削除前の確認"
     削除する前に、必ず以下を確認してください：
     
     ```bash
@@ -1853,7 +1853,7 @@ Ownerタグポリシーが不要になった。ポリシー割り当て、イニ
     
     他の場所で使われている場合は、そちらも削除する必要があります。
 
-#### 7-1: ブランチ作成
+#### 🌱 7-1: ブランチ作成
 
 ```bash
 git checkout main
@@ -1861,7 +1861,7 @@ git pull origin main
 git checkout -b feature/remove-owner-tag-policy
 ```
 
-#### 7-2: アーキタイプから削除
+#### 🗂️ 7-2: アーキタイプから削除
 
 `lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
 
@@ -1891,7 +1891,7 @@ policy_assignments:
   #     type: "None"
 ```
 
-#### 7-3: ポリシー定義ファイルを削除
+#### 🗑️ 7-3: ポリシー定義ファイルを削除
 
 ```bash
 # ポリシー定義ファイルを削除
@@ -1904,7 +1904,7 @@ rm lib/policy_set_definitions/policy_set_definition_custom_tagging.json
 git status
 ```
 
-#### 7-4: コミット&PR作成
+#### 📨 7-4: コミット&PR作成
 
 ```bash
 # 削除したファイルをステージング
@@ -1943,7 +1943,7 @@ gh pr create --base main --head feature/remove-owner-tag-policy \
 - 既存のコンプライアンス評価は停止"
 ```
 
-#### 7-5: Plan確認
+#### 🧪 7-5: Plan確認
 
 GitHub Actionsの出力：
 
@@ -1974,12 +1974,12 @@ Terraform will perform the following actions:
 Plan: 0 to add, 0 to change, 3 to destroy.
 ```
 
-!!! success "3つのリソースが削除される"
+!!! 🎉 success "3つのリソースが削除される"
     1. ポリシー割り当て（Custom-Tagging）
     2. イニシアティブ（Custom-Tagging-Initiative）
     3. ポリシー定義（Require-Owner-Tag）
 
-#### 7-6: マージ&確認
+#### ✅ 7-6: マージ&確認
 
 ```bash
 gh pr merge --squash
@@ -2012,7 +2012,7 @@ PolicySetDefinitionNotFound: The policy set definition 'Custom-Tagging-Initiativ
 PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be found.
 ```
 
-!!! success "ポリシーが完全に削除された"
+!!! 🎉 success "ポリシーが完全に削除された"
     - ✅ ポリシー割り当て削除
     - ✅ イニシアティブ削除
     - ✅ ポリシー定義削除
@@ -2020,22 +2020,22 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 ---
 
-### ポリシー管理のベストプラクティス
+### 🏅 ポリシー管理のベストプラクティス
 
-!!! tip "削除と無効化の使い分け"
+!!! 💡 tip "削除と無効化の使い分け"
     | 操作 | 使うケース | リソースの状態 | 復元 |
     |------|-----------|---------------|------|
     | **無効化** | 一時的なメンテナンス、テスト期間 | リソースは残る | すぐに再有効化可能 |
     | **削除** | 完全に不要、ポリシー変更 | リソースは削除される | 再作成が必要 |
 
-!!! tip "削除の順序"
+!!! 📝 tip "削除の順序"
     1. **ポリシー割り当て**を先に削除
     2. **イニシアティブ**を削除
     3. **ポリシー定義**を削除
     
     Terraformが自動で依存関係を解決しますが、手動削除の場合はこの順序を守りましょう。
 
-!!! tip "削除前のチェックリスト"
+!!! 📋 tip "削除前のチェックリスト"
     - [ ] 他の管理グループで使われていないか確認
     - [ ] 削除の影響範囲を関係者に通知
     - [ ] Plan結果で削除されるリソースを確認
@@ -2044,9 +2044,9 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 ---
 
-### ベストプラクティス
+### 🌟 ベストプラクティス
 
-!!! tip "段階的なロールアウト"
+!!! 🚦 tip "段階的なロールアウト"
     新しいポリシーは必ず段階的に：
     
     1. **Audit**: 監査モードで影響範囲を確認
@@ -2054,31 +2054,31 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
     3. **Deny**: 全て準拠したら強制モード
     4. **通知**: 事前に関係者へ通知
 
-!!! tip "テスト環境で検証"
+!!! 🧪 tip "テスト環境で検証"
     - 先に`landing-zones`管理グループで試す
     - 問題なければ`corp`に適用
 
-!!! tip "イニシアティブで整理"
+!!! 🗂️ tip "イニシアティブで整理"
     - 関連ポリシーはイニシアティブにまとめる
     - カテゴリ別（Tags、Security、Cost、Networkなど）に分類
     - バージョン番号を付けて管理
 
-!!! tip "ドキュメント化"
+!!! 📚 tip "ドキュメント化"
     - PR本文に必ず影響範囲を記載
     - ポリシーの目的と背景を明記
     - ロールバック手順も準備
 
 ---
 
-## まとめ
+## 📝 まとめ
 
 この章で学んだこと：
 
-### ✅ Part 1: 日常運用タスク
+### ✅🛠️ Part 1: 日常運用タスク
 
 
 
-### ✅ Part 2: 変更管理フロー
+### ✅🔄 Part 2: 変更管理フロー
 
 - 変更リクエストの受付
 - Branch→PR→Reviewフロー
@@ -2086,31 +2086,31 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 - Approval Process
 - 変更履歴の管理
 
-### ✅ Part 3: サブスクリプションの払い出し自動化
+### ✅⚡ Part 3: サブスクリプションの払い出し自動化
 
 
-### ✅ Part 4: ポリシーの更新管理
+### ✅🛡️ Part 4: ポリシーの更新管理
 
 ---
 
-## 練習問題
+## 🏋️‍♂️ 練習問題
 
 理解度チェックです。休憩中に考えてみましょう。
 
-### 問題1
+### ❓ 問題1
 新しいリソースグループを追加する際の正しい手順は何ですか？
 
-### 問題2
+### ❓ 問題2
 `terraform plan`と`terraform apply`の違いは何ですか？
 
-### 問題3
+### ❓ 問題3
 ポリシー定義を更新する際に注意すべきことは何ですか？
 
 ---
 
-## 練習問題の答え
+## 📝 練習問題の答え
 
-### 答え1
+### 🅰️ 答え1
 正しい手順:
 
 1. **ブランチ作成**
@@ -2151,7 +2151,7 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 6. **GitHub Actionsで自動デプロイ**
 
-### 答え2
+### 🅰️ 答え2
 
 | コマンド | 動作 | 実行結果 |
 |----------|------|----------|
@@ -2173,7 +2173,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
 
 **必ずplanで確認してからapply**しましょう。
 
-### 答え3
+### 🅰️ 答え3
 
 1. **既存リソースへの影響を確認**
    ```bash
@@ -2201,5 +2201,5 @@ Plan: 1 to add, 0 to change, 0 to destroy.
    - 影響範囲
    - ロールバック手順
 
-!!! tip "次の章へ"
+!!! 👉 tip "次の章へ"
     [05_プロジェクト構造.md](05_プロジェクト構造.md)で、実践編で作成したプロジェクトの構造を理解しましょう！
