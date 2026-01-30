@@ -12,7 +12,7 @@
 
 いよいよLanding Zonesをデプロイします。
 
-=== "GitHub Actionsでのデプロイ" ⚡
+=== "GitHub Actionsでのデプロイ ⚡"
 
     **手順**:
     
@@ -127,7 +127,7 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 ![alt text](./img/image35.png)
 
-=== "確認ポイント" ✅
+=== "確認ポイント ✅"
 
     !!! success "正しく作成されているか確認🎉"
         - ✅ Root Management Group（alz）が存在
