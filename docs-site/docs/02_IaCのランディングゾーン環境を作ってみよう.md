@@ -52,7 +52,7 @@
 ---
 
 
-!!! tip "PowerShellを開きなおして、すべてインストールできたか確認しましょう" ✅
+!!! tip "PowerShellを開きなおして、すべてインストールできたか確認しましょう✅"
     ```powershell
     # Azure CLI 2.55+
     az version
@@ -120,7 +120,7 @@ https://azure.microsoft.com/ja-jp/pricing/purchase-options/azure-account
     
     これらのIDを控えておきます。
 
-!!! warning "命名規則" ⚠️
+!!! warning "命名規則⚠️"
     Subscription名は組織の命名規則に従ってください。この教科書では「ALZ-」プレフィックスを使用します。
 
 ---
@@ -224,7 +224,7 @@ Name Version Prerelease Repository
 ALZ  6.0.5              PSGallery
 ```
 
-!!! tip "アップデート方法" 🔄
+!!! tip "アップデート方法🔄"
     ```powershell
     # 既にインストール済みの場合
     Update-PSResource -Name ALZ
@@ -594,7 +594,7 @@ Terraform Stateを保存するAzure Storageが作成されます。
 
 ![alt text](./img/image12.png)
 
-!!! info "State Storageの役割" ℹ️
+!!! info "State Storageの役割 ℹ️"
     - Terraform Stateを安全に保存
     - チームで共有可能
     - ロック機能でコンフリクト防止
@@ -651,7 +651,7 @@ GitHub ActionsからAzureへの認証設定が作成されます。
 ![alt text](./img/image15.png)
 
 
-!!! success "OIDCのメリット（再確認）" 🎉
+!!! success "OIDCのメリット（再確認）🎉"
     - パスワード不要
     - 自動トークン発行
     - 短期間で期限切れ（安全）
@@ -720,7 +720,7 @@ GitHub ActionsからAzureへの認証設定が作成されます。
 ![alt text](./img/image18.png)
 
 
-!!! success "Phase 1完了チェックリスト" ✅
+!!! success "Phase 1完了チェックリスト ✅"
     - ✅ State Storage作成済み
     - ✅ Managed Identity作成済み
     - ✅ Federated Credential設定済み
@@ -817,5 +817,5 @@ repo:{organization}/{repository}:ref:refs/heads/{branch}
 
 これにより、**特定のリポジトリ・ブランチからのみAzure認証を許可**できます。
 
-!!! tip "次の章へ" ⏭️
+!!! tip "次の章へ⏭️"
     [03_IaCのランディングゾーン環境を作ってみよう(続き).md](03_IaCのランディングゾーン環境を作ってみよう(続き).md)で、Landing Zonesのデプロイと検証を学びます。

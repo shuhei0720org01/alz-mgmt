@@ -1,6 +1,6 @@
 # 14. GitHub Actions基礎 - CI/CDを理解しよう🚀
 
-!!! info "この章で学ぶこと" 📚
+!!! info "この章で学ぶこと 📚"
     GitHub Actionsを使ったCI/CDの基礎を学びます：
 
     1. GitHub Actionsって何？
@@ -42,7 +42,7 @@
 
     **目的**: リリースを自動化🚀
 
-!!! tip "例えるなら" 💡
+!!! tip "例えるなら 💡"
     - **手動デプロイ**: 料理を全部自分で作る
     - **CI/CD**: オートメーションキッチン（自動で調理）
 
@@ -70,7 +70,7 @@ jobs:
 
 このファイルをリポジトリに置くだけで、CI/CDが動き始めます。
 
-!!! success "GitHub Actionsの特徴" 🌟
+!!! success "GitHub Actionsの特徴 🌟"
     - GitHubに統合されている
     - 無料枠がある（Public: 無制限、Private: 2000分/月）
     - マーケットプレイスに豊富なActionがある
@@ -149,7 +149,7 @@ jobs:
     - 順番に実行される
     - コマンド or Action
 
-!!! example "実例：ビルド・テスト・デプロイ" 🛠️
+!!! example "実例：ビルド・テスト・デプロイ 🛠️"
     ```yaml title="3つのジョブ"
     jobs:
       build:
