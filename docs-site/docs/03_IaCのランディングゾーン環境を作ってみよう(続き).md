@@ -1,18 +1,18 @@
-# 03. IaCのランディングゾーン環境を作ってみよう(続き) - Landing Zonesのデプロイと検証
+# 03. IaCのランディングゾーン環境を作ってみよう(続き) - Landing Zonesのデプロイと検証 🚀
 
-## やってみよう
+## やってみよう💪
 
 2章で準備は整ったので、この章でAzureにランディングゾーンを実際にデプロイしていきましょう！
 
 ---
 
-## Part 1: Landing Zonesのデプロイ
+## Part 1: Landing Zonesのデプロイ🛠️
 
 ### Phase 3 - Runの実行
 
 いよいよLanding Zonesをデプロイします。
 
-=== "GitHub Actionsでのデプロイ"
+=== "GitHub Actionsでのデプロイ" ⚡
 
     **手順**:
     
@@ -28,7 +28,7 @@
 ---
 
 
-### GitHub Actionsでのデプロイ
+### GitHub Actionsでのデプロイ⚡
 
 GitHub Actionsを使った自動デプロイの流れです。
 
@@ -67,7 +67,7 @@ sequenceDiagram
 
 ---
 
-### Plan確認とApprovalについて
+### Plan確認とApprovalについて👀
 
 承認前に必ずPlanを確認します。
 
@@ -81,7 +81,7 @@ sequenceDiagram
 
 === "確認ポイント"
 
-    !!! warning "必ず確認"
+    !!! warning "必ず確認" ⚠️
         - ✅ 作成されるリソースは想定通りか
         - ✅ Management Group構造は正しいか
         - ✅ Subscription配置は正しいか
@@ -100,12 +100,12 @@ sequenceDiagram
 
 ![alt text](./img/image25.png)
 
-!!! info "デプロイ時間"
+!!! info "デプロイ時間" ⏳
     - 60〜90分かかります！
     
 ---
 
-### デプロイ状況のモニタリング
+### デプロイ状況のモニタリング📊
 
 実行したアクションをクリックして開くと、デプロイ状況をモニタリングできます。
 
@@ -119,7 +119,7 @@ sequenceDiagram
 
 ---
 
-## Part 2: デプロイ後の検証
+## Part 2: デプロイ後の検証🔍
 
 ### 管理グループ構造の確認
 
@@ -127,9 +127,9 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 ![alt text](./img/image35.png)
 
-=== "確認ポイント"
+=== "確認ポイント" ✅
 
-    !!! success "正しく作成されているか確認"
+    !!! success "正しく作成されているか確認" 🎉
         - ✅ Root Management Group（alz）が存在
         - ✅ Platform配下に3つのMG（Management、Connectivity、Identity）
         - ✅ Landing Zones配下に2つのMG（Corp、Online）
@@ -137,7 +137,7 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 ---
 
-### Policy割り当ての確認
+### Policy割り当ての確認📜
 
 Azureポータルでカスタムポリシーが作成されていることを確認しましょう。
 
@@ -158,7 +158,7 @@ https://github.com/Azure/Enterprise-Scale/wiki/ALZ-Policies
 
 ---
 
-### Management Resourcesの確認
+### Management Resourcesの確認🛠️
 
 Log Analyticsワークスペース、DCRなどの管理リソースが作成されているか確認します。
 
@@ -168,7 +168,7 @@ Log Analyticsワークスペース、DCRなどの管理リソースが作成さ�
 
 ---
 
-### Networking（Hub/Spoke）の確認
+### Networking（Hub/Spoke）の確認🌐
 
 Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワークリソースを確認します。
 
@@ -179,7 +179,7 @@ Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワーク�
 ![alt text](./img/image29.png)
 
 
-!!! success "検証完了チェックリスト"
+!!! success "検証完了チェックリスト" ✅
     - ✅ Management Group階層が正しい
     - ✅ Policyが割り当て済み
     - ✅ Log Analytics Workspaceが稼働
@@ -188,7 +188,7 @@ Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワーク�
 
 ---
 
-## Part 3: カスタマイズの実践
+## Part 3: カスタマイズの実践🎨
 
 ### 変更の適用方法
 
@@ -223,7 +223,7 @@ graph LR
 8. **承認**: Apply承認者が承認
 9. **デプロイ**: 変更が適用される
 
-!!! tip "安全なカスタマイズ"
+!!! tip "安全なカスタマイズ" 🛡️
     - 必ずfeatureブランチで作業
     - PRでPlanを確認
     - 小さい変更から始める
@@ -231,7 +231,7 @@ graph LR
 
 ---
 
-### Azureポリシー割り当てのカスタマイズ
+### Azureポリシー割り当てのカスタマイズ📝
 
 今回は検証のため、DDOSプロテクションは使用しないため、DDOSプロテクション適用のAzureポリシーの割り当てを削除してみましょう。
 
@@ -298,7 +298,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 ---
 
-### 高額リソースの排除
+### 高額リソースの排除💸
 
 今回は検証のために、高額リソースを消しておきましょう。
 
@@ -359,7 +359,7 @@ git branch -D feature/delete-resources
 
 ---
 
-### tfvarsのカスタマイズ
+### tfvarsのカスタマイズ⚙️
 
 次に、設定をカスタマイズしてみましょう！
 
@@ -422,7 +422,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 ---
 
-## まとめ
+## まとめ📝
 
 この章で学んだこと：
 
@@ -450,7 +450,7 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 次の章では、Landing Zonesの運用管理の基礎を学びます。
 
-## 練習問題
+## 練習問題📝
 
 理解度チェックです。休憩中に考えてみましょう。
 
@@ -466,7 +466,7 @@ Landing Zonesのデプロイに失敗した場合、
 
 ---
 
-## 練習問題の答え
+## 練習問題の答え💡
 
 ### 答え1
 **GitHub Actionsのワークフロー実行ログ**です。
@@ -527,5 +527,5 @@ azurerm_firewall.connectivity
 
 ができます。
 
-!!! tip "次の章へ"
+!!! tip "次の章へ" ⏭️
     [04_IaCランディングゾーンの運用管理.md](04_IaCランディングゾーンの運用管理.md)で、IaCの運用管理を学びます。
