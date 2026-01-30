@@ -81,7 +81,7 @@ sequenceDiagram
 
 === "確認ポイント"
 
-    !!! warning "必ず確認" ⚠️
+    !!! warning "必ず確認⚠️"
         - ✅ 作成されるリソースは想定通りか
         - ✅ Management Group構造は正しいか
         - ✅ Subscription配置は正しいか
@@ -100,7 +100,7 @@ sequenceDiagram
 
 ![alt text](./img/image25.png)
 
-!!! info "デプロイ時間" ⏳
+!!! info "デプロイ時間 ⏳"
     - 60〜90分かかります！
     
 ---
@@ -129,7 +129,7 @@ Azureポータルで作成された管理グループを確認してみましょ
 
 === "確認ポイント" ✅
 
-    !!! success "正しく作成されているか確認" 🎉
+    !!! success "正しく作成されているか確認🎉"
         - ✅ Root Management Group（alz）が存在
         - ✅ Platform配下に3つのMG（Management、Connectivity、Identity）
         - ✅ Landing Zones配下に2つのMG（Corp、Online）
@@ -179,7 +179,7 @@ Hub VNet、Azure Firewall、 VPN Gateway、 Bastionなどのネットワーク�
 ![alt text](./img/image29.png)
 
 
-!!! success "検証完了チェックリスト" ✅
+!!! success "検証完了チェックリスト✅"
     - ✅ Management Group階層が正しい
     - ✅ Policyが割り当て済み
     - ✅ Log Analytics Workspaceが稼働
@@ -223,7 +223,7 @@ graph LR
 8. **承認**: Apply承認者が承認
 9. **デプロイ**: 変更が適用される
 
-!!! tip "安全なカスタマイズ" 🛡️
+!!! tip "安全なカスタマイズ🛡️"
     - 必ずfeatureブランチで作業
     - PRでPlanを確認
     - 小さい変更から始める
@@ -527,5 +527,5 @@ azurerm_firewall.connectivity
 
 ができます。
 
-!!! tip "次の章へ" ⏭️
+!!! tip "次の章へ⏭️"
     [04_IaCランディングゾーンの運用管理.md](04_IaCランディングゾーンの運用管理.md)で、IaCの運用管理を学びます。

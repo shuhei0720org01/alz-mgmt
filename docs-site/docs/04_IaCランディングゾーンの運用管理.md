@@ -1,6 +1,6 @@
 # 04. IaCランディングゾーンの運用管理 🚀
 
-!!! 💡 info "この章で学ぶこと"
+!!! info "この章で学ぶこと💡 "
     Landing Zonesの日常運用と管理方法を学びます：
 
     1. terraformの運用
@@ -20,7 +20,7 @@ Landing Zonesをデプロイした後、誰かがAzure Portalから手動でリ�
 
 そうなると、Terraformのコードと実際のAzureの状態が違う。これを「Configuration Drift（設定のずれ）」と呼びます。
 
-!!! ⚠️ warning "Driftが起きる典型的なケース"
+!!! warning "Driftが起きる典型的なケース⚠️ "
     - Azure Portalから直接リソースを変更
     - 他のツールでの変更（Azure CLI、PowerShellなど）
     
@@ -226,7 +226,7 @@ terraform plan -detailed-exitcode
 
     - ワークフローが終わると、先ほど追加したタグが、Driftとしてログに出ていることが確認できる。
 
-    !!! 💡 tip "Driftを解消する"
+    !!! tip "Driftを解消する💡 "
         テスト後は、CDのアプライを実行するとDriftが解消されます
 
 ---
@@ -263,7 +263,7 @@ terraform plan -detailed-exitcode
 
 === "注意点"
 
-    !!! ⚠️ warning "Driftを放置しない"
+    !!! warning "Driftを放置しない⚠️ "
         Driftを放置すると：
         
         - 次回の`terraform apply`で予期しない変更が発生
@@ -273,7 +273,7 @@ terraform plan -detailed-exitcode
         
         検出したら必ず対応すること！
 
-    !!! ℹ️ info "Stateful Resourcesの扱い"
+    !!! info "Stateful Resourcesの扱いℹ️ "
         一部のリソース（Log Analyticsのデータなど）は、手動で操作しても問題ない場合がある。
         
         そういったリソースは、`lifecycle`ブロックで管理対象外にできる：
@@ -301,7 +301,7 @@ Azure Landing Zonesは定期的にアップデートされるます。
 
 ※IaCの管理でないと、Microsoftのアップデートに手動でついていく必要がある。直近などNSGフローログの廃止などがありました。今後はVMInsightsの廃止があるとの噂があります。
 
-!!! 💡 info "なぜバージョン更新が必要？"
+!!! info "なぜバージョン更新が必要？💡 "
     - **セキュリティ**: 脆弱性への対応
     - **新機能**: Azureの新サービスへの対応
     - **バグ修正**: 既知の問題の解消
@@ -398,7 +398,7 @@ module "management_groups" {
 
 実践編と同じようにcodespacesを開いて、以下の2つのファイルを更新します。
 
-!!! 📝 tip "更新が必要な2つのファイル"
+!!! tip "更新が必要な2つのファイル📝 "
     1. `terraform.tf` - ALZプロバイダー
     2. `modules/management_groups/main.tf` - AVMモジュール
 
@@ -484,14 +484,14 @@ git branch -D feature/version-change
 
 === "📝 まとめ"
 
-    !!! 🎉 success "学んだこと"
+    !!! success "学んだこと🎉 "
         ✅ バージョンファイルの場所と変更方法  
         ✅ terraform init/planでの確認方法  
         ✅ Git/GitHubでの変更フロー  
         ✅ CI/CDパイプラインの動作  
         ✅ バージョン更新の影響範囲の確認方法
 
-    !!! 💡 tip "本番での運用ポイント"
+    !!! tip "本番での運用ポイント💡 "
         - **必ずリリースノートを読む**: 破壊的変更がないか確認
         - **テスト環境で先に試す**: 可能なら別のランディングゾーンで
         - **バックアップ**: 重要なリソースは事前にバックアップ
@@ -825,7 +825,7 @@ PRで実行されるPlanを確認します。
     
     GitHubでReleaseを作成します。
 
-!!! 💡 tip "変更管理のベストプラクティス"
+!!! tip "変更管理のベストプラクティス💡 "
     - 小さい変更から始める
     - 1つのPRで1つの変更
     - テスト環境で事前検証
@@ -842,7 +842,7 @@ PRで実行されるPlanを確認します。
 
 そこで、`subscriptions/`ディレクトリにYAMLファイルを1つ追加するだけで、サブスクリプションが自動的に払い出される仕組みを作ってみましょう。
 
-!!! 🛒 info "Subscription Vendingの仕組み"
+!!! info "Subscription Vendingの仕組み🛒 "
     ```mermaid
     graph LR
         A[開発者] -->|YAMLファイル作成| B[subscriptions/myapp.yaml]
@@ -1292,7 +1292,7 @@ az account list --query "[?name=='Demo App - Development']" -o table
 az group list --subscription "Demo App - Development" -o table
 ```
 
-!!! 🎉 success "サブスクリプション作成完了！"
+!!! success "サブスクリプション作成完了！🎉 "
     YAMLファイルを1つ追加するだけで、以下が自動作成されました：
     - ✅ サブスクリプション `Demo App - Development`
     - ✅ 管理グループ `landing-zones` に配置
@@ -1321,7 +1321,7 @@ alz-mgmt/
 ```
 
 
-!!! 💡 tip "運用のベストプラクティス"
+!!! tip "運用のベストプラクティス💡 "
     - **ファイル名のルール**: `{project}-{environment}.yaml`（例: `webapp-prod.yaml`）
     - **アドレス空間の管理**: 10.200.0.0/16, 10.201.0.0/16, ... と順番に割り当て
     - **管理グループの使い分け**: 開発は`sandbox`、本番は`corp`、オンライン用は`online`
@@ -1432,7 +1432,7 @@ mkdir -p lib/policy_definitions
 }
 ```
 
-!!! ℹ️ info "ポリシー定義の構造"
+!!! info "ポリシー定義の構造ℹ️ "
     - **name**: ポリシーのID（英数字とハイフンのみ）
     - **displayName**: Azure Portalで表示される名前
     - **mode**: `All`（全リソース）または`Indexed`（タグ対応リソース）
@@ -1495,7 +1495,7 @@ mkdir -p lib/policy_set_definitions
 }
 ```
 
-!!! 💡 tip "イニシアティブを使う理由"
+!!! tip "イニシアティブを使う理由💡 "
     1つずつポリシーを割り当てると管理が大変。イニシアティブにまとめると：
     
     - **一括適用**: 関連ポリシーを一度に適用
@@ -1538,7 +1538,7 @@ policy_assignments:
       type: "None"
 ```
 
-!!! ℹ️ info "割り当て先の選び方"
+!!! info "割り当て先の選び方ℹ️ "
     - **root**: すべての管理グループに適用（全社ルール）
     - **platform**: プラットフォームリソースのみ
     - **landing-zones**: アプリケーションLZ全体
@@ -1609,7 +1609,7 @@ Terraform will perform the following actions:
 Plan: 3 to add, 0 to change, 0 to destroy.
 ```
 
-!!! 🎉 success "3つのリソースが作成される"
+!!! success "3つのリソースが作成される🎉 "
     1. ポリシー定義（Require-Owner-Tag）
     2. イニシアティブ（Custom-Tagging-Initiative）
     3. ポリシー割り当て（corp管理グループ）
@@ -1708,7 +1708,7 @@ gh pr create --base main --head feature/enforce-owner-tag-policy \
 gh pr merge --squash
 ```
 
-!!! ⚠️ warning "Denyモードの影響"
+!!! warning "Denyモードの影響⚠️ "
     Denyモードに変更すると、条件に合わないリソース作成は**デプロイエラー**になります。
     
     **エラー例:**
@@ -1823,7 +1823,7 @@ Name             EnforcementMode
 Custom-Tagging   DoNotEnforce
 ```
 
-!!! 🎉 success "ポリシーが無効化された"
+!!! success "ポリシーが無効化された🎉 "
     - ポリシーは割り当てられたまま
     - コンプライアンス評価は継続
     - ただし、リソース作成・変更を**ブロックしない**
@@ -1840,7 +1840,7 @@ Custom-Tagging   DoNotEnforce
 
 Ownerタグポリシーが不要になった。ポリシー割り当て、イニシアティブ、定義を全て削除したい。
 
-!!! ⚠️ warning "削除前の確認"
+!!! warning "削除前の確認⚠️ "
     削除する前に、必ず以下を確認してください：
     
     ```bash
@@ -1974,7 +1974,7 @@ Terraform will perform the following actions:
 Plan: 0 to add, 0 to change, 3 to destroy.
 ```
 
-!!! 🎉 success "3つのリソースが削除される"
+!!! success "3つのリソースが削除される🎉 "
     1. ポリシー割り当て（Custom-Tagging）
     2. イニシアティブ（Custom-Tagging-Initiative）
     3. ポリシー定義（Require-Owner-Tag）
@@ -2012,7 +2012,7 @@ PolicySetDefinitionNotFound: The policy set definition 'Custom-Tagging-Initiativ
 PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be found.
 ```
 
-!!! 🎉 success "ポリシーが完全に削除された"
+!!! success "ポリシーが完全に削除された🎉 "
     - ✅ ポリシー割り当て削除
     - ✅ イニシアティブ削除
     - ✅ ポリシー定義削除
@@ -2022,20 +2022,20 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 ### 🏅 ポリシー管理のベストプラクティス
 
-!!! 💡 tip "削除と無効化の使い分け"
+!!! tip "削除と無効化の使い分け💡 "
     | 操作 | 使うケース | リソースの状態 | 復元 |
     |------|-----------|---------------|------|
     | **無効化** | 一時的なメンテナンス、テスト期間 | リソースは残る | すぐに再有効化可能 |
     | **削除** | 完全に不要、ポリシー変更 | リソースは削除される | 再作成が必要 |
 
-!!! 📝 tip "削除の順序"
+!!! tip "削除の順序📝 "
     1. **ポリシー割り当て**を先に削除
     2. **イニシアティブ**を削除
     3. **ポリシー定義**を削除
     
     Terraformが自動で依存関係を解決しますが、手動削除の場合はこの順序を守りましょう。
 
-!!! 📋 tip "削除前のチェックリスト"
+!!! tip "削除前のチェックリスト📋 "
     - [ ] 他の管理グループで使われていないか確認
     - [ ] 削除の影響範囲を関係者に通知
     - [ ] Plan結果で削除されるリソースを確認
@@ -2046,7 +2046,7 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 ### 🌟 ベストプラクティス
 
-!!! 🚦 tip "段階的なロールアウト"
+!!! tip "段階的なロールアウト🚦 "
     新しいポリシーは必ず段階的に：
     
     1. **Audit**: 監査モードで影響範囲を確認
@@ -2054,16 +2054,16 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
     3. **Deny**: 全て準拠したら強制モード
     4. **通知**: 事前に関係者へ通知
 
-!!! 🧪 tip "テスト環境で検証"
+!!! tip "テスト環境で検証🧪 "
     - 先に`landing-zones`管理グループで試す
     - 問題なければ`corp`に適用
 
-!!! 🗂️ tip "イニシアティブで整理"
+!!! tip "イニシアティブで整理🗂️ "
     - 関連ポリシーはイニシアティブにまとめる
     - カテゴリ別（Tags、Security、Cost、Networkなど）に分類
     - バージョン番号を付けて管理
 
-!!! 📚 tip "ドキュメント化"
+!!! tip "ドキュメント化📚 "
     - PR本文に必ず影響範囲を記載
     - ポリシーの目的と背景を明記
     - ロールバック手順も準備
@@ -2201,5 +2201,5 @@ Plan: 1 to add, 0 to change, 0 to destroy.
    - 影響範囲
    - ロールバック手順
 
-!!! 👉 tip "次の章へ"
+!!! tip "次の章へ👉 "
     [05_プロジェクト構造.md](05_プロジェクト構造.md)で、実践編で作成したプロジェクトの構造を理解しましょう！
