@@ -10,6 +10,8 @@
 
 ※Windows PCからの操作を想定しています。
 
+![alt text](./img/image58.png)
+
 ---
 
 ## Part 1: 前提条件の準備🛠️

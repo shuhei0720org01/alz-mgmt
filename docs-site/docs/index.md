@@ -61,7 +61,7 @@
 
 ### :material-numeric-1-circle: レベル1: 基礎固め（初日）🧱
 
-まずは基礎から。飛ばさずに読んでください。
+まずは基礎からです。飛ばさずに読んでください。座学でさらっと読めます。
 
 <div class="grid cards" markdown>
 
@@ -75,7 +75,7 @@
 
 ### :material-numeric-2-circle: レベル2: 実践してみる（2日目〜7日目）🛠️
 
-実際にLanding Zone環境を構築してみます。
+実際にLanding Zone環境を構築してみます。この教科書で一番目玉です✨
 
 <div class="grid cards" markdown>
 
@@ -92,7 +92,7 @@
 
 ### :material-numeric-3-circle: レベル3: 設定を理解する（8日目～10日目）🔍
 
-実際の設定ファイルを読み解きます。
+ここからマニアックな人向けです。コードを一つ一つひも解いていきます。👓
 
 <div class="grid cards" markdown>
 
@@ -112,7 +112,7 @@
 
 ### :material-numeric-4-circle: レベル4: モジュールを理解する（10日目〜14日目）🧩
 
-各モジュールを1つずつ深掘りします。
+各モジュールを1つずつ深掘りします。なかなかマニアックですよ。🤓
 
 <div class="grid cards" markdown>
 
@@ -135,7 +135,7 @@
 
 ### :material-numeric-5-circle: レベル5: GitHub Actionsをマスター（15日目〜17日目）🤖
 
-GitHub ActionsによるCI/CD自動化を学びます。
+GitHub ActionsによるCI/CD自動化を学びます。使いこなせると世界が広がる✨
 
 <div class="grid cards" markdown>
 
