@@ -1,0 +1,199 @@
+<mxfile host="65bd71144e">
+    <diagram id="chapter3-overview" name="この章でやること">
+        <mxGraphModel dx="751" dy="866" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="3章でやること：Landing Zonesのデプロイと検証" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="20" width="700" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="320" height="340" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-title" value="Part 1: Landing Zonesのデプロイ 🛠️" style="text;html=1;strokeColor=none;fillColor=#0078D4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="90" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item1-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Resource_Groups.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="140" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item1-text" value="Phase 3 - Run実行&#xa;CD Workflow起動" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="135" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="190" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item2-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Subscriptions.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="200" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item2-text" value="Plan確認 &amp; Approval&#xa;変更内容を確認して承認" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="195" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="250" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item3-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/compute/Virtual_Machine.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="260" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item3-text" value="Terraform Apply&#xa;Azureにリソースを作成" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="255" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="310" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item4-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Information.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="320" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1-item4-text" value="デプロイ状況モニタリング&#xa;約60〜90分待機" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="315" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#0078D4;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="370" y="250" as="sourcePoint"/>
+                        <mxPoint x="420" y="250" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="part2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#4CAF50;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="80" width="320" height="340" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-title" value="Part 2: デプロイ後の検証 🔍" style="text;html=1;strokeColor=none;fillColor=#4CAF50;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="90" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item1-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Management_Groups.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="140" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item1-text" value="管理グループ構造の確認&#xa;階層が正しく作成されているか" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="135" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="190" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item2-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/devops/Azure_Policies.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="200" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item2-text" value="Policy割り当ての確認&#xa;セキュリティポリシーが適用されているか" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="195" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="250" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item3-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/analytics/Log_Analytics_Workspaces.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="260" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item3-text" value="Management Resourcesの確認&#xa;Log Analytics、DCRなど" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="255" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4CAF50;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="310" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item4-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/networking/Virtual_Networks.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="320" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p2-item4-text" value="Networking確認&#xa;Hub VNet、Firewall、Bastion" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="315" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#0078D4;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="760" y="250" as="sourcePoint"/>
+                        <mxPoint x="810" y="250" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="part3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9800;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="80" width="320" height="340" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-title" value="Part 3: カスタマイズの実践 🎨" style="text;html=1;strokeColor=none;fillColor=#FF9800;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="90" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="130" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item1-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Backlog.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="140" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item1-text" value="変更の適用方法を理解&#xa;Git → PR → CI/CD の流れ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="135" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="190" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item2-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=https://www.azureicons.com/static/images/icons/Management-and-Governance/svg/Policy.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="200" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item2-text" value="Azureポリシー割り当てのカスタマイズ&#xa;DDOSポリシーの削除" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="195" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="250" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item3-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Cost_Management.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="260" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item3-text" value="高額リソースの排除&#xa;検証用に不要リソースを削除" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="255" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9800;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="310" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item4-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Templates.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="320" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="p3-item4-text" value="tfvarsのカスタマイズ&#xa;IPアドレス範囲の変更" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="890" y="315" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#9C27B0;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="460" width="1000" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="result-title" value="🎉 この章を終えると..." style="text;html=1;strokeColor=none;fillColor=#9C27B0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=16;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="470" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9C27B0;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="510" width="230" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Management_Groups.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="525" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1-text" value="Landing Zones完成&#xa;管理グループ、ポリシー、&#xa;ネットワークがデプロイ済み" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="515" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9C27B0;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="510" width="230" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Backlog.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="525" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2-text" value="カスタマイズ方法を習得&#xa;Git → PR → CI/CDの&#xa;ワークフローを理解" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="515" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9C27B0;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="510" width="230" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Cost_Management.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="525" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3-text" value="コスト最適化完了&#xa;高額リソースを削除して&#xa;検証用に最適化" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="515" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9C27B0;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="510" width="210" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4-icon" value="" style="shape=image;html=1;verticalAlign=middle;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;image=img/lib/azure2/general/Quickstart_Center.svg;aspect=fixed;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="525" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4-text" value="4章へ準備完了！&#xa;運用管理の学習に&#xa;進む準備ができた" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="515" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="" style="endArrow=classic;html=1;strokeWidth=3;strokeColor=#9C27B0;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="700" y="430" as="sourcePoint"/>
+                        <mxPoint x="700" y="460" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

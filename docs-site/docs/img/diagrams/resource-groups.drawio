@@ -1,0 +1,163 @@
+<mxfile host="65bd71144e">
+    <diagram id="resource-groups" name="Resource Groups">
+        <mxGraphModel dx="697" dy="804" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="リソースグループ構成" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="20" width="300" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#0078D4;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="1120" height="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-label" value="Azure" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="95" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="sub-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=1;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="140" width="1080" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="sub-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Subscriptions.svg;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="150" width="35" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="sub-label" value="Management Subscription" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="150" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgmt-section-title" value="📁 管理リソースグループ (management_resource_groups)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="190" width="400" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-mgmt" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F7FF;strokeColor=#0078D4;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="225" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-mgmt-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="232" width="35" height="32" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-mgmt-name" value="rg-${root_id}-mgmt-001" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="145" y="235" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-mgmt-location" value="📍 japaneast" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="260" width="100" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-law" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg;" parent="1" vertex="1">
+                    <mxGeometry x="115" y="290" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-law-text" value="Log Analytics" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="330" width="70" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-auto" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/management_governance/Automation_Accounts.svg;" parent="1" vertex="1">
+                    <mxGeometry x="185" y="290" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-auto-text" value="Automation" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="172" y="330" width="65" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-uami" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/identity/Managed_Identities.svg;" parent="1" vertex="1">
+                    <mxGeometry x="255" y="290" width="37" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-uami-text" value="UAMI" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="248" y="330" width="50" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-dcr" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=https://www.azureicons.com/static/images/icons/Other/svg/Data-Collection-Rules.svg;" parent="1" vertex="1">
+                    <mxGeometry x="315" y="290" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-dcr-text" value="DCR/DCRA" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="303" y="330" width="65" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgmt-desc" value="📌 監視・ログ収集・自動化の中枢" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#0078D4;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="370" width="270" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn-section-title" value="📁 接続リソースグループ (connectivity_resource_groups)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="420" width="400" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-east" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="455" width="300" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-east-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="462" width="35" height="32" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-east-name" value="rg-${root_id}-hub-japaneast" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#F25022;" parent="1" vertex="1">
+                    <mxGeometry x="145" y="465" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-east-location" value="📍 japaneast (プライマリ)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="490" width="150" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-vnet-east" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="515" width="35" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-fw-east" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Firewalls.svg;" parent="1" vertex="1">
+                    <mxGeometry x="155" y="510" width="35" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-bastion-east" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Bastions.svg;" parent="1" vertex="1">
+                    <mxGeometry x="205" y="510" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-vpn-east" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Virtual_Network_Gateways.svg;" parent="1" vertex="1">
+                    <mxGeometry x="255" y="510" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-ddos-east" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/DDoS_Protection_Plans.svg;" parent="1" vertex="1">
+                    <mxGeometry x="305" y="510" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="hub-east-resources" value="VNet / Firewall / Bastion / VPN / DDoS" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="555" width="270" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-west" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="455" width="300" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-west-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="462" width="35" height="32" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-west-name" value="rg-${root_id}-hub-japanwest" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="465" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-hub-west-location" value="📍 japanwest (セカンダリ)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="490" width="150" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-vnet-west" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="515" width="35" height="21" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-fw-west" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Firewalls.svg;" parent="1" vertex="1">
+                    <mxGeometry x="475" y="510" width="35" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-bastion-west" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Bastions.svg;" parent="1" vertex="1">
+                    <mxGeometry x="525" y="510" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="hub-west-resources" value="VNet / Firewall / Bastion (DR構成)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="555" width="270" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-dns" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="455" width="300" height="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-dns-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="745" y="462" width="35" height="32" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-dns-name" value="rg-${root_id}-dns-japaneast" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="785" y="465" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-dns-location" value="📍 japaneast" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="745" y="490" width="100" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-dns1" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=https://www.azureicons.com/static/images/icons/Networking/svg/DNS-Zones.svg;" parent="1" vertex="1">
+                    <mxGeometry x="755" y="520" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-dns2" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=https://www.azureicons.com/static/images/icons/Networking/svg/DNS-Zones.svg;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="520" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="res-dns3" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=https://www.azureicons.com/static/images/icons/Networking/svg/DNS-Zones.svg;" parent="1" vertex="1">
+                    <mxGeometry x="865" y="520" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="dns-ellipsis" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="530" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="dns-resources" value="Private DNS Zones (Azure PaaS用)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="745" y="560" width="270" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="config-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#CCCCCC;strokeWidth=1;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="195" width="620" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="config-title" value="⚙️ 設定例 (platform-landing-zone.auto.tfvars)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="200" width="350" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="config-code" value="management_resource_groups = {&#xa;  management = {&#xa;    name     = &quot;rg-$${root_id}-mgmt-001&quot;&#xa;    location = &quot;$${starter_location_01}&quot;&#xa;  }&#xa;}&#xa;&#xa;connectivity_resource_groups = {&#xa;  hub_primary = {&#xa;    name     = &quot;rg-$${root_id}-hub-$${starter_location_01}&quot;&#xa;    location = &quot;$${starter_location_01}&quot;&#xa;  }&#xa;  hub_secondary = { ... }&#xa;  dns = { ... }&#xa;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;fontSize=9;fontFamily=Consolas;align=left;spacingLeft=10;spacingTop=5;" parent="1" vertex="1">
+                    <mxGeometry x="425" y="230" width="590" height="165" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

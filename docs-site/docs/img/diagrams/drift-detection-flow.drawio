@@ -1,0 +1,181 @@
+<mxfile host="65bd71144e">
+    <diagram id="drift-detection-flow" name="Drift Detection Flow">
+        <mxGraphModel dx="819" dy="662" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Configuration Drift 検出と対応フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="20" width="500" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="81" width="300" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase1-title" value="① 検出フェーズ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="130" y="91" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-state" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="131" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-state-label" value="Terraform&#xa;State" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="184" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="vs" value="VS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="175" y="141" width="40" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-actual" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="131" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-actual-label" value="Azure&#xa;実際の状態" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="225" y="184" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="gh-actions" value="" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.weblogos.github" parent="1" vertex="1">
+                    <mxGeometry x="175" y="231" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="gh-actions-label" value="GitHub Actions&#xa;(毎日自動実行)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="145" y="276" width="100" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-plan" value="terraform plan&#xa;-detailed-exitcode" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="135" y="317" width="120" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="80" width="350" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase2-title" value="② 分析・判断フェーズ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#F25022;" parent="1" vertex="1">
+                    <mxGeometry x="475" y="90" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="decision" value="Drift&#xa;検出？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="125" width="90" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="no-drift" value="✅ 変更なし" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="140" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="drift-yes" value="⚠️ Drift検出" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="140" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="investigate" value="🔍 調査" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="525" y="220" width="100" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="investigate-detail" value="• 誰が変更した？&#xa;• なぜ変更した？&#xa;• 正しい変更か？" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="495" y="256" width="120" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="decision2" value="変更は&#xa;正しい？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="310" width="90" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="790" y="80" width="350" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase3-title" value="③ 対応フェーズ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="885" y="90" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionA-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=1;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="130" width="150" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionA-title" value="✅ 変更が正しい場合" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="815" y="135" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionA-step1" value="1. Terraformコード更新" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="160" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionA-step2" value="2. PR作成＆レビュー" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="180" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionA-step3" value="3. マージ（状態が同期）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="200" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionB-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=1;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="130" width="150" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionB-title" value="❌ 変更が誤りの場合" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#E81123;" parent="1" vertex="1">
+                    <mxGeometry x="985" y="135" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionB-step1" value="1. CDワークフロー実行" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="160" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionB-step2" value="2. terraform apply" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="180" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="optionB-step3" value="3. 元の状態に戻る" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="990" y="200" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="result" value="🎉 Drift解消！" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;strokeWidth=2;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="870" y="280" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="tf-plan" target="decision2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7FBA00;strokeWidth=2;fontSize=10;" parent="1" source="decision" target="no-drift" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D79B00;strokeWidth=2;fontSize=10;" parent="1" source="decision" target="drift-yes" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" parent="1" source="drift-yes" target="investigate" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="690" y="238"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" parent="1" source="investigate" target="decision2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow6" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7FBA00;strokeWidth=2;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="decision2" target="optionA-box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="770" y="335"/>
+                            <mxPoint x="770" y="180"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow7" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#E81123;strokeWidth=2;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="phase2-box" target="optionB-box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="575" y="380"/>
+                            <mxPoint x="1160" y="380"/>
+                            <mxPoint x="1160" y="180"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7FBA00;strokeWidth=2;" parent="1" source="optionA-box" target="result" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7FBA00;strokeWidth=2;" parent="1" source="optionB-box" target="result" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="info-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#CCCCCC;strokeWidth=1;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="400" width="1080" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="info-title" value="💡 よくあるDriftパターンと対応" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="410" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern1" value="🏷️ タグの追加・変更" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="445" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern1-action" value="→ Terraformに反映" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="480" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern2" value="🌐 ネットワーク設定変更" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="445" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern2-action" value="→ 通常は元に戻す" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="480" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern3" value="🛡️ ポリシーの無効化" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6F0;strokeColor=#E81123;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="445" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern3-action" value="→ 必ず元に戻す" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#E81123;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="480" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern4" value="🗑️ リソースの削除" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6F0;strokeColor=#E81123;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="445" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="pattern4-action" value="→ 緊急時以外は元に戻す" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#E81123;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="480" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="warning" value="⚠️ Driftを放置すると次のApplyで予期しない変更が発生する可能性があります！" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="445" width="240" height="55" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

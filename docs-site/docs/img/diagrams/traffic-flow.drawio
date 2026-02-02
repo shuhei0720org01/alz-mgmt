@@ -1,0 +1,68 @@
+<mxfile host="65bd71144e" generator="diagram-forge">
+    <diagram id="traffic-flow" name="Traffic Flow">
+        <mxGraphModel dx="646" dy="524" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="650" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="🎯 通信の流れ（Spoke → インターネット）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="300" y="10" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="step1_container" value="① Spoke 1" style="swimlane;horizontal=1;startSize=25;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="60" y="80" width="150" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="webserver" value="Webサーバー" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/compute/Virtual_Machine.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="step1_container" vertex="1">
+                    <mxGeometry x="41" y="35" width="68" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="step2" value="② UDR&#xa;(User Defined Route)&#xa;Hubへ転送" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="280" y="110" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="step3_container" value="③ Hub VNet" style="swimlane;horizontal=1;startSize=25;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="480" y="70" width="170" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="firewall" value="Azure Firewall&#xa;セキュリティ検査" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/networking/Firewalls.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="step3_container" vertex="1">
+                    <mxGeometry x="51" y="35" width="68" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="step4" value="④ 許可?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="720" y="100" width="100" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="step5" value="⑤ インターネット" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="880" y="110" width="100" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="step6_block" value="ブロック&#xa;❌" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="720" y="230" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="return_label" value="⑥ 戻りもFirewall経由" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#6c8ebf" parent="1" vertex="1">
+                    <mxGeometry x="300" y="320" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="return_container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;strokeWidth=2;dashed=1" parent="1" vertex="1">
+                    <mxGeometry x="50" y="300" width="700" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="return_spoke" value="⑦ Spoke 1&#xa;へ到達" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="85" y="320" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;endArrow=classic;endFill=1;" parent="1" source="step1_container" target="step2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;endArrow=classic;endFill=1;" parent="1" source="step2" target="step3_container" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;endArrow=classic;endFill=1;" parent="1" source="step3_container" target="step4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge4_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;endArrow=classic;endFill=1;" parent="1" source="step4" target="step5" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge4_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;endArrow=classic;endFill=1;" parent="1" source="step4" target="step6_block" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge_return1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;dashed=1;endArrow=classic;endFill=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="step5" target="return_container" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="930" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

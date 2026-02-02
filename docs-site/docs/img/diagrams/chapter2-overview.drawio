@@ -1,0 +1,166 @@
+<mxfile host="65bd71144e">
+    <diagram id="chapter2-overview" name="Chapter 2 Overview">
+        <mxGraphModel dx="488" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="500" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="この章でやること - 準備とBootstrapセットアップ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="20" width="600" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="80" width="340" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-num" value="Part 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="90" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-title" value="前提条件の準備 🛠️" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="90" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item1" value="✅ ツールインストール" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item1-desc" value="PowerShell 7, Azure CLI, Git" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item2" value="✅ Azureアカウント準備" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item2-desc" value="4つのサブスクリプション作成" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item3" value="✅ GitHubリポジトリ準備" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item3-desc" value="テンプレートからFork" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item4" value="✅ Personal Access Token" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="250" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="part1-item4-desc" value="GitHub認証用" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="245" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=3;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="part1-box" target="part2-box" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="180" as="sourcePoint"/>
+                        <mxPoint x="430" y="180" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="part2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="80" width="340" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-num" value="Part 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F25022;strokeColor=#C4161A;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="90" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-title" value="Bootstrap環境セットアップ 🧩" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#F25022;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="90" width="230" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item1" value="⚙️ 設定ファイル編集" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item1-desc" value="inputs.yaml を編集" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item2" value="🔐 認証情報設定" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item2-desc" value="Azure / GitHub 接続" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item3" value="📁 Codespacesで起動" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item3-desc" value="開発環境を起動" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item4" value="🔗 Azure/GitHub連携" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="250" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="part2-item4-desc" value="OIDC認証セットアップ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="245" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#666666;strokeWidth=3;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="part2-box" target="part3-box" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="780" y="180" as="sourcePoint"/>
+                        <mxPoint x="820" y="180" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="part3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="80" width="340" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-num" value="Part 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5C8A00;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="90" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-title" value="Phase 1デプロイ実行 🏗️" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="90" width="230" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item1" value="▶️ Bootstrap実行" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item1-desc" value="Deploy-Accelerator 実行" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="130" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item2" value="☁️ Azure作成" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item2-desc" value="ストレージ、App登録" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="170" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item3" value="📂 GitHub更新" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item3-desc" value="リポジトリにTFコード追加" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="210" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item4" value="✨ 完了確認" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;fontSize=11;align=left;spacingLeft=10;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="250" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="part3-item4-desc" value="Azure/GitHubを確認" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="245" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="result-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="320" width="1120" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="result-title" value="🎯 この章が終わると..." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="330" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="360" width="250" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1-icon" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=https://www.azureicons.com/static/images/icons/Storage/svg/Storage-Accounts.svg;" parent="1" vertex="1">
+                    <mxGeometry x="75" y="372" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result1-text" value="Azure側にState管理用&#xa;ストレージが作成される" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="125" y="370" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="360" width="250" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2-icon" value="🔐" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;" parent="1" vertex="1">
+                    <mxGeometry x="355" y="370" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result2-text" value="OIDC認証で&#xa;パスワードレス接続できる" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="405" y="370" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="360" width="250" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3-icon" value="📂" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;" parent="1" vertex="1">
+                    <mxGeometry x="635" y="370" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result3-text" value="GitHubリポジトリに&#xa;Terraformコードが追加される" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="685" y="370" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7B1FA2;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="360" width="250" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4-icon" value="🚀" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;" parent="1" vertex="1">
+                    <mxGeometry x="915" y="370" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="result4-text" value="3章でLanding Zonesを&#xa;デプロイする準備が完了！" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="965" y="370" width="170" height="45" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

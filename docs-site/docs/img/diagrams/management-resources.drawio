@@ -1,0 +1,169 @@
+<mxfile host="VS Code" generator="diagram-forge">
+  <diagram id="management-resources" name="Management Resources">
+    <mxGraphModel dx="1100" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="650">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="🔍 管理リソース構成" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" 
+                vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="300" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Management Resource Group -->
+        <mxCell id="mgmt_rg" value="📁 rg-mgmt-japaneast-001" 
+                style="swimlane;horizontal=1;startSize=35;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;fontSize=13;fontStyle=1" 
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="1020" height="350" as="geometry"/>
+        </mxCell>
+
+        <!-- Log Analytics Workspace -->
+        <mxCell id="law_container" value="Log Analytics Workspace" 
+                style="swimlane;horizontal=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;fontSize=12;fontStyle=1" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="30" y="55" width="280" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="law_icon" value="law-mgmt-japaneast-001" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg;verticalLabelPosition=bottom;verticalAlign=top;" 
+                vertex="1" parent="law_container">
+          <mxGeometry x="106" y="45" width="68" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="law_desc" value="全てのログを一箇所に集約&#xa;📊 ログ保持: 30日" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10" 
+                vertex="1" parent="law_container">
+          <mxGeometry x="40" y="130" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Automation Account -->
+        <mxCell id="automation_container" value="Automation Account" 
+                style="swimlane;horizontal=1;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;fontSize=12;fontStyle=1" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="340" y="55" width="280" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="automation_icon" value="aa-mgmt-japaneast-001" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Automation_Accounts.svg;verticalLabelPosition=bottom;verticalAlign=top;" 
+                vertex="1" parent="automation_container">
+          <mxGeometry x="106" y="45" width="68" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="automation_desc" value="🤖 定期的な作業を自動化&#xa;Update Management" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10" 
+                vertex="1" parent="automation_container">
+          <mxGeometry x="40" y="130" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- User Assigned Managed Identity -->
+        <mxCell id="uami_container" value="User Assigned Managed Identity" 
+                style="swimlane;horizontal=1;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;fontSize=12;fontStyle=1" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="650" y="55" width="340" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="uami_icon" value="id-ama-japaneast-001" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/identity/Managed_Identities.svg;verticalLabelPosition=bottom;verticalAlign=top;" 
+                vertex="1" parent="uami_container">
+          <mxGeometry x="136" y="45" width="68" height="68" as="geometry"/>
+        </mxCell>
+        <mxCell id="uami_desc" value="Azure Monitor Agent用&#xa;🔐 パスワードレス認証" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10" 
+                vertex="1" parent="uami_container">
+          <mxGeometry x="70" y="130" width="200" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Data Collection Rules -->
+        <mxCell id="dcr_label" value="📋 Data Collection Rules" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="30" y="250" width="200" height="25" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="dcr_ct" value="Change Tracking" 
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="30" y="285" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="dcr_sql" value="Defender SQL" 
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="200" y="285" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="dcr_vm" value="VM Insights" 
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="370" y="285" width="150" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Data flow arrows -->
+        <mxCell id="flow_desc" value="どのログを集めるか定義" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#666666" 
+                vertex="1" parent="mgmt_rg">
+          <mxGeometry x="550" y="290" width="150" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- VMs sending logs -->
+        <mxCell id="vms_section" value="🖥️ Azure VMs (各サブスクリプション)" 
+                style="swimlane;horizontal=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;fontSize=12;fontStyle=1" 
+                vertex="1" parent="1">
+          <mxGeometry x="40" y="460" width="600" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="vm1" value="" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/compute/Virtual_Machine.svg;" 
+                vertex="1" parent="vms_section">
+          <mxGeometry x="60" y="45" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="vm2" value="" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/compute/Virtual_Machine.svg;" 
+                vertex="1" parent="vms_section">
+          <mxGeometry x="150" y="45" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="vm3" value="" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/compute/Virtual_Machine.svg;" 
+                vertex="1" parent="vms_section">
+          <mxGeometry x="240" y="45" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="vm_desc" value="Azure Monitor Agent インストール済み" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10" 
+                vertex="1" parent="vms_section">
+          <mxGeometry x="350" y="55" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Flow arrow from VMs to Log Analytics -->
+        <mxCell id="log_flow" value="ログ送信" 
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;endArrow=classic;endFill=1;dashed=1;" 
+                edge="1" parent="1" source="vms_section" target="mgmt_rg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Azure Monitor -->
+        <mxCell id="monitor_section" value="👁️ Azure Monitor" 
+                style="swimlane;horizontal=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;fontSize=12;fontStyle=1" 
+                vertex="1" parent="1">
+          <mxGeometry x="680" y="460" width="380" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="monitor_icon" value="Monitor" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Monitor.svg;verticalLabelPosition=bottom;verticalAlign=top;" 
+                vertex="1" parent="monitor_section">
+          <mxGeometry x="40" y="40" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="insights_icon" value="Insights" 
+                style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Application_Insights.svg;verticalLabelPosition=bottom;verticalAlign=top;" 
+                vertex="1" parent="monitor_section">
+          <mxGeometry x="130" y="40" width="50" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="alerts_desc" value="アラート&#xa;ダッシュボード&#xa;分析" 
+                style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10" 
+                vertex="1" parent="monitor_section">
+          <mxGeometry x="230" y="40" width="100" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Flow arrow from Log Analytics to Monitor -->
+        <mxCell id="analysis_flow" value="分析・可視化" 
+                style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;endArrow=classic;endFill=1;" 
+                edge="1" parent="1" source="mgmt_rg" target="monitor_section">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

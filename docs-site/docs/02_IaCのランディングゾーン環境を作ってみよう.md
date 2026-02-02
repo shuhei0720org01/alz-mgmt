@@ -6,6 +6,10 @@
 
 こういうのはやってみて初めて理解できます！
 
+この章でやること↓
+
+![この章でやること](./img/diagrams/chapter2-overview.svg)
+
 公式の手順（https://azure.github.io/Azure-Landing-Zones/bootstrap/）があるのですが、英語でわかりにくいので、できるだけわかりやすいようにかみ砕いて手順を説明していきます！
 
 ※Windows PCからの操作を想定しています。

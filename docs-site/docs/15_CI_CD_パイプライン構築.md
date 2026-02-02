@@ -70,6 +70,8 @@ graph TB
 
 同じロジックを複数のワークフローで使い回す仕組みです。
 
+![再利用可能ワークフローの仕組み](./img/diagrams/reusable-workflow.svg)
+
 === "通常のワークフロー（重複コード）"
 
     ```yaml title="ci.yaml"
