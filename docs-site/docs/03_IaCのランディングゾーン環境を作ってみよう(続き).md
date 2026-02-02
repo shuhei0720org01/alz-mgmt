@@ -337,7 +337,7 @@ git branch -D feature/delete-resources
 
 デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
 
-※VNet、プライベートDNSゾーン、Azureポリシーは無料のリソースなので残しておいて大丈夫
+※VNet、Azureポリシーは無料のリソースなので残しておいて大丈夫
 
 ![alt text](./img/image45.png)
 
