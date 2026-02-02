@@ -1,0 +1,164 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0">
+    <diagram id="security-defense" name="セキュリティ多層防御">
+        <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" background="#ffffff">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="🛡️ Defense in Depth（多層防御戦略）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="1320" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="subtitle" value="外側から内側へ、8つの防御層でアプリケーションとデータを保護" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="85" width="1320" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 1: DDoS Protection -->
+                <mxCell id="layer1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F4F8;strokeColor=#0078D4;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="150" width="1280" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer1-num" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="175" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer1-title" value="🌐 DDoS Protection（分散型サービス拒否攻撃対策）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="170" y="170" width="480" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer1-desc" value="大量のアクセス攻撃を自動検知・遮断 → サービス停止を防ぐ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="170" y="200" width="540" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer1-features" value="• Azure DDoS Protection Standard&#10;• リアルタイム攻撃緩和&#10;• テレメトリ・アラート" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="170" width="610" height="60" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 2: Azure Firewall -->
+                <mxCell id="layer2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE8E8;strokeColor=#E81123;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="270" width="1200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer2-num" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#E81123;strokeColor=#A4000F;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="295" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer2-title" value="🔥 Azure Firewall（ファイアウォール）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="290" width="420" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer2-desc" value="不正な通信をブロック → ルールベースの通信制御" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="320" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer2-features" value="• IPアドレス・ポートでフィルタリング&#10;• FQDNベースのアクセス制御&#10;• 脅威インテリジェンスで既知の悪意あるIPをブロック" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="290" width="570" height="60" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 3: WAF -->
+                <mxCell id="layer3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#FFB900;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="160" y="390" width="1120" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer3-num" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="415" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer3-title" value="🛡️ WAF（Web Application Firewall）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#FFB900;" vertex="1" parent="1">
+                    <mxGeometry x="250" y="410" width="400" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer3-desc" value="Webアプリへの攻撃を防御 → アプリケーション層の保護" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="250" y="440" width="480" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer3-features" value="• SQLインジェクション防御&#10;• XSS（Cross-Site Scripting）防御&#10;• OWASP Top 10脆弱性対策" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="410" width="510" height="60" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 4: NSG -->
+                <mxCell id="layer4-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#7FBA00;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="510" width="1040" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer4-num" value="4" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="535" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer4-title" value="🚧 NSG（Network Security Group）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#7FBA00;" vertex="1" parent="1">
+                    <mxGeometry x="290" y="530" width="380" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer4-desc" value="サブネット・VM単位でアクセス制御 → きめ細かい通信制御" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="290" y="560" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer4-features" value="• サブネットごとに受信・送信ルール&#10;• 最小権限の原則で設定&#10;• 例: DBはAppからのみアクセス許可" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="810" y="530" width="410" height="60" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 5: Private Endpoint -->
+                <mxCell id="layer5-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0E6FF;strokeColor=#8661C5;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="630" width="960" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer5-num" value="5" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="260" y="655" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer5-title" value="🔒 Private Endpoint（プライベートエンドポイント）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#8661C5;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="650" width="460" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer5-desc" value="Storage等をインターネットから隠す → プライベートIPでアクセス" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="680" width="550" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer5-features" value="• Public IPを無効化&#10;• VNet内からのみアクセス可能&#10;• データ漏洩リスク低減" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="900" y="650" width="280" height="60" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 6: Disk Encryption -->
+                <mxCell id="layer6-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#00BCF2;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="750" width="880" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer6-num" value="6" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#00BCF2;strokeColor=#0098D1;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="770" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer6-title" value="💾 Disk Encryption（ディスク暗号化）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#00BCF2;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="762" width="350" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer6-desc" value="データを暗号化 → 物理的盗難でも読めない" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="788" width="400" height="27" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer6-features" value="• Azure Disk Encryption（ADE）&#10;• Storage Service Encryption（SSE）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="780" y="762" width="360" height="53" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 7: Key Vault -->
+                <mxCell id="layer7-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0F0;strokeColor=#D83B01;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="850" width="800" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer7-num" value="7" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#D83B01;strokeColor=#B83000;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="870" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer7-title" value="🔑 Key Vault（シークレット管理）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#D83B01;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="862" width="320" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer7-desc" value="パスワード・証明書を安全に保管" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="888" width="320" height="27" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer7-features" value="• コードにパスワード記載不要&#10;• アクセスログ記録&#10;• HSM（Hardware Security Module）対応" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="862" width="360" height="53" as="geometry"/>
+                </mxCell>
+                
+                <!-- Layer 8: Defender for Cloud -->
+                <mxCell id="layer8-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#107C10;strokeWidth=4;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="950" width="720" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer8-num" value="8" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#107C10;strokeColor=#0B5A0B;fontColor=#FFFFFF;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="970" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer8-title" value="🛡️ Microsoft Defender for Cloud（脅威検知）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#107C10;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="962" width="400" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer8-desc" value="異常を検知・通知 → 24時間監視" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="988" width="300" height="27" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer8-features" value="• セキュリティアラート&#10;• コンプライアンスダッシュボード&#10;• 脆弱性スキャン" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="860" y="962" width="200" height="53" as="geometry"/>
+                </mxCell>
+                
+                <!-- Center: Protected Data -->
+                <mxCell id="data-icon" value="💎" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=60;" vertex="1" parent="1">
+                    <mxGeometry x="670" y="485" width="60" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="data-text" value="保護対象:&#10;アプリケーション&#10;&amp;&#10;データ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="640" y="545" width="120" height="65" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

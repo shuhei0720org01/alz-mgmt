@@ -1,0 +1,166 @@
+<mxfile host="65bd71144e">
+    <diagram id="terraform-file-structure" name="Terraformファイル構成">
+        <mxGraphModel dx="927" dy="938" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="📁 Terraformプロジェクトのファイル構成" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#0078D4;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="1520" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="desc" value="Terraformプロジェクトは複数のファイルで構成されます。それぞれのファイルが明確な役割を持っているので、理解すればコードが読みやすくなります 📖" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="90" width="1520" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-arrow1" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#0078D4;strokeWidth=4;dashed=1;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="200" y="400" as="sourcePoint"/>
+                        <mxPoint x="350" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow-label1" value="変数定義" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#0078D4;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="225" y="370" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-arrow2" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#0078D4;strokeWidth=4;dashed=1;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="510" y="400" as="sourcePoint"/>
+                        <mxPoint x="660" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow-label2" value="変数加工" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#0078D4;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="535" y="370" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-arrow3" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#0078D4;strokeWidth=4;dashed=1;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="820" y="400" as="sourcePoint"/>
+                        <mxPoint x="970" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow-label3" value="リソース作成" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#0078D4;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="370" width="120" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="flow-arrow4" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#0078D4;strokeWidth=4;dashed=1;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1130" y="400" as="sourcePoint"/>
+                        <mxPoint x="1280" y="400" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="flow-label4" value="値の出力" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#0078D4;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1155" y="370" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FFB900;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="140" width="300" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-title" value="⚙️ terraform.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#FFB900;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="150" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-role" value="役割: Terraform自体の設定" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="185" width="280" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-desc" value="• Terraformのバージョン&#xa;• 使用するプロバイダー&#xa;  (Azure/AWS/GCPなど)&#xa;• バックエンドの設定&#xa;  (状態ファイルの保存先)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="215" width="280" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="var-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="360" width="160" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="var-title" value="📝 variables.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#E81123;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="370" width="140" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="var-role" value="変数の定義" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="400" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="var-desc" value="&#xa;• 変数名&#xa;• 型 (string/number/list)&#xa;• デフォルト値&#xa;• 説明&#xa;&#xa;💡 箱を用意するイメージ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="425" width="140" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="local-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#00BCF2;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="360" width="160" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="local-title" value="🔧 locals.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#00BCF2;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="370" width="140" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="local-role" value="変数の加工" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="400" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="local-desc" value="&#xa;• 変数を組み合わせ&#xa;• 複雑な値を計算&#xa;• 共通値の定義&#xa;&#xa;💡 料理で例えると&#xa;　材料を下ごしらえ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="425" width="140" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="main-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="660" y="360" width="160" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="main-title" value="🏗️ main.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="670" y="370" width="140" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="main-role" value="リソース定義" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="670" y="400" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="main-desc" value="&#xa;• 実際のリソース定義&#xa;  (VM/ネットワークなど)&#xa;• モジュールの呼び出し&#xa;&#xa;💡 設計図の本体&#xa;　ここがメイン処理" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="670" y="425" width="140" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="output-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8661C5;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="360" width="160" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="output-title" value="📤 outputs.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#8661C5;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="370" width="140" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="output-role" value="出力定義" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="400" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="output-desc" value="&#xa;• 作成したリソースの&#xa;  情報を出力&#xa;• IPアドレス&#xa;• リソースID&#xa;&#xa;💡 実行結果を表示" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="980" y="425" width="140" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfvars-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F65314;strokeWidth=3;" parent="1" vertex="1">
+                    <mxGeometry x="1280" y="360" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfvars-title" value="✍️ terraform.tfvars" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#F65314;" parent="1" vertex="1">
+                    <mxGeometry x="1290" y="370" width="190" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfvars-role" value="変数の値を設定" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="1290" y="400" width="190" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfvars-desc" value="&#xa;• 環境ごとの値を記載&#xa;• プロジェクト名&#xa;• リージョン&#xa;• インスタンスサイズ&#xa;&#xa;💡 実際の値を入れる&#xa;　.auto.tfvarsなら自動読込" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="1290" y="425" width="180" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="example-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#FFB900;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="580" width="1440" height="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="example-title" value="💻 実際のコード例で理解しよう" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#FFB900;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="595" width="400" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex1-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="640" width="340" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex1-title" value="variables.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#E81123;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="650" width="320" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex1-code" value="variable &quot;project_name&quot; {&#xa;  type        = string&#xa;  description = &quot;プロジェクト名&quot;&#xa;}&#xa;&#xa;variable &quot;location&quot; {&#xa;  type        = string&#xa;  description = &quot;リージョン&quot;&#xa;  default     = &quot;japaneast&quot;&#xa;}&#xa;&#xa;variable &quot;tags&quot; {&#xa;  type        = map(string)&#xa;  description = &quot;タグ&quot;&#xa;  default     = {}&#xa;}" style="text;html=1;strokeColor=none;fillColor=#F5F5F5;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;fontFamily=Courier New;fontColor=#333333;spacing=5;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="680" width="320" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F65314;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="420" y="640" width="320" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex2-title" value="terraform.tfvars" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#F65314;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="650" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex2-code" value="project_name = &quot;my-azure-project&quot;&#xa;&#xa;location = &quot;japaneast&quot;&#xa;&#xa;tags = {&#xa;  Environment = &quot;dev&quot;&#xa;  ManagedBy   = &quot;Terraform&quot;&#xa;  Owner       = &quot;DevTeam&quot;&#xa;}&#xa;&#xa;&#xa;&#xa;⬆️ 左で定義した変数に&#xa;　実際の値を入れている" style="text;html=1;strokeColor=none;fillColor=#F5F5F5;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;fontFamily=Courier New;fontColor=#333333;spacing=5;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="680" width="300" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex3-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#00BCF2;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="640" width="350" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex3-title" value="locals.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#00BCF2;" parent="1" vertex="1">
+                    <mxGeometry x="770" y="650" width="330" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex3-code" value="locals {&lt;br&gt;  # 共通の命名規則&lt;br&gt;  resource_prefix = &quot;${var.project_name}-${var.location}&quot;&lt;br&gt;  &lt;br&gt;  # リソースグループ名&lt;br&gt;  rg_name = &quot;${local.resource_prefix}-rg&quot;&lt;br&gt;  &lt;br&gt;  # タグを拡張&lt;br&gt;  common_tags = merge(&lt;br&gt;    var.tags,&lt;br&gt;    {&lt;br&gt;      Project = var.project_name&lt;br&gt;    }&lt;br&gt;  )&lt;br&gt;}&lt;br&gt;⬆️ 変数を組み合わせて新しい値を作成" style="text;html=1;strokeColor=none;fillColor=#F5F5F5;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=11;fontFamily=Courier New;fontColor=#333333;spacing=5;" parent="1" vertex="1">
+                    <mxGeometry x="770" y="675" width="330" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex4-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="640" width="330" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex4-title" value="main.tf" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#7FBA00;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="650" width="310" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ex4-code" value="resource &quot;azurerm_resource_group&quot; &quot;main&quot; {&#xa;  name     = local.rg_name&#xa;  location = var.location&#xa;  tags     = local.common_tags&#xa;}&#xa;&#xa;resource &quot;azurerm_virtual_network&quot; &quot;main&quot; {&#xa;  name                = &quot;${local.resource_prefix}-vnet&quot;&#xa;  location            = azurerm_resource_group.main.location&#xa;  resource_group_name = azurerm_resource_group.main.name&#xa;  address_space       = [&quot;10.0.0.0/16&quot;]&#xa;  tags                = local.common_tags&#xa;}&#xa;&#xa;⬆️ ローカル変数や変数を使ってリソース作成" style="text;html=1;strokeColor=none;fillColor=#F5F5F5;align=left;verticalAlign=top;whiteSpace=wrap;rounded=1;fontSize=10;fontFamily=Courier New;fontColor=#333333;spacing=5;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="680" width="310" height="230" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
