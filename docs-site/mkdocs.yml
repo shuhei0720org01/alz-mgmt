@@ -88,10 +88,6 @@ plugins:
   - search:
       lang: ja
   - tags
-  - drawio-exporter:
-      drawio_executable: null  # draw.io desktopが必要、またはCIで変換
-      format: svg
-      sources: '*.drawio'
 
 extra:
   social:
