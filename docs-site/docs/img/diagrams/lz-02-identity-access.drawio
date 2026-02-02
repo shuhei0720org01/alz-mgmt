@@ -1,0 +1,210 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0">
+    <diagram id="identity-access" name="ID・アクセス管理">
+        <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" background="#ffffff">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="🔐 ID・アクセス管理（Identity and Access Management）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="30" width="1320" height="35" as="geometry"/>
+                </mxCell>
+                
+                <!-- Production Environment -->
+                <mxCell id="prod-section" value="【本番環境】" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E81123;strokeColor=#A4000F;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="90" width="620" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="prod-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE8E8;strokeColor=#E81123;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="140" width="620" height="200" as="geometry"/>
+                </mxCell>
+                
+                <!-- Reader Role -->
+                <mxCell id="reader-role" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="160" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="reader-icon" value="👁️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+                    <mxGeometry x="90" y="165" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="reader-title" value="閲覧のみ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="135" y="168" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="reader-desc" value="対象：全社員" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="135" y="192" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Deploy Role -->
+                <mxCell id="deploy-role" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="280" y="160" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-icon" value="🚀" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+                    <mxGeometry x="290" y="165" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-title" value="デプロイ可能" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="335" y="168" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-desc" value="対象：CI/CD&#10;（自動のみ）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="335" y="192" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Delete Role -->
+                <mxCell id="delete-role" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="160" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="delete-icon" value="🗑️" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="165" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="delete-title" value="削除可能" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="535" y="168" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="delete-desc" value="対象：インフラ&#10;責任者（MFA必須）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="535" y="192" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Production Note -->
+                <mxCell id="prod-note" value="⚠️ 本番環境は最小権限の原則を徹底" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="260" width="620" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- PIM/MFA badges -->
+                <mxCell id="prod-badges" value="🔒 PIM有効  |  📱 MFA必須  |  📋 アクセスレビュー定期実施" style="text;html=1;strokeColor=none;fillColor=#FFF0F0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontColor=#E81123;strokeColor=#E81123;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="295" width="580" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- Development Environment -->
+                <mxCell id="dev-section" value="【開発環境】" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="90" width="620" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="dev-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#7FBA00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="140" width="620" height="200" as="geometry"/>
+                </mxCell>
+                
+                <!-- Full Access -->
+                <mxCell id="full-role" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="160" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="full-icon" value="💪" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+                    <mxGeometry x="775" y="165" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="full-title" value="フル権限" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7FBA00;" vertex="1" parent="1">
+                    <mxGeometry x="825" y="168" width="180" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="full-desc" value="対象：開発チーム" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="825" y="192" width="180" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- PM Role -->
+                <mxCell id="pm-role" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="1040" y="160" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="pm-icon" value="📊" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;" vertex="1" parent="1">
+                    <mxGeometry x="1055" y="165" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="pm-title" value="閲覧のみ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7FBA00;" vertex="1" parent="1">
+                    <mxGeometry x="1105" y="168" width="180" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="pm-desc" value="対象：プロジェクトマネージャー" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="1105" y="192" width="180" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Development Note -->
+                <mxCell id="dev-note" value="✅ 開発環境は開発効率を重視" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=1;fontColor=#7FBA00;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="260" width="620" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="dev-badges" value="🔓 自由度高め  |  🧪 実験可能  |  💰 コスト制限あり" style="text;html=1;strokeColor=none;fillColor=#F0FFF0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontColor=#7FBA00;strokeColor=#7FBA00;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="295" width="580" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- Prohibited Section -->
+                <mxCell id="prohibited-section" value="🚫 禁止事項" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#000000;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="370" width="1280" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="prohibited-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="420" width="1280" height="100" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="prohibited1" value="❌ Owner権限の付与" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="440" width="380" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="prohibited1-desc" value="インフラ責任者の承認必須" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="475" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="prohibited2" value="❌ パスワード認証" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="510" y="440" width="380" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="prohibited2-desc" value="証明書 または Managed Identity を使用" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="510" y="475" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="prohibited3" value="❌ 共有アカウント" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;fontColor=#E81123;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="440" width="380" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="prohibited3-desc" value="個人アカウントで操作を追跡可能に" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="475" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Best Practices Section -->
+                <mxCell id="best-section" value="✅ ベストプラクティス" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="550" width="1280" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="best-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F4F8;strokeColor=#0078D4;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="600" width="1280" height="280" as="geometry"/>
+                </mxCell>
+                
+                <!-- Best Practice Items -->
+                <mxCell id="bp1" value="🔐 PIM（Privileged Identity Management）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp1-desc" value="特権アクセスは必要な時だけ有効化（JIT）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="bp2" value="📱 条件付きアクセス" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp2-desc" value="社外からのアクセスは追加認証を要求" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="bp3" value="🛡️ Entra ID Protection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp3-desc" value="リスクの高いサインインを自動ブロック" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="bp4" value="🔑 MFA（多要素認証）必須" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="700" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp4-desc" value="パスワードだけでは認証させない" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="740" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="bp5" value="📋 定期アクセスレビュー" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="700" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp5-desc" value="不要な権限を定期的に棚卸し" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="740" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="bp6" value="🤖 Managed Identity活用" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="700" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp6-desc" value="Azureリソースへの認証はEntraを使用" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="920" y="740" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Summary -->
+                <mxCell id="summary" value="💡 ポイント：「誰が」「何を」「いつ」できるか を明確に定義し、最小権限で運用する" style="text;html=1;strokeColor=none;fillColor=#FFF9E6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#0078D4;strokeColor=#FFB900;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="780" width="1220" height="40" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,232 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0">
+    <diagram id="management-monitoring" name="管理とモニタリング">
+        <mxGraphModel dx="1500" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1000" background="#ffffff">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="🛠️ 管理（Management）- 監視・ログ・バックアップ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="30" width="1420" height="35" as="geometry"/>
+                </mxCell>
+                
+                <!-- Log Analytics Section -->
+                <mxCell id="log-section" value="📊 ログ収集（Log Analytics Workspace）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="90" width="1380" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="log-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F4F8;strokeColor=#0078D4;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="140" width="1380" height="180" as="geometry"/>
+                </mxCell>
+                
+                <!-- Log Sources -->
+                <mxCell id="log-activity" value="📝 Activity Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="170" width="280" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="log-activity-desc" value="誰が何を操作したか（APIコール履歴）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="210" width="280" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="log-resource" value="🖥️ Resource Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="170" width="280" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="log-resource-desc" value="VMの状態、エラー、パフォーマンス" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="210" width="280" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="log-firewall" value="🔥 Firewall Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="170" width="280" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="log-firewall-desc" value="通信記録（許可/拒否）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="210" width="280" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="log-security" value="🛡️ Security Log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1060" y="170" width="280" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="log-security-desc" value="攻撃検知、脆弱性アラート" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="1060" y="210" width="280" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Arrows to LAW -->
+                <mxCell id="arrow1" value="" style="endArrow=classic;html=1;strokeColor=#0078D4;strokeWidth=2;curved=0;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="240" y="230" as="sourcePoint"/>
+                        <mxPoint x="700" y="275" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow2" value="" style="endArrow=classic;html=1;strokeColor=#0078D4;strokeWidth=2;curved=0;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="560" y="230" as="sourcePoint"/>
+                        <mxPoint x="700" y="275" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow3" value="" style="endArrow=classic;html=1;strokeColor=#0078D4;strokeWidth=2;curved=0;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="880" y="230" as="sourcePoint"/>
+                        <mxPoint x="800" y="275" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow4" value="" style="endArrow=classic;html=1;strokeColor=#0078D4;strokeWidth=2;curved=0;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1200" y="230" as="sourcePoint"/>
+                        <mxPoint x="800" y="275" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <!-- Log Analytics Workspace -->
+                <mxCell id="law-hub" value="📊 Log Analytics Workspace（すべてのログを一元管理）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="265" width="700" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Alert Section -->
+                <mxCell id="alert-section" value="🔔 アラート設定（Azure Monitor）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E81123;strokeColor=#A4000F;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="350" width="1380" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE8E8;strokeColor=#E81123;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="400" width="1380" height="120" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert1" value="🛑 VM停止" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="420" width="200" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="alert1-desc" value="→ 即座に通知" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#E81123;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="460" width="200" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert2" value="📈 CPU 90%超" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="420" width="200" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="alert2-desc" value="→ 警告通知" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#E81123;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="460" width="200" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert3" value="🚨 不審なログイン" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="420" width="200" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="alert3-desc" value="→ Slackに即座通知" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#E81123;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="460" width="200" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert4" value="💰 予算80%超過" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="820" y="420" width="200" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="alert4-desc" value="→ 管理者にメール" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#E81123;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="820" y="460" width="200" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="alert5" value="⚠️ ポリシー違反" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#E81123;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1060" y="420" width="200" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="alert5-desc" value="→ セキュリティチームに通知" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#E81123;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1060" y="460" width="200" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Backup Section -->
+                <mxCell id="backup-section" value="💾 バックアップ（Azure Backup）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="550" width="1380" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="backup-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#7FBA00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="600" width="1380" height="120" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="backup1" value="🖥️ VM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="backup1-desc" value="毎日バックアップ、30日保持" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="backup2" value="💾 Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="backup2-desc" value="毎時間バックアップ、7日保持" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="560" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="backup3" value="📦 Blob Storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7FBA00;strokeWidth=2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="620" width="380" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="backup3-desc" value="Geo冗長（他リージョンにコピー）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="660" width="380" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Incident Response Flow -->
+                <mxCell id="flow-section" value="🔄 障害対応の流れ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=16;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="750" width="1380" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#FFB900;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="800" width="1380" height="90" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow1" value="🚨 障害発生" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="825" width="140" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-arrow1" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="250" y="845" as="sourcePoint"/>
+                        <mxPoint x="290" y="845" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="flow2" value="📊 Log Analyticsで調査" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="825" width="180" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-arrow2" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="490" y="845" as="sourcePoint"/>
+                        <mxPoint x="530" y="845" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="flow3" value="🔍 原因特定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="540" y="825" width="140" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-arrow3" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="690" y="845" as="sourcePoint"/>
+                        <mxPoint x="730" y="845" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="flow4" value="🔧 Terraformで修正" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="825" width="180" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-arrow4" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="930" y="845" as="sourcePoint"/>
+                        <mxPoint x="970" y="845" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="flow5" value="📝 Gitに履歴記録" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="980" y="825" width="160" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="flow-arrow5" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1150" y="845" as="sourcePoint"/>
+                        <mxPoint x="1190" y="845" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="flow6" value="✅ 復旧完了" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1200" y="825" width="140" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Best Practices -->
+                <mxCell id="best-note" value="✅ ベストプラクティス：ログは単一のLog Analytics Workspaceに集約 → SOC・Sentinelとの連携が容易、GitHubで全履歴管理" style="text;html=1;strokeColor=none;fillColor=#E8F4F8;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=13;fontStyle=1;fontColor=#0078D4;strokeColor=#0078D4;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="920" width="1380" height="40" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
