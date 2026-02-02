@@ -1,0 +1,183 @@
+<mxfile host="65bd71144e">
+    <diagram id="subscription-vending-flow" name="Subscription Vending Flow">
+        <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="サブスクリプション払い出し（Subscription Vending）フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="20" width="600" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Developer Section -->
+                <mxCell id="dev-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="80" width="280" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="dev-title" value="① 開発者の作業" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="90" width="160" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Developer Icon -->
+                <mxCell id="developer" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.user;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="130" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="dev-label" value="開発者" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="85" y="183" width="80" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- YAML File -->
+                <mxCell id="yaml-file" value="📄 myapp-prod.yaml" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="170" y="130" width="150" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="yaml-content" value="name: myapp-prod&#10;management_group: Corp&#10;tags:&#10;  team: platform&#10;  cost_center: IT001" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=10;align=left;verticalAlign=top;spacingLeft=5;spacingTop=5;" vertex="1" parent="1">
+                    <mxGeometry x="170" y="180" width="150" height="80" as="geometry"/>
+                </mxCell>
+                
+                <!-- Arrow to YAML -->
+                <mxCell id="arrow-yaml" value="作成" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0078D4;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="developer" target="yaml-file">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                
+                <!-- PR -->
+                <mxCell id="pr-box" value="🔀 Pull Request作成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="280" width="200" height="35" as="geometry"/>
+                </mxCell>
+                
+                <!-- GitHub Actions Section -->
+                <mxCell id="gh-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="80" width="280" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="gh-title" value="② GitHub Actions" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#F25022;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="90" width="160" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- GitHub Logo -->
+                <mxCell id="gh-logo" value="" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.weblogos.github" vertex="1" parent="1">
+                    <mxGeometry x="500" y="120" width="40" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- CI -->
+                <mxCell id="ci-step" value="CI: Plan実行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="175" width="220" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- Review -->
+                <mxCell id="review" value="👀 レビュー＆承認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="215" width="220" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- CD -->
+                <mxCell id="cd-step" value="CD: Apply実行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#F25022;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="255" width="220" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- Terraform -->
+                <mxCell id="tf-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="295" width="220" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="tf-text" value="🔧 Terraform Apply" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;fontColor=#7FBA00;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="300" width="160" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Azure Section -->
+                <mxCell id="azure-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F7FF;strokeColor=#0078D4;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="700" y="80" width="320" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure-title" value="③ Azure（自動作成）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078D4;" vertex="1" parent="1">
+                    <mxGeometry x="780" y="90" width="160" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Subscription -->
+                <mxCell id="sub" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Subscriptions.svg;" vertex="1" parent="1">
+                    <mxGeometry x="830" y="125" width="60" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="sub-label" value="サブスクリプション&#10;自動作成" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="800" y="172" width="120" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- Created Resources -->
+                <mxCell id="resources-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;strokeWidth=1;strokeStyle=dashed;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="210" width="280" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="resources-title" value="自動設定される項目" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="215" width="120" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="mg" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Management_Groups.svg;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="245" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="mg-label" value="管理グループ&#10;配置" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="725" y="283" width="65" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="rg" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Resource_Groups.svg;" vertex="1" parent="1">
+                    <mxGeometry x="820" y="245" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="rg-label" value="リソース&#10;グループ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="805" y="283" width="65" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="vnet" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/networking/Virtual_Networks.svg;" vertex="1" parent="1">
+                    <mxGeometry x="900" y="245" width="35" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="vnet-label" value="VNet&#10;(オプション)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="885" y="283" width="65" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="tags" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/general/Tag.svg;" vertex="1" parent="1">
+                    <mxGeometry x="960" y="245" width="30" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tags-label" value="タグ設定" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="945" y="278" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Arrows -->
+                <mxCell id="arrow1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="pr-box" target="ci-step">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="ci-step" target="review">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="review" target="cd-step">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7FBA00;strokeWidth=2;" edge="1" parent="1" source="tf-box" target="sub">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                
+                <!-- Bottom Info -->
+                <mxCell id="info-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="380" width="960" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="info-title" value="💡 ポイント" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="390" width="100" height="25" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="point1" value="✅ YAMLファイル1つ追加するだけ" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6F2FF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="425" width="200" height="35" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="point2" value="✅ PRベースで承認フロー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF4E1;strokeColor=#F25022;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="425" width="180" height="35" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="point3" value="✅ 設定漏れ・ミスを防止" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E1FFE1;strokeColor=#7FBA00;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="500" y="425" width="180" height="35" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="point4" value="✅ 監査ログが残る" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6F7FF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="700" y="425" width="150" height="35" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="point5" value="✅ コードレビュー必須" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="870" y="425" width="130" height="35" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

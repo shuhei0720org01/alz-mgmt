@@ -82,19 +82,8 @@ jobs:
 
 実際の開発フローを見てみましょう：
 
-```mermaid
-graph LR
-    A[コード変更] --> B[Pull Request作成]
-    B --> C[GitHub Actions起動]
-    C --> D[Terraform Plan実行]
-    D --> E{問題なし?}
-    E -->|Yes| F[レビュー承認]
-    E -->|No| G[修正]
-    G --> B
-    F --> H[mainにマージ]
-    H --> I[Apply自動実行]
-    I --> J[デプロイ完了]
-```
+![CI/CDパイプラインフロー](./img/diagrams/cicd-pipeline-flow.svg)
+
 
 **開発の流れ**:📝
 

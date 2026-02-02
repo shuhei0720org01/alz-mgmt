@@ -53,3 +53,21 @@ issues.csv
 .github/copilot-instructions.md
 
 docs-site/.venv
+
+# VS Code extension related files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Draw.io backup files
+*.drawio.bkp
+*.drawio.dtmp
+
+# MkDocs build output
+docs-site/site/
+
+# Skill Ninja (Agent Skills)
+.github/skills/
+AGENTS.md

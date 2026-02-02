@@ -84,54 +84,11 @@ Hub-and-Spokeネットワークの仕組みを理解しよう。
 
 **📊 Hub-and-Spoke構成図（このプロジェクト）**
 
-```text title="Hub-and-Spoke構成"
-                    インターネット
-                         ↕
-                   Azure Firewall
-                         |
-         ┌───────────────┼───────────────┐
-         │         Hub VNet              │
-         │    (10.0.0.0/16)             │
-         │                               │
-         │  ┌─────────┐  ┌──────────┐   │
-         │  │Firewall │  │  Bastion │   │
-         │  └─────────┘  └──────────┘   │
-         │                               │
-         │  ┌──────────┐  ┌───────────┐ │
-         │  │VPN GW    │  │ER Gateway │ │
-         │  └──────────┘  └───────────┘ │
-         │       ↓             ↓         │
-         └───────┼─────────────┼─────────┘
-                 ↓             ↓
-         オンプレミス      ExpressRoute
-           (VPN)           (専用線)
-                 
-      VNet Peering ↓      ↓      ↓
-         
-    ┌──────────┐  ┌──────────┐  ┌──────────┐
-    │ Spoke 1  │  │ Spoke 2  │  │ Spoke 3  │
-    │ (Corp)   │  │ (Online) │  │  (Dev)   │
-    │10.1.0.0  │  │10.2.0.0  │  │10.3.0.0  │
-    └──────────┘  └──────────┘  └──────────┘
-        Web          API         Database
-       Server      Server        Server
-```
+![Hub-and-Spoke構成図](./img/diagrams/hub-and-spoke-architecture.svg)
 
-**🎯 通信の流れ（例）**
+**🎯 通信の流れ**
 
-```text title="通信の流れ"
-Spoke 1 (Webサーバー) → インターネット へアクセスしたい
-  ↓
-1. User Defined Route (UDR) で Hub へ
-  ↓
-2. Hub の Firewall でセキュリティチェック
-  ↓
-3. 許可されたらインターネットへ
-  ↓
-4. 戻りも Firewall 経由
-  ↓
-5. Spoke 1 へ到達
-```
+![通信の流れ](./img/diagrams/traffic-flow.svg)
 
 **🔐 このアーキテクチャの特徴**
 

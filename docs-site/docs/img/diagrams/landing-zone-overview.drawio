@@ -1,0 +1,106 @@
+<mxfile host="65bd71144e" generator="diagram-forge">
+    <diagram id="landing-zone-overview" name="Landing Zone Overview">
+        <mxGraphModel dx="822" dy="1024" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="🛬 Azure Landing Zones - 全体像" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="400" y="10" width="400" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="azure_cloud" value="☁️ Azure Cloud" style="swimlane;horizontal=1;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;fontSize=16;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="40" y="70" width="1100" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgmt_group_section" value="🗼 管理グループ（管制塔）" style="swimlane;horizontal=1;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="30" y="60" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgmt_icon" value="階層管理&#xa;権限制御" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/general/Management_Groups.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="mgmt_group_section" vertex="1">
+                    <mxGeometry x="30" y="50" width="68" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="mgmt_text" value="誰がどこに&#xa;着陸していいか管理" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" parent="mgmt_group_section" vertex="1">
+                    <mxGeometry x="120" y="60" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="network_section" value="💡 ネットワーク（誘導灯）" style="swimlane;horizontal=1;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="360" y="60" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="network_icon" value="Hub VNet&#xa;通信制御" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/networking/Virtual_Networks.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="network_section" vertex="1">
+                    <mxGeometry x="30" y="50" width="68" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="network_text" value="どこに行けばいいか&#xa;案内してくれる" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" parent="network_section" vertex="1">
+                    <mxGeometry x="120" y="60" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="security_section" value="🔐 セキュリティ（セキュリティゲート）" style="swimlane;horizontal=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="690" y="60" width="380" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="firewall_icon" value="Firewall" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/networking/Firewalls.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="security_section" vertex="1">
+                    <mxGeometry x="30" y="50" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="policy_icon" value="Policy" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Policy.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="security_section" vertex="1">
+                    <mxGeometry x="110" y="50" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="security_text" value="危険なものは入れない&#xa;ポリシーで自動制御" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" parent="security_section" vertex="1">
+                    <mxGeometry x="200" y="60" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="monitoring_section" value="🔧 監視（整備場）" style="swimlane;horizontal=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="30" y="270" width="300" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="log_analytics_icon" value="Log Analytics" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/management_governance/Log_Analytics_Workspaces.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="monitoring_section" vertex="1">
+                    <mxGeometry x="30" y="45" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="monitor_text" value="メンテナンス&#xa;ログ集約・監視" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" parent="monitoring_section" vertex="1">
+                    <mxGeometry x="110" y="55" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="app_section" value="✈️ アプリケーション（着陸帯）" style="swimlane;horizontal=1;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="360" y="270" width="710" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="app1_icon" value="App 1" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/compute/App_Services.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="app_section" vertex="1">
+                    <mxGeometry x="60" y="45" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="app2_icon" value="App 2" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=img/lib/azure2/compute/Function_Apps.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="app_section" vertex="1">
+                    <mxGeometry x="160" y="45" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="app3_icon" value="App 3" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=10;image=https://www.azureicons.com/static/images/icons/Compute/svg/Kubernetes-Services.svg;verticalLabelPosition=bottom;verticalAlign=top;" parent="app_section" vertex="1">
+                    <mxGeometry x="260" y="45" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="app_text" value="アプリケーションが&#xa;安全に着陸できる環境" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11" parent="app_section" vertex="1">
+                    <mxGeometry x="390" y="55" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="dr_section" value="🌀 災害対策（バックアップ拠点）" style="swimlane;horizontal=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;rounded=1;fontSize=13;fontStyle=1" parent="azure_cloud" vertex="1">
+                    <mxGeometry x="30" y="450" width="1040" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="japan_east" value="東日本リージョン&#xa;（メイン）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;align=center;verticalAlign=top;" parent="dr_section" vertex="1">
+                    <mxGeometry x="100" y="50" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="east_fw" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Firewalls.svg;" parent="japan_east" vertex="1">
+                    <mxGeometry x="20" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="east_bastion" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Bastions.svg;" parent="japan_east" vertex="1">
+                    <mxGeometry x="70" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="east_vpn" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Virtual_Network_Gateways.svg;" parent="japan_east" vertex="1">
+                    <mxGeometry x="120" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="sync_arrow" value="同期" style="edgeStyle=none;rounded=0;html=1;strokeWidth=3;strokeColor=#6c8ebf;endArrow=classic;endFill=1;startArrow=classic;startFill=1;" parent="dr_section" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="320" y="100" as="sourcePoint"/>
+                        <mxPoint x="500" y="100" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="japan_west" value="西日本リージョン&#xa;（バックアップ）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;verticalAlign=top;" parent="dr_section" vertex="1">
+                    <mxGeometry x="540" y="50" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="west_fw" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Firewalls.svg;" parent="japan_west" vertex="1">
+                    <mxGeometry x="20" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="west_bastion" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Bastions.svg;" parent="japan_west" vertex="1">
+                    <mxGeometry x="70" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="west_vpn" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=9;image=img/lib/azure2/networking/Virtual_Network_Gateways.svg;" parent="japan_west" vertex="1">
+                    <mxGeometry x="120" y="35" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="dr_text" value="災害時に&#xa;切り替え可能" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=1" parent="dr_section" vertex="1">
+                    <mxGeometry x="790" y="70" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

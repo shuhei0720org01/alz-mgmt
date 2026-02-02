@@ -4,6 +4,9 @@
 
 2章で準備は整ったので、この章でAzureにランディングゾーンを実際にデプロイしていきましょう！
 
+![この章でやること](./img/diagrams/chapter3-overview.svg)
+
+
 ---
 
 ## Part 1: Landing Zonesのデプロイ🛠️
@@ -32,26 +35,7 @@
 
 GitHub Actionsを使った自動デプロイの流れです。
 
-```mermaid
-sequenceDiagram
-    participant User as ユーザー
-    participant GH as GitHub Actions
-    participant Azure as Azure
-    
-    User->>GH: Run workflow クリック
-    GH->>GH: CD Workflow起動
-    GH->>GH: 環境: alz-mgmt-apply
-    GH->>User: 承認リクエスト通知
-    User->>User: Planを確認
-    User->>GH: 承認
-    GH->>Azure: Terraform Init
-    Azure->>GH: Init完了
-    GH->>Azure: Terraform Apply
-    Azure->>GH: リソース作成中...
-    Note over Azure: Management Groups<br/>Policies<br/>VNets<br/>Log Analytics
-    Azure->>GH: Apply完了
-    GH->>User: デプロイ完了通知
-```
+![Azure Landing Zones デプロイフロー](./img/diagrams/deploy-flow.svg)
 
 **実際の画面**:
 
