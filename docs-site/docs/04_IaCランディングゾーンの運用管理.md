@@ -584,29 +584,7 @@ git branch -D feature/version-change
 
 GitHubでの変更フローです。
 
-```mermaid
-graph LR
-    A[main] --> B[feature/xxx]
-    B --> C[変更実施]
-    C --> D[Commit]
-    D --> E[Push]
-    E --> F[PR作成]
-    F --> G[CI/Plan実行]
-    G --> H{Plan OK?}
-    H -->|No| I[修正]
-    I --> C
-    H -->|Yes| J[レビュー]
-    J --> K{承認?}
-    K -->|No| I
-    K -->|Yes| L[Merge]
-    L --> M[CD/Apply実行]
-    M --> N[承認]
-    N --> O[デプロイ]
-    O --> P[検証]
-    P --> Q{成功?}
-    Q -->|Yes| R[完了]
-    Q -->|No| S[Revert]
-```
+![変更管理フロー](./img/diagrams/change-management-flow.svg)
 
 === "🌱 Feature Branch作成"
 
@@ -1315,6 +1293,12 @@ alz-mgmt/
 
 ## 🛡️ Part 4: カスタムポリシーの作成と管理
 
+このPartでは、カスタムポリシーの作成と管理を体験してみましょう！
+
+管理のフローは以下のようなイメージになります。
+
+![カスタムポリシー管理フロー](./img/diagrams/custom-policy-management-flow.svg)
+
 ### 🏷️ カスタムポリシーとは？
 
 Azureには標準で数百のポリシーが用意されていますが、組織独自のルールを適用したいこともあります。
@@ -1706,324 +1690,191 @@ gh pr merge --squash
 
 ---
 
-### 🎯✨ やってみよう: ポリシーの一時無効化
+### 🎯✨ やってみよう: ポリシーの適用除外
 
-緊急時や、メンテナンス時に、ポリシーを一時的に無効化する方法です。
+特定のリソースやリソースグループを、ポリシーの対象から除外したいケースがあります。
+例えば、テスト環境のVMだけはタグルールを免除したい、といった場合です。
 
 #### 📝 シナリオ
 
-大規模なインフラ変更を行う際、Ownerタグポリシーが邪魔になっている。作業中だけ一時的に無効化したい。
-
-#### 🌱 6-1: ブランチ作成
-
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/disable-owner-tag-policy
-```
-
-#### 📝 6-2: enforcement_modeをDoNotEnforceに変更
-
-`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
-
-```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
-policy_assignments:
-  - policy_assignment_name: Custom-Tagging
-    display_name: "カスタムタグ付けポリシー"
-    policy_set_definition_name: Custom-Tagging-Initiative
-    scope_type: "management_group"
-    parameters:
-      ownerTagEffect:
-        value: "Deny"
-    enforcement_mode: "DoNotEnforce"  # Default → DoNotEnforce に変更
-    identity:
-      type: "None"
-```
-
-#### 📨 6-3: コミット&PR作成
-
-```bash
-git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml
-
-git commit -m "chore: Temporarily disable Owner tag policy for maintenance
-
-作業期間: 2026/01/26 - 2026/01/27
-作業完了後に再度有効化する"
-
-git push origin feature/disable-owner-tag-policy
-
-gh pr create --base main --head feature/disable-owner-tag-policy \
-  --title "chore: Temporarily disable Owner tag policy" \
-  --body "メンテナンス作業のため、Ownerタグポリシーを一時無効化
-
-## 無効化期間
-- 開始: 2026/01/26
-- 終了予定: 2026/01/27
-
-## Plan確認事項
-- [ ] enforcement_mode が DoNotEnforce に変更される
-- [ ] ポリシー定義とイニシアティブは削除されない
-- [ ] 既存リソースへの影響なし"
-```
-
-#### 🧪 6-4: Plan確認
-
-GitHub Actionsの出力：
-
-```hcl
-Terraform will perform the following actions:
-
-  # module.management_groups.azurerm_management_group_policy_assignment.this["Custom-Tagging"] will be updated in-place
-  ~ resource "azurerm_management_group_policy_assignment" "this" {
-        name               = "Custom-Tagging"
-        management_group_id = "/providers/Microsoft.Management/managementGroups/corp"
-      ~ enforcement_mode   = "Default" -> "DoNotEnforce"
-        # (4 unchanged attributes hidden)
-    }
-
-Plan: 0 to add, 1 to change, 0 to destroy.
-```
-
-#### ✅ 6-5: マージ&確認
-
-```bash
-gh pr merge --squash
-git checkout main
-git pull origin main
-git branch -D feature/disable-owner-tag-policy
-
-# 無効化を確認
-az policy assignment show \
-  --name "Custom-Tagging" \
-  --scope "/providers/Microsoft.Management/managementGroups/corp" \
-  --query "{Name:name, EnforcementMode:enforcementMode}" -o table
-```
-
-**出力例:**
-```
-Name             EnforcementMode
----------------  ---------------
-Custom-Tagging   DoNotEnforce
-```
-
-!!! success "ポリシーが無効化された🎉 "
-    - ポリシーは割り当てられたまま
-    - コンプライアンス評価は継続
-    - ただし、リソース作成・変更を**ブロックしない**
-    
-    作業完了後、必ず`enforcement_mode: "Default"`に戻しましょう。
+「Ownerタグ必須ポリシー」が適用されているが、一時的なテストリソースは例外として除外したい。
 
 ---
 
-### 🎯✨ やってみよう: ポリシーの完全削除
+#### 🌱 Step 1: ブランチ作成
 
-不要になったポリシーを、定義ごと完全に削除する方法です。
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/add-policy-exemption
+```
 
-#### 📝 シナリオ
+---
 
-Ownerタグポリシーが不要になった。ポリシー割り当て、イニシアティブ、定義を全て削除したい。
+#### 📄 Step 2: 適用除外定義ファイルを作成
 
-!!! warning "削除前の確認⚠️ "
-    削除する前に、必ず以下を確認してください：
-    
+`lib/policy_exemptions/`ディレクトリに新しいファイルを作成します。
+
+```bash
+mkdir -p lib/policy_exemptions
+```
+
+```json title="lib/policy_exemptions/exemption_test_resources.json（新規作成）"
+{
+  "name": "Exempt-Test-Resources",
+  "type": "Microsoft.Authorization/policyExemptions",
+  "apiVersion": "2022-07-01-preview",
+  "properties": {
+    "displayName": "テストリソースの適用除外",
+    "description": "一時的なテストリソースはOwnerタグポリシーの対象外とする",
+    "exemptionCategory": "Waiver",
+    "policyAssignmentId": "/providers/Microsoft.Management/managementGroups/yourorg-corp/providers/Microsoft.Authorization/policyAssignments/Custom-Tagging",
+    "resourceSelectors": [
+      {
+        "name": "TestResources",
+        "selectors": [
+          {
+            "kind": "resourceType",
+            "in": [
+              "Microsoft.Compute/virtualMachines"
+            ]
+          },
+          {
+            "kind": "resourceWithoutLocation",
+            "notIn": [
+              "japaneast",
+              "japanwest"
+            ]
+          }
+        ]
+      }
+    ],
+    "expiresOn": "2025-12-31T23:59:59Z",
+    "metadata": {
+      "requestedBy": "Test Team",
+      "approvedBy": "Security Team",
+      "ticketNumber": "TICKET-12345"
+    }
+  }
+}
+```
+
+!!! info "適用除外の種類ℹ️"
+    - **Waiver（免除）**: 一時的な免除。期限を設定することを推奨
+    - **Mitigated（軽減済み）**: 別の方法でリスク軽減済み
+
+!!! warning "適用除外の注意点⚠️"
+    - 適用除外には必ず**有効期限**を設定しましょう
+    - 誰が申請し、誰が承認したかをmetadataに記録
+    - チケット番号を紐づけて追跡可能にする
+
+---
+
+#### 🗂️ Step 3: archetype_overrideに追加
+
+`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集して、適用除外を追加します。
+
+```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
+# 既存の設定に追加
+policy_exemptions:
+  - exemption_name: Exempt-Test-Resources
+    display_name: "テストリソースの適用除外"
+    description: "一時的なテストリソースはOwnerタグポリシーの対象外"
+    exemption_category: "Waiver"
+    policy_assignment_name: Custom-Tagging
+    expires_on: "2025-12-31T23:59:59Z"
+    resource_selectors:
+      - name: "TestResources"
+        selectors:
+          - kind: "resourceType"
+            in:
+              - "Microsoft.Compute/virtualMachines"
+    metadata:
+      requested_by: "Test Team"
+      approved_by: "Security Team"
+      ticket_number: "TICKET-12345"
+```
+
+---
+
+#### 🚀 Step 4: PRを作成してマージ
+
+```bash
+git add .
+git commit -m "feat: Add policy exemption for test resources"
+git push origin feature/add-policy-exemption
+
+gh pr create --base main --head feature/add-policy-exemption \
+  --title "feat: Add policy exemption for test resources" \
+  --body "## 概要
+一時的なテストリソースに対するポリシー適用除外を追加
+
+## 詳細
+- 対象: テストVM
+- 有効期限: 2025-12-31
+- 承認: Security Team
+- チケット: TICKET-12345"
+
+gh pr merge --squash
+```
+
+---
+
+#### ✅ Step 5: 適用除外の確認
+
+デプロイ完了後、Azure Portalで確認します。
+
+=== "Azure Portal で確認"
+
+    1. **Azure Portal** → **ポリシー** → **除外** を開く
+    2. 作成した除外が表示されていることを確認
+    3. 対象リソースがポリシー評価から除外されていることを確認
+
+=== "Azure CLI で確認"
+
     ```bash
-    # このポリシーが他の場所で使われていないか確認
-    az policy assignment list --query "[?contains(policyDefinitionId, 'Require-Owner-Tag')]" -o table
-    
-    # イニシアティブが他の管理グループで使われていないか確認
-    az policy assignment list --query "[?contains(policyDefinitionId, 'Custom-Tagging-Initiative')]" -o table
+    # 適用除外の一覧を取得
+    az policy exemption list \
+      --scope "/providers/Microsoft.Management/managementGroups/yourorg-corp" \
+      --output table
     ```
-    
-    他の場所で使われている場合は、そちらも削除する必要があります。
 
-#### 🌱 7-1: ブランチ作成
-
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/remove-owner-tag-policy
-```
-
-#### 🗂️ 7-2: アーキタイプから削除
-
-`lib/archetype_definitions/corp_custom.alz_archetype_override.yaml`を編集：
-
-```yaml title="lib/archetype_definitions/corp_custom.alz_archetype_override.yaml（編集）"
-name: corp_custom
-parent_id: corp
-
-# ポリシー定義を削除
-policy_definitions:
-  # - Require-Owner-Tag  # この行を削除またはコメントアウト
-
-# イニシアティブを削除
-policy_set_definitions:
-  # - Custom-Tagging-Initiative  # この行を削除またはコメントアウト
-
-# ポリシー割り当てを削除
-policy_assignments:
-  # - policy_assignment_name: Custom-Tagging  # このブロック全体を削除
-  #   display_name: "カスタムタグ付けポリシー"
-  #   policy_set_definition_name: Custom-Tagging-Initiative
-  #   scope_type: "management_group"
-  #   parameters:
-  #     ownerTagEffect:
-  #       value: "Deny"
-  #   enforcement_mode: "Default"
-  #   identity:
-  #     type: "None"
-```
-
-#### 🗑️ 7-3: ポリシー定義ファイルを削除
-
-```bash
-# ポリシー定義ファイルを削除
-rm lib/policy_definitions/policy_definition_require_owner_tag.json
-
-# イニシアティブ定義ファイルを削除
-rm lib/policy_set_definitions/policy_set_definition_custom_tagging.json
-
-# 削除を確認
-git status
-```
-
-#### 📨 7-4: コミット&PR作成
-
-```bash
-# 削除したファイルをステージング
-git add lib/archetype_definitions/corp_custom.alz_archetype_override.yaml \
-        lib/policy_definitions/policy_definition_require_owner_tag.json \
-        lib/policy_set_definitions/policy_set_definition_custom_tagging.json
-
-git commit -m "chore: Remove Owner tag policy
-
-Ownerタグポリシーが不要になったため削除
-
-削除内容:
-- ポリシー定義: Require-Owner-Tag
-- イニシアティブ: Custom-Tagging-Initiative
-- ポリシー割り当て: Custom-Tagging (corp管理グループ)"
-
-git push origin feature/remove-owner-tag-policy
-
-gh pr create --base main --head feature/remove-owner-tag-policy \
-  --title "chore: Remove Owner tag policy" \
-  --body "不要になったOwnerタグポリシーを完全削除
-
-## 削除内容
-- ✅ ポリシー定義ファイル削除
-- ✅ イニシアティブ定義ファイル削除
-- ✅ アーキタイプから削除
-
-## Plan確認事項
-- [ ] ポリシー割り当てが削除される（destroy）
-- [ ] イニシアティブが削除される（destroy）
-- [ ] ポリシー定義が削除される（destroy）
-- [ ] 既存リソースへの影響なし
-
-## 削除後の動作
-- Ownerタグがなくてもリソース作成可能になる
-- 既存のコンプライアンス評価は停止"
-```
-
-#### 🧪 7-5: Plan確認
-
-GitHub Actionsの出力：
-
-```hcl
-Terraform will perform the following actions:
-
-  # module.management_groups.azurerm_management_group_policy_assignment.this["Custom-Tagging"] will be destroyed
-  - resource "azurerm_management_group_policy_assignment" "this" {
-      - name                 = "Custom-Tagging" -> null
-      - management_group_id  = "/providers/Microsoft.Management/managementGroups/corp" -> null
-      # (5 unchanged attributes hidden)
-    }
-
-  # module.management_groups.azurerm_management_group_policy_set_definition.this["Custom-Tagging-Initiative"] will be destroyed
-  - resource "azurerm_management_group_policy_set_definition" "this" {
-      - name                  = "Custom-Tagging-Initiative" -> null
-      - display_name          = "カスタムタグ付けポリシーセット" -> null
-      # (3 unchanged attributes hidden)
-    }
-
-  # module.management_groups.azurerm_management_group_policy_definition.this["Require-Owner-Tag"] will be destroyed
-  - resource "azurerm_management_group_policy_definition" "this" {
-      - name                  = "Require-Owner-Tag" -> null
-      - display_name          = "本番リソースにOwnerタグを必須化" -> null
-      # (3 unchanged attributes hidden)
-    }
-
-Plan: 0 to add, 0 to change, 3 to destroy.
-```
-
-!!! success "3つのリソースが削除される🎉 "
-    1. ポリシー割り当て（Custom-Tagging）
-    2. イニシアティブ（Custom-Tagging-Initiative）
-    3. ポリシー定義（Require-Owner-Tag）
-
-#### ✅ 7-6: マージ&確認
-
-```bash
-gh pr merge --squash
-git checkout main
-git pull origin main
-git branch -D feature/remove-owner-tag-policy
-
-# 削除を確認
-az policy assignment list \
-  --scope "/providers/Microsoft.Management/managementGroups/corp" \
-  --query "[?displayName=='カスタムタグ付けポリシー']" -o table
-
-az policy set-definition show \
-  --management-group corp \
-  --name "Custom-Tagging-Initiative" 2>&1 | grep "not found"
-
-az policy definition show \
-  --management-group corp \
-  --name "Require-Owner-Tag" 2>&1 | grep "not found"
-```
-
-**出力例:**
-```
-# ポリシー割り当て → 空（削除された）
-
-# イニシアティブ → Not found
-PolicySetDefinitionNotFound: The policy set definition 'Custom-Tagging-Initiative' could not be found.
-
-# ポリシー定義 → Not found
-PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be found.
-```
-
-!!! success "ポリシーが完全に削除された🎉 "
-    - ✅ ポリシー割り当て削除
-    - ✅ イニシアティブ削除
-    - ✅ ポリシー定義削除
-    - ✅ コンプライアンス評価停止
+    **期待される出力:**
+    ```
+    Name                   DisplayName                 ExemptionCategory  ExpiresOn
+    ---------------------  --------------------------  -----------------  ------------------------
+    Exempt-Test-Resources  テストリソースの適用除外    Waiver             2025-12-31T23:59:59Z
+    ```
 
 ---
 
-### 🏅 ポリシー管理のベストプラクティス
+#### 🔄 Step 6: 適用除外の削除（期限切れ後）
 
-!!! tip "削除と無効化の使い分け💡 "
-    | 操作 | 使うケース | リソースの状態 | 復元 |
-    |------|-----------|---------------|------|
-    | **無効化** | 一時的なメンテナンス、テスト期間 | リソースは残る | すぐに再有効化可能 |
-    | **削除** | 完全に不要、ポリシー変更 | リソースは削除される | 再作成が必要 |
+適用除外が不要になったら、ファイルを削除してPRを作成します。
 
-!!! tip "削除の順序📝 "
-    1. **ポリシー割り当て**を先に削除
-    2. **イニシアティブ**を削除
-    3. **ポリシー定義**を削除
-    
-    Terraformが自動で依存関係を解決しますが、手動削除の場合はこの順序を守りましょう。
+```bash
+git checkout -b feature/remove-test-exemption
 
-!!! tip "削除前のチェックリスト📋 "
-    - [ ] 他の管理グループで使われていないか確認
-    - [ ] 削除の影響範囲を関係者に通知
-    - [ ] Plan結果で削除されるリソースを確認
-    - [ ] 削除後にリソース作成の動作が変わることを確認
-    - [ ] ドキュメント（README等）も更新
+# 適用除外ファイルを削除
+rm lib/policy_exemptions/exemption_test_resources.json
+
+# archetype_overrideからも削除（該当部分をコメントアウトまたは削除）
+
+git add .
+git commit -m "chore: Remove expired policy exemption for test resources"
+git push origin feature/remove-test-exemption
+
+gh pr create --base main --head feature/remove-test-exemption \
+  --title "chore: Remove expired policy exemption" \
+  --body "有効期限切れの適用除外を削除"
+
+gh pr merge --squash
+```
+
+!!! tip "適用除外のライフサイクル管理💡"
+    - 定期的に期限切れの適用除外をレビュー
+    - 不要になった適用除外は速やかに削除
+    - 更新が必要な場合は新しいチケットを発行して再承認
 
 ---
 
@@ -2038,7 +1889,7 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
     4. **通知**: 事前に関係者へ通知
 
 !!! tip "テスト環境で検証🧪 "
-    - 先に`landing-zones`管理グループで試す
+    - 先に`Sandbox`管理グループで試す
     - 問題なければ`corp`に適用
 
 !!! tip "イニシアティブで整理🗂️ "
@@ -2057,22 +1908,34 @@ PolicyDefinitionNotFound: The policy definition 'Require-Owner-Tag' could not be
 
 この章で学んだこと：
 
-### ✅🛠️ Part 1: 日常運用タスク
+### ✅🛠️ Part 1: Terraformの運用
 
-
+- **Configuration Drift検出**: GitHub Actionsで定期的にDriftをチェック
+- **バージョン更新**: Terraform / ALZモジュールの段階的なアップデート手順
+- **tfvars管理**: 環境ごとの設定ファイル管理
 
 ### ✅🔄 Part 2: 変更管理フロー
 
-- 変更リクエストの受付
-- Branch→PR→Reviewフロー
-- Terraform Plan確認
-- Approval Process
-- 変更履歴の管理
+- **変更リクエスト受付**: 申請テンプレートで必要情報を収集
+- **Branch→PR→Review**: feature/xxxブランチで変更 → PRでレビュー
+- **Terraform Plan確認**: 変更内容を事前に確認
+- **Approval Process**: 承認フローでガバナンス強化
+- **変更履歴管理**: Gitコミットで完全な追跡可能性
 
-### ✅⚡ Part 3: サブスクリプションの払い出し自動化
+### ✅⚡ Part 3: サブスクリプション払い出しの自動化
 
+- **Subscription Vending**: YAMLファイル追加でサブスクリプション自動作成
+- **管理グループへの自動配置**: corpやonlineへ自動的に配置
+- **リソースグループ自動作成**: サブスクリプションと一緒にRGも作成
+- **VNet自動作成**: 必要に応じてネットワークも自動構築
 
-### ✅🛡️ Part 4: ポリシーの更新管理
+### ✅🛡️ Part 4: カスタムポリシーの作成と管理
+
+- **カスタムポリシー定義**: lib/policy_definitions/にJSONで定義
+- **イニシアティブ作成**: 複数ポリシーをまとめて管理
+- **archetype_override**: 管理グループへの割り当て
+- **段階的ロールアウト**: Audit → 修正 → Deny
+- **適用除外**: 例外ケースはExemptionで対応
 
 ---
 
