@@ -75,7 +75,7 @@ terraform plan -detailed-exitcode
 
     jobs:
       drift-check:
-        uses: shuheiorg02/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
+        uses: <あなたのgithub組織名>/alz-mgmt-templates/.github/workflows/ci-template.yaml@main
         permissions:
           id-token: write
           contents: read
@@ -176,6 +176,8 @@ terraform plan -detailed-exitcode
 
     「ワークフローの作成」タブのコードをコピーして、作成したファイルに貼り付けます。
 
+    コード内の<あなたのgithub組織名>というところをあなたのgithub組織名に書き換えて保存してください。
+
     **Step 2: コミット＆プッシュ**
 
     ```bash
@@ -222,9 +224,11 @@ terraform plan -detailed-exitcode
     1. Azure Portalにログイン
     2. vnet-hub-japaneastにてきとうに一つタグを追加してみる。
 
+    ![alt text](./img/image68.png)
+
     **Step 2: ワークフローを再実行**
 
-    1. GitHub Actionsで**Drift Detection**を手動実行
+    1. GitHub Actionsで「Drift Detection」を手動実行
     2. 実行が完了するまで待つ（2-3分程度）
 
     **Step 3: 結果を確認**
@@ -507,313 +511,136 @@ git branch -D feature/version-change
 
 ## 🔄 Part 2: 変更管理フロー
 
-### 変更リクエストの受付
+Part2では、Azureランディングゾーンで作ったインフラを変更する際にどうやるか見ていきましょう。
 
-変更リクエストを受け付ける際のプロセスです。
-
-=== "📝 変更リクエストテンプレート"
-
-    ```markdown title=".github/ISSUE_TEMPLATE/change-request.md"
-    ---
-    name: 変更リクエスト
-    about: Landing Zonesへの変更を申請
-    title: '[変更] '
-    labels: change-request
-    assignees: ''
-    ---
-    
-    ## 変更概要
-    
-    <!-- 何を変更するか簡潔に記載 -->
-    
-    ## 変更理由
-    
-    <!-- なぜこの変更が必要か -->
-    
-    ## 影響範囲
-    
-    - [ ] Management Group
-    - [ ] Policy
-    - [ ] Networking
-    - [ ] Management Resources
-    - [ ] その他: ___________
-    
-    ## 変更対象
-    
-    - Subscription: 
-    - Resource Group: 
-    - リソース: 
-    
-    ## 緊急度
-    
-    - [ ] 緊急（即日対応）
-    - [ ] 高（1週間以内）
-    - [ ] 中（2週間以内）
-    - [ ] 低（1ヶ月以内）
-    
-    ## 変更予定日時
-    
-    YYYY-MM-DD HH:MM JST
-    
-    ## ロールバック計画
-    
-    <!-- 問題発生時の戻し方 -->
-    ```
-
-=== "🔍 レビュー基準"
-
-    **承認条件**:
-    
-    - ✅ 変更理由が明確
-    - ✅ 影響範囲が特定されている
-    - ✅ ロールバック計画がある
-    - ✅ テスト計画がある
-    - ✅ セキュリティレビュー完了
-    - ✅ 承認者の承認を得ている
-    
-    **却下理由**:
-    
-    - ❌ 影響範囲が不明
-    - ❌ ロールバック計画なし
-    - ❌ セキュリティリスクあり
-    - ❌ ポリシー違反
-
----
+基本的に、Githubの仕組みを使って変更を管理していきます。
 
 ### 🌿 Branch→PR→Reviewフロー
 
-GitHubでの変更フローです。
+GitHubを使った変更フローを図で見ていきましょう。
 
 ![変更管理フロー](./img/diagrams/change-management-flow.svg)
 
-=== "🌱 Feature Branch作成"
-
-    ```bash title="ブランチ作成"
-    git checkout main
-    git pull origin main
-    git checkout -b feature/add-spoke-vnet
-    ```
-
-=== "🛠️ 変更実施"
-
-    ```bash title="変更とコミット"
-    # terraform.tfvarsを編集
-    vim terraform.tfvars
-    
-    # 変更を確認
-    git diff
-    
-    # コミット
-    git add terraform.tfvars
-    git commit -m "feat: App用Spoke VNetを追加"
-    
-    # Push
-    git push origin feature/add-spoke-vnet
-    ```
-
-=== "📦 PR作成"
-
-    ```markdown title="PRテンプレート"
-    ## 変更内容
-    
-    App用Spoke VNetを追加
-    
-    ## 変更理由
-    
-    新規アプリケーションのデプロイに必要
-    
-    ## 影響範囲
-    
-    - Networking: Spoke VNet追加
-    - Peering: Hub VNetとのPeering追加
-    
-    ## テスト計画
-    
-    - [ ] CI/Planの確認
-    - [ ] 疎通テスト
-    
-    ## チェックリスト
-    
-    - [x] tfvarsファイルを変更
-    - [x] ローカルでPlan実行
-    - [x] ドキュメント更新
-    - [ ] レビュー完了
-    - [ ] 承認完了
-    
-    ## 関連Issue
-    
-    Closes #123
-    ```
+このように基本的にはすべての変更作業が、ブランチ作成→コード変更→コミット・プッシュ→プルリクエスト→承認→マージという共通の流れをたどっていくことになります。
 
 ---
 
-### 📋 Terraform Plan確認
+### 変更管理ハンズオン
 
-PRで実行されるPlanを確認します。
+それでは、ハンズオンで変更作業の一連の流れを体験してみましょう。
 
-=== "📝 Plan出力の確認"
+実は、これまでの変更作業でコマンドでやってた「git add」などあれが変更の流れすべてまとめた一連のスクリプトだったんです。
 
-    GitHub ActionsのCI実行結果を確認：
-    
-    ```text title="Plan Summary"
-    Plan: 5 to add, 0 to change, 0 to destroy.
-    
-    + azurerm_virtual_network.app_spoke
-    + azurerm_subnet.app_subnet
-    + azurerm_virtual_network_peering.hub_to_app
-    + azurerm_virtual_network_peering.app_to_hub
-    + azurerm_route_table.app_routes
-    ```
+ここでは、手動でのやり方を体験してみます。
 
-=== "🔎 確認ポイント"
+#### ブランチ作成、コード更新
 
-    **必ず確認すること**:
-    
-    - ✅ 意図したリソースが追加されるか
-    - ✅ 想定外の変更がないか
-    - ✅ 削除されるリソースがないか
-    - ✅ 依存関係が正しいか
-    - ✅ 名前やタグが正しいか
-    
-    **警告サイン**:
-    
-    - ⚠️ `destroy` が含まれている
-    - ⚠️ `to change` の数が多い
-    - ⚠️ 意図しないリソースが含まれる
+まずブランチを作成します。
 
-=== "✅ コメントでの承認"
+Github Codespaceを開いてください。
 
-    ```markdown title="PR承認コメント"
-    ## レビュー結果
-    
-    ✅ Plan確認完了
-    
-    ### 確認事項
-    - [x] Spoke VNet: 10.1.0.0/16
-    - [x] Subnet: app-subnet (10.1.0.0/24)
-    - [x] Peering: 双方向
-    - [x] Route Table: Hub Firewall経由
-    
-    ### 懸念事項
-    なし
-    
-    承認します。マージしてください。
-    ```
+開いた画面で、左側の枝みたいなアイコンを押すと「GitHub拡張機能」の画面が開きます。この画面でGitのほぼすべての操作がGUIでできてしまいます。
 
----
+![alt text](./img/image69.png)
 
-### 📝 Approval Process
+特に下部のグラフというところはこれまでの変更履歴が木のような形で記録されています。（画像の履歴はいろいろ検証しているので多くてすみません、、、）
 
-本番適用の承認プロセスです。
+絵もかいてみましたが、mainとブランチという概念の理解が必要です。mainが木の幹のようなものでこれまでの変更履歴をきれいに一直線に記録しています。ブランチが木の枝のようなもので、mainから離れて機能などを開発し、あとからmainと統合（マージ）します。
 
-=== "🔗 承認フロー"
+![alt text](./img/image71.png)
 
-    ```mermaid
-    graph TD
-        A[PR Merge] --> B[CD Workflow起動]
-        B --> C[Plan実行]
-        C --> D[承認待ち]
-        D --> E{承認者確認}
-        E -->|承認| F[Apply実行]
-        E -->|却下| G[中止]
-        F --> H[デプロイ完了]
-        H --> I[通知]
-    ```
+それでは、ブランチを作ってみましょう！グラフのところに枝みたいなのができますよ。
 
-=== "🧐 承認者の確認事項"
+「その他の操作」→「ブランチ」→「ブランチの作成」を押してください。
 
-    **承認前チェックリスト**:
-    
-    - [ ] PRのレビューが完了しているか
-    - [ ] Plan出力を確認したか
-    - [ ] 影響範囲を理解しているか
-    - [ ] ロールバック計画があるか
-    - [ ] 変更時間帯は適切か
-    - [ ] 関係者に通知済みか
-    
-    **承認コメント例**:
-    
-    ```text
-    Plan確認しました。
-    - 追加: 5リソース
-    - 変更: 0リソース
-    - 削除: 0リソース
-    
-    影響範囲: Networkingのみ
-    ロールバック: Revert可能
-    
-    承認します。
-    ```
+![alt text](./img/image70.png)
 
-=== "❌ 却下理由例"
+すると、ブランチの名前を入力する画面が出てくるので、「test-branch」と入力してエンターを押しましょう。
 
-    ```text
-    以下の理由により却下します：
-    
-    ❌ 想定外のリソース削除が含まれている
-    ❌ 変更時間帯が営業時間内（業務影響あり）
-    ❌ ロールバック計画が不明瞭
-    
-    修正後、再度レビュー依頼してください。
-    ```
+すると、先ほどまで「main」だったところが「test-branch」に変わります。現在値が「test-branch」であることを示しています。
 
----
+![alt text](./img/image72.png)
 
-### 🗃️ 変更履歴の管理
+そしたら、新しく「test.txt」というファイルを追加します。
 
-変更履歴を記録します。
+![alt text](./img/image73.png)
 
-=== "📜 Gitログ"
+Github拡張機能に戻ると、「変更」欄に追加したファイルが表示されています。
 
-    ```bash title="変更履歴確認"
-    git log --oneline --graph --decorate --all
-    ```
-    
-    ```text title="出力例"
-    * a1b2c3d (HEAD -> main) feat: App用Spoke VNetを追加
-    * d4e5f6g feat: SAP用Management Groupを追加
-    * g7h8i9j fix: Firewallルールを修正
-    * j0k1l2m feat: 環境タグ必須ポリシーを追加
-    ```
+✨ボタンを押してAIにコミットメッセージを生成してもらい、「コミット」を押してコミットしてみましょう。
 
-=== "📝 CHANGELOG.md"
+![alt text](./img/image74.png)
 
-    ```markdown title="CHANGELOG.md"
-    # Changelog
-    
-    ## [1.2.0] - 2026-01-20
-    
-    ### Added
-    - App用Spoke VNetを追加 (#123)
-    - SAP用Management Groupを追加 (#120)
-    
-    ### Fixed
-    - Firewallルールの誤設定を修正 (#121)
-    
-    ### Changed
-    - Hub VNetのアドレス空間を拡張 (#122)
-    
-    ## [1.1.0] - 2026-01-15
-    
-    ### Added
-    - 環境タグ必須ポリシーを追加 (#115)
-    ```
+すると、「test-branch」が進んだことがわかります。「main」を離れてブランチが進んでいることがわかります。
 
-=== "🏷️ Release作成"
+![alt text](./img/image75.png)
 
-    ```bash title="Gitタグ作成"
-    git tag -a v1.2.0 -m "Release v1.2.0: Spoke VNet追加"
-    git push origin v1.2.0
-    ```
-    
-    GitHubでReleaseを作成します。
+次に、ブランチをリモートにプッシュしてみましょう。
 
-!!! tip "変更管理のベストプラクティス💡 "
-    - 小さい変更から始める
-    - 1つのPRで1つの変更
-    - テスト環境で事前検証
-    - ピーク時間を避ける
-    - ロールバック計画を必ず用意
+![alt text](./img/image76.png)
+
+以下のような確認画面が出ますが、これはリモートにもブランチを作成することを意味します。OKを押しましょう。
+
+ℹ️ローカルとリモートのリポジトリは別々に存在していると理解してください。それぞれにmainもブランチも存在しています。リモートはoriginと言ったりします。
+
+![alt text](./img/image77.png)
+
+リモートにもブランチができているのがわかりますね。
+
+![alt text](./img/image78.png)
+
+ここまでできたら、ブラウザでGitHubのあなたの「alz-mgnt」リポジトリに移動しましょう。
+
+すると、リモートにブランチを発行したので、プルリクエストの作成ボタンが出ています。ボタンを押してみましょう。
+
+ℹ️プルリクエスト＝承認依頼みたいな理解でOKです。
+
+![alt text](./img/image79.png)
+
+プルリクエストの作成画面に移動するので、「Create pull request」を押しましょう。
+
+ℹ️現場では、ここで変更内容など、承認に必要な情報を記入します。
+
+そうすると、プルリクエストの画面に移動します。これは承認者が確認する画面で、ここで変更内容を確認しOKであればマージします。「Squash and merge」を押しましょう。
+
+ℹ️GitHubリポジトリでは承認できるユーザーを絞り込んで承認者だけがマージできます。mainへのマージをトリガーにCI/CD（terraformのプランとアプライ。今まで何回か見ましたよね）が動き、デプロイとなるので、マージ＝本番環境の変更っを意味します。
+
+![alt text](./img/image80.png)
+
+承認コメントを入力する画面になるので、そのままマージしましょう。
+
+![alt text](./img/image81.png)
+
+マージしたタイミングで、CI/CDが動き出します。GitHub Actionsのページで確認してみましょう。（筆者は時間が置いたのでもう終わっちゃってる）
+
+![alt text](./img/image86.png)
+
+マージできたら、先ほど開いていたGitHub Codespaceに戻りましょう。
+
+グラフを見ると、origin/mainが進んでブランチが枝になっているのがわかりますね。
+
+![alt text](./img/image82.png)
+
+そうしたら、リモートが最新になったので、ローカルをリモートに合わせましょう。
+
+origin/mainのところを右クリックして、「チェックアウト」→「origin/main」
+
+ℹ️チェックアウトは現在のブランチ（mainもブランチの一種）を切り替えるという意味です。
+
+![alt text](./img/image83.png)
+
+次は、プルをやりましょう。画面のように操作して「プル」してください。
+
+ℹ️プルとは、「リモート」の最新状況をローカルの現在のブランチに反映する（引っ張ってくる＝プル）操作です。
+
+![alt text](./img/image84.png)
+
+OK!グラフが一直線で綺麗になりました。この一連の流れがGitHubのコードを変更してインフラを変更する一連の流れになります。理解できたでしょうか。
+
+![alt text](./img/image85.png)
+
+私の好きなサービスであるGitHubを説明できてうれしいです。GitHubは個人用途でも無料で使えて超便利なサービスですし、とりまきのエコシステムがすごく良いものがそろっているのでぜひ使ってみてください。
+
 
 ---
 
