@@ -1,0 +1,257 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="5.0" version="21.0.0">
+    <diagram id="custom-policy-management" name="カスタムポリシー管理">
+        <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="800" background="#ffffff">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="🛡️ カスタムポリシー管理フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#8661C5;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="20" width="1320" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Phase 1: Create Policy -->
+                <mxCell id="phase1-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E0F0;strokeColor=#8661C5;strokeWidth=2;opacity=50;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="80" width="280" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase1-title" value="📝 Step 1: ポリシー定義" style="text;html=1;strokeColor=none;fillColor=#8661C5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="50" y="90" width="260" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="step1-1" value="🌿 ブランチ作成&#xa;feature/add-policy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="135" width="220" height="45" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow1-1" value="" style="endArrow=classic;html=1;strokeColor=#8661C5;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="180" y="185" as="sourcePoint"/>
+                        <mxPoint x="180" y="210" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="step1-2" value="📄 policy_definition.json&#xa;ポリシールールを定義" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="215" width="220" height="45" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow1-2" value="" style="endArrow=classic;html=1;strokeColor=#8661C5;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="180" y="265" as="sourcePoint"/>
+                        <mxPoint x="180" y="290" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="step1-3" value="🎯 policyRule&#xa;if: 条件 → then: 効果" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="295" width="220" height="45" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="policy-icon" value="⚙️ effect:&#xa;Audit / Deny / Disabled" style="text;html=1;strokeColor=#6441A5;fillColor=#F0E6FF;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=10;fontStyle=0;fontColor=#6441A5;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="350" width="220" height="35" as="geometry"/>
+                </mxCell>
+                
+                <!-- Phase 2: Create Initiative -->
+                <mxCell id="phase2-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#FFB900;strokeWidth=2;opacity=50;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="80" width="280" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase2-title" value="🗂️ Step 2: イニシアティブ" style="text;html=1;strokeColor=none;fillColor=#FFB900;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="370" y="90" width="260" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="step2-1" value="📦 policy_set_definition.json&#xa;ポリシーをまとめる" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="390" y="135" width="220" height="45" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow2-1" value="" style="endArrow=classic;html=1;strokeColor=#FFB900;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="500" y="185" as="sourcePoint"/>
+                        <mxPoint x="500" y="210" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="initiative-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF4E5;strokeColor=#D89B00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="390" y="215" width="220" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="initiative-title" value="📋 イニシアティブ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#D89B00;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="220" width="200" height="25" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="policy-item1" value="📌 Ownerタグ必須" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=10;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="250" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="policy-item2" value="📌 Environmentタグ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=10;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="285" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="policy-item3" value="📌 CostCenterタグ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=10;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="320" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="policy-dots" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#D89B00;" vertex="1" parent="1">
+                    <mxGeometry x="480" y="350" width="40" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Phase 3: Assignment -->
+                <mxCell id="phase3-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#7FBA00;strokeWidth=2;opacity=50;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="80" width="280" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase3-title" value="🎯 Step 3: 割り当て" style="text;html=1;strokeColor=none;fillColor=#7FBA00;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="690" y="90" width="260" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="step3-1" value="📝 archetype_override.yaml&#xa;管理グループに割り当て" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="135" width="220" height="45" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow3-1" value="" style="endArrow=classic;html=1;strokeColor=#7FBA00;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="820" y="185" as="sourcePoint"/>
+                        <mxPoint x="820" y="210" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="mg-tree" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#5E8C00;strokeWidth=2;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="215" width="220" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="mg-title" value="🏢 管理グループ階層" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fontColor=#5E8C00;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="220" width="200" height="25" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="mg-root" value="🌳 Root" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=10;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="780" y="250" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="mg-line1" value="" style="endArrow=none;html=1;strokeColor=#5E8C00;strokeWidth=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="820" y="280" as="sourcePoint"/>
+                        <mxPoint x="820" y="295" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="mg-platform" value="⚙️ Platform" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=9;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="300" width="70" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="mg-lz" value="📦 Landing Zones" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=9;fontStyle=0;" vertex="1" parent="1">
+                    <mxGeometry x="810" y="300" width="100" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="mg-line2" value="" style="endArrow=none;html=1;strokeColor=#5E8C00;strokeWidth=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="860" y="327" as="sourcePoint"/>
+                        <mxPoint x="860" y="342" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="mg-corp" value="🏢 Corp ✅割り当て" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="810" y="347" width="110" height="25" as="geometry"/>
+                </mxCell>
+                
+                <!-- Phase 4: Monitor -->
+                <mxCell id="phase4-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE8E8;strokeColor=#E81123;strokeWidth=2;opacity=50;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="80" width="360" height="320" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase4-title" value="📊 Step 4: 監視と運用" style="text;html=1;strokeColor=none;fillColor=#E81123;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1;fontColor=#FFFFFF;" vertex="1" parent="1">
+                    <mxGeometry x="1010" y="90" width="340" height="30" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="step4-flow" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0F0;strokeColor=#E81123;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="1020" y="135" width="320" height="250" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="audit-box" value="👁️ Auditモード&#xa;（監査のみ）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFB900;strokeColor=#D89B00;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1040" y="150" width="120" height="50" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow4-1" value="" style="endArrow=classic;html=1;strokeColor=#E81123;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1100" y="205" as="sourcePoint"/>
+                        <mxPoint x="1100" y="230" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="check-box" value="🔍 非準拠リソース確認&#xa;Azure Policy → コンプライアンス" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1040" y="235" width="140" height="50" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow4-2" value="" style="endArrow=classic;html=1;strokeColor=#E81123;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1100" y="290" as="sourcePoint"/>
+                        <mxPoint x="1100" y="315" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="fix-box" value="🔧 リソース修正" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1040" y="320" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="deny-box" value="🚫 Denyモード&#xa;（強制）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E81123;strokeColor=#A4000F;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1200" y="150" width="120" height="50" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow4-deny" value="全て準拠したら" style="endArrow=classic;html=1;strokeColor=#7FBA00;strokeWidth=2;fontColor=#7FBA00;fontSize=9;fontStyle=1;curved=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1165" y="175" as="sourcePoint"/>
+                        <mxPoint x="1195" y="175" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <mxCell id="exempt-box" value="🎫 適用除外&#xa;（例外ケース）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8661C5;strokeColor=#6441A5;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1200" y="235" width="120" height="50" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="complete-box" value="✅ 完了" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FBA00;strokeColor=#5E8C00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1200" y="320" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="arrow4-3" value="" style="endArrow=classic;html=1;strokeColor=#E81123;strokeWidth=2;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="1165" y="340" as="sourcePoint"/>
+                        <mxPoint x="1195" y="340" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <!-- Arrows between phases -->
+                <mxCell id="phase-arrow1" value="" style="endArrow=classic;html=1;strokeColor=#333333;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="325" y="240" as="sourcePoint"/>
+                        <mxPoint x="355" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="phase-arrow2" value="" style="endArrow=classic;html=1;strokeColor=#333333;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="645" y="240" as="sourcePoint"/>
+                        <mxPoint x="675" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="phase-arrow3" value="" style="endArrow=classic;html=1;strokeColor=#333333;strokeWidth=3;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="965" y="240" as="sourcePoint"/>
+                        <mxPoint x="995" y="240" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                
+                <!-- Legend -->
+                <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="420" width="1320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-title" value="📌 ポイント" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="55" y="428" width="100" height="25" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="legend1" value="✅ カスタムポリシーは lib/ ディレクトリでコード管理" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="55" y="455" width="330" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend2" value="✅ 複数ポリシーはイニシアティブでまとめて管理" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="55" y="480" width="330" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="legend3" value="✅ まずAuditで影響確認、問題なければDenyに切り替え" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="455" width="340" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend4" value="✅ 例外が必要な場合は適用除外（Exemption）を使用" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="480" width="340" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="legend5" value="✅ archetype_override.yaml で管理グループに割り当て" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="455" width="340" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend6" value="✅ 変更は必ずPRレビューを通して適用" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#333333;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="480" width="340" height="20" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
