@@ -70,11 +70,13 @@
     pwsh
     ```
 
+---
+
 ### Azureの準備☁️
 
 まず、Azureのアカウントを作成します。
 
-すでにアカウントをお持ちの方でクリーンな環境があるならばそちらを使ってもいいです。
+※できるだけクリーンな環境でやりたいのですでに持っている方も新しく作るのをおすすめします。アカウントは何個でも作れます。
 
 以下のURLから作成してください。（従量課金を選んでください）
 
@@ -124,10 +126,28 @@ https://azure.microsoft.com/ja-jp/pricing/purchase-options/azure-account
     ALZ-Security     44444444-4444-4444-4444-444444444444  aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
     ```
     
-    これらのIDを控えておきます。
+    これらのサブスクリプションIDとテナントIDを控えておきます。
 
 !!! warning "命名規則⚠️"
     Subscription名は組織の命名規則に従ってください。この教科書では「ALZ-」プレフィックスを使用します。
+---
+
+### Azureの権限割り当て☁️
+
+ランディングゾーンのデプロイでTenant Root グループの権限が必要なので、設定していきます。
+
+Azureポータルを開き、「EntraID」→左ペインの「プロパティ」→「Azureリソースのアクセス管理」を「オン」にして、「保存」を押しましょう。
+
+![alt text](./img/image60.png)
+
+Azureポータルを一度リロードし、「管理グループ」→「Tenant Root Group」→「アクセス制御 (IAM)」→ロールの追加から、所有者権限を自分に付与します。
+
+![alt text](./img/image61.png)
+
+ロール割り当て画面
+
+![alt text](./img/image62.png)
+
 
 ---
 
@@ -240,13 +260,8 @@ ALZ  6.0.5              PSGallery
 
 ### 対話モードでやっていきましょう🗣️
 
-最初にaz loginでazureにログインしておきます。
+⚠️ここからの手順は私の動作確認時から変更になる可能性があります。基本的に質問形式なので、質問に答えていけば大丈夫ですが、英語なので分からない人は適宜翻訳しながらやっていきましょう。
 
-※Tenant Root Groupに所有者権限を持っているアカウントでログインしてください。
-
-```
-az login
-```
 
 対話形式でBootstrap設定を行います。
 
@@ -257,7 +272,25 @@ Deploy-Accelerator
 
 **起動すると質問が始まります**：
 
-ここから質問が始まるので答えていきます。まず、4回連続そのままEnterでいいです。
+ここから質問が始まるので答えていきます。
+
+最初にAzureのテナントIDを聞かれるので、「Azureの準備」でメモしておいたテナントIDを入れてください。
+
+忘れた場合はAzureポータルからも確認できます。
+
+```
+Enter your Azure Tenant ID (GUID): ←AzureのテナントIDを入力
+```
+
+テナントIDを入力してエンターを押すとAzureのログインが求められるので、権限を割り当てたユーザーでログインします。
+
+ログインすると以下のようになるのでそのままエンター
+
+```
+Select a subscription and tenant (Type a number or Enter for no changes):　←そのままenterでOK
+```
+
+次に、4回連続そのままEnterでいいです。
 
 ```
 Enter the target folder path for the accelerator files (default: ~/accelerator):
@@ -476,6 +509,10 @@ Would you like to open the config folder in VS Code? (Y/n):Y ←Yを入力
 
 そしたら「inputs.yaml」にこれまで入力してきた内容が書いてあるので確認しましょう！
 
+⚠️筆者が動作確認したとき、「inputs.yaml」の「apply_approvers」が入らないバグがありました。もし入っていない場合、自分のgithubアカウント名を手入力してください。
+
+![alt text](./img/image63.png)
+
 そして、ランディングゾーンの重要設定ファイルである「platform-landing-zone.tfvars」がいよいよ登場です！
 
 ここでいろいろ設定できます!が、今回は必須のところだけ設定しましょう！
@@ -505,6 +542,10 @@ ddos_protection_plan_enabled = false
 ※注意:プライマリとセカンダリがあるので両方に設定してください。
 
 4か所にzones = [] を追加してください。
+
+⚠️terraformはフォーマットに厳しく、後で=を縦で揃えろと怒られます。以下の画像を参考にzonesを追加するところの=をそろえるように注意してください。
+
+![alt text](./img/image64.png)
 
 ```
 bastion = {
@@ -761,6 +802,8 @@ GitHub ActionsからAzureへの認証設定が作成されます。
 
 次の章では、実際にLanding Zonesをデプロイします（Phase 2）。
 
+---
+
 ## 練習問題📝
 
 理解度チェックです。休憩中に考えてみましょう。
@@ -786,7 +829,7 @@ Federated Credentialで設定する`subject`の値は何を表していますか
 これらがBootstrap環境の基盤になります。
 
 ### 答え2
-**複数人でTerraformを実行してもState情報を共有できるから**です。
+複数人でTerraformを実行してもState情報を共有できるからです。
 
 ローカルState（❌）:
 ```
@@ -802,10 +845,10 @@ Federated Credentialで設定する`subject`の値は何を表していますか
 → 開発者Aの変更が見える
 ```
 
-また、**State Lockingにより同時実行を防止**できます。
+また、State Lockingにより同時実行を防止できます。
 
 ### 答え3
-**どのGitHubリポジトリ・ブランチからの認証を許可するか**を表しています。
+どのGitHubリポジトリ・ブランチからの認証を許可するかを表しています。
 
 ```hcl
 subject = "repo:myorg/alz-mgmt:ref:refs/heads/main"
@@ -817,11 +860,12 @@ repo:{organization}/{repository}:ref:refs/heads/{branch}
 ```
 
 例:
+
 - `repo:myorg/alz-mgmt:ref:refs/heads/main` → mainブランチからのみ許可
 - `repo:myorg/alz-mgmt:ref:refs/heads/develop` → developブランチからのみ許可
 - `repo:myorg/alz-mgmt:pull_request` → Pull Requestからも許可
 
-これにより、**特定のリポジトリ・ブランチからのみAzure認証を許可**できます。
+これにより、特定のリポジトリ・ブランチからのみAzure認証を許可できます。
 
 !!! tip "次の章へ⏭️"
     [03_IaCのランディングゾーン環境を作ってみよう(続き).md](03_IaCのランディングゾーン環境を作ってみよう(続き).md)で、Landing Zonesのデプロイと検証を学びます。

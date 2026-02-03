@@ -2017,7 +2017,7 @@ Terraform will perform the following actions:
 Plan: 1 to add, 0 to change, 0 to destroy.
 ```
 
-**必ずplanで確認してからapply**しましょう。
+必ずplanで確認してからapplyしましょう。
 
 ### 🅰️ 答え3
 
@@ -2043,6 +2043,7 @@ Plan: 1 to add, 0 to change, 0 to destroy.
    特定のリソースをポリシーから除外できます。
 
 4. **ドキュメント更新**
+
    - ポリシー変更の理由
    - 影響範囲
    - ロールバック手順
