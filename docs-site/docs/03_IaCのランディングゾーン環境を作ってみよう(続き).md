@@ -19,7 +19,7 @@
 
     **手順**:
     
-    1. GitHubリポジトリにアクセス
+    1. GitHubリポジトリ「alz-mgmt」にアクセス
     2. Actionsタブをクリック
     3. 「02 Azure Landing Zone Continuous Delivery」を選択
     4. 「Run workflow」をクリック
@@ -225,6 +225,8 @@ graph LR
 
 しばらく待つと、ブラウザでこんな画面が開きます。
 
+ℹ️GitHub CopilotとGitHub Codespaceは超強力な筆者激推しツールなので、是非このハンズオンで使ってみてください。
+
 ![alt text](./img/image31.png)
 
 「lib/archetype_definitions/connectivity_custom.alz_archetype_override.yaml」を開いて編集していきましょう。
@@ -232,6 +234,8 @@ graph LR
 このファイルではAzureポリシーの割り当てをカスタマイズできます。
 
 removeのところにDDOSのポリシーを削除する例が書いてあるので、コメントの「#」を削除して、削除する対象としましょう。
+
+⚠️#の右側のスペースも削除してインデントを合わせてください
 
 ![alt text](./img/image46.png)
 
@@ -295,13 +299,14 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 機能の有効無効の箇所を探して、falseに設定していきましょう。
 
-※画像ではdnsが「true」で残ってますが、全部「false」にしてください。
+※下記画像参照。dnsは残してください。
 
 ![alt text](./img/image38.png)
 
 すぐ下のセカンダリの部分も同じように設定します。
 
 ![alt text](./img/image39.png)
+
 
 
 変更したら、ターミナルで以下のコマンドを実行して、変更をリポジトリに反映していきます。
@@ -337,7 +342,6 @@ git branch -D feature/delete-resources
 
 デプロイが終わると、高額のリソースが削除されるのでAzureポータルで確認しましょう。
 
-※VNet、Azureポリシーは無料のリソースなので残しておいて大丈夫
 
 ![alt text](./img/image45.png)
 
@@ -434,6 +438,8 @@ CIが終わったら、承認待ちになるので、先ほどと同じように
 
 次の章では、Landing Zonesの運用管理の基礎を学びます。
 
+---
+
 ## 練習問題📝
 
 理解度チェックです。休憩中に考えてみましょう。
@@ -453,7 +459,7 @@ Landing Zonesのデプロイに失敗した場合、
 ## 練習問題の答え💡
 
 ### 答え1
-**GitHub Actionsのワークフロー実行ログ**です。
+GitHub Actionsのワークフロー実行ログです。
 
 GitHub → Actions → 該当のワークフロー実行:
 ```
@@ -466,11 +472,13 @@ Terraform Apply  # ← ここでエラー
 ```
 
 エラーメッセージから原因を特定：
+
 - **OIDC認証エラー**: Federated Credentialの設定ミス
 - **権限エラー**: Managed Identityのロール不足
 - **Terraformエラー**: 設定ファイルの間違い
 
 ### 答え2
+
 1. **管理グループ**：階層構造が正しく作成されているか
 2. **ポリシー割り当て**：適切な管理グループに割り当てられているか
 3. **リソースグループ**：management、connectivityなどが作成されているか
@@ -488,7 +496,7 @@ az policy assignment list --scope /providers/Microsoft.Management/managementGrou
 ```
 
 ### 答え3
-**Terraformで管理しているリソースの一覧を確認**するために使います。
+Terraformで管理しているリソースの一覧を確認するために使います。
 
 ```bash
 terraform state list
@@ -505,6 +513,7 @@ azurerm_firewall.connectivity
 ```
 
 これにより：
+
 - どのリソースがTerraformで管理されているか確認
 - デプロイ漏れがないかチェック
 - Stateファイルの整合性確認
