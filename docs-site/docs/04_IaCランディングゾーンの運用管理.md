@@ -667,6 +667,8 @@ OK!グラフが一直線で綺麗になりました。この一連の流れがGi
 
 YAMLファイルを追加するだけで、サブスクリプションが自動作成される仕組みを作ります。
 
+⚠️最後にサブスクリプションを作成してから24時間以上経っていないとterraformでのサブスクリプション作成がタイムアウトしてしまいます。その場合、時間を空けてください。
+
 #### 事前準備：権限追加
 
 サブスクリプションの作成に必要な権限を追加します。
@@ -707,8 +709,6 @@ mkdir -p subscriptions
 ```hcl title="main.subscription.vending.tf（新規作成）"
 # ========================================
 # Terraformのサブスクリプションリソースの実装
-# モジュールを使わず、azurerm_subscriptionリソースを使用
-# ALZモジュールとの互換性維持のため
 # ========================================
 
 locals {
@@ -728,6 +728,10 @@ data "azurerm_management_group" "subscription_target" {
   for_each = local.subscriptions
 
   name = each.value.management_group_id
+
+  depends_on = [
+    module.management_groups
+  ]
 }
 
 # データソースでBilling Scopeを取得
@@ -749,14 +753,20 @@ resource "azurerm_subscription" "this" {
   workload          = lookup(each.value, "workload_type", "Production")
 
   tags = lookup(each.value, "tags", {})
-
-  # ライフサイクル: サブスクリプションは削除せず、管理グループのみ変更可能
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
-# 手順5: 管理グループへの関連付け
+# 手順5: Subscription Alias に対するロール割り当て
+resource "azurerm_role_assignment" "alias_plan" {
+  for_each = local.subscriptions
+
+  scope                = "/providers/Microsoft.Subscription/aliases/${each.key}"
+  role_definition_name = "Owner"
+  principal_id         = var.plan_service_principal_object_id
+
+  depends_on = [azurerm_subscription.this]
+}
+
+# 手順6: 管理グループへの関連付け
 resource "azurerm_management_group_subscription_association" "this" {
   for_each = local.subscriptions
 
@@ -766,7 +776,7 @@ resource "azurerm_management_group_subscription_association" "this" {
   depends_on = [azurerm_subscription.this]
 }
 
-# 手順6: リソースグループの作成
+# 手順7: リソースグループの作成
 locals {
   # 全サブスクリプションのリソースグループをフラット化
   subscription_resource_groups = merge([
@@ -781,22 +791,31 @@ locals {
   ]...)
 }
 
-resource "azurerm_resource_group" "this" {
+resource "azapi_resource" "resource_group" {
   for_each = local.subscription_resource_groups
 
-  name     = each.value.name
-  location = each.value.location
-  tags     = each.value.tags
+  type      = "Microsoft.Resources/resourceGroups@2024-03-01"
+  name      = each.value.name
+  location  = each.value.location
+  parent_id = "/subscriptions/${each.value.subscription_id}"
 
-  # プロバイダーエイリアスは使用せず、subscription_idで制御
+  body = {
+    properties = {}
+  }
+
+  tags = each.value.tags
+
   lifecycle {
     ignore_changes = [tags]
   }
 
-  depends_on = [azurerm_subscription.this]
+  depends_on = [
+    azurerm_subscription.this,
+    azurerm_role_assignment.alias_plan
+  ]
 }
 
-# 手順7: VNetの作成
+# 手順8: VNetの作成
 locals {
   # VNetが定義されているサブスクリプションを抽出
   vnets = {
@@ -810,22 +829,31 @@ locals {
   }
 }
 
-resource "azurerm_virtual_network" "this" {
+resource "azapi_resource" "virtual_network" {
   for_each = local.vnets
 
-  name                = each.value.name
-  location            = each.value.location
-  resource_group_name = each.value.resource_group_name
-  address_space       = each.value.address_space
-  tags                = each.value.tags
+  type      = "Microsoft.Network/virtualNetworks@2024-01-01"
+  name      = each.value.name
+  location  = each.value.location
+  parent_id = "/subscriptions/${each.value.subscription_id}/resourceGroups/${each.value.resource_group_name}"
+
+  body = {
+    properties = {
+      addressSpace = {
+        addressPrefixes = each.value.address_space
+      }
+    }
+  }
+
+  tags = each.value.tags
 
   depends_on = [
-    azurerm_resource_group.this,
+    azapi_resource.resource_group,
     azurerm_subscription.this
   ]
 }
 
-# 手順8: サブネットの作成
+# 手順9: サブネットの作成
 locals {
   # 全VNetのサブネットをフラット化
   subnets = merge([
@@ -842,18 +870,23 @@ locals {
   ]...)
 }
 
-resource "azurerm_subnet" "this" {
+resource "azapi_resource" "subnet" {
   for_each = local.subnets
 
-  name                 = each.value.name
-  resource_group_name  = each.value.resource_group_name
-  virtual_network_name = each.value.vnet_name
-  address_prefixes     = [each.value.address_prefix]
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-01-01"
+  name      = each.value.name
+  parent_id = "/subscriptions/${each.value.subscription_id}/resourceGroups/${each.value.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${each.value.vnet_name}"
 
-  depends_on = [azurerm_virtual_network.this]
+  body = {
+    properties = {
+      addressPrefix = each.value.address_prefix
+    }
+  }
+
+  depends_on = [azapi_resource.virtual_network]
 }
 
-# 手順9: Hub VNetへのピアリング
+# 手順10: Hub VNetへのピアリング
 locals {
   # Hub接続が必要なVNetを抽出
   # Hub VNet情報は既存のhub_and_spoke_vnetモジュールから自動取得
@@ -871,44 +904,60 @@ locals {
   )
 
   vnet_peerings = {
-    for sub_key, vnet in local.vnets :
-    sub_key => vnet
-    if lookup(vnet, "hub_peering_enabled", false) && local.hub_vnet_id != null
+    for sub_key, sub in local.subscriptions :
+    sub_key => merge(sub.virtual_network, {
+      subscription_key = sub_key
+    })
+    if lookup(sub, "virtual_network", null) != null &&
+    lookup(sub.virtual_network, "hub_peering_enabled", false)
   }
 }
 
 # Spoke → Hub のピアリング
-resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+resource "azapi_resource" "spoke_to_hub_peering" {
   for_each = local.vnet_peerings
 
-  name                      = "${each.value.name}-to-hub"
-  resource_group_name       = each.value.resource_group_name
-  virtual_network_name      = each.value.name
-  remote_virtual_network_id = local.hub_vnet_id
+  type      = "Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-01-01"
+  name      = "${each.value.name}-to-hub"
+  parent_id = "/subscriptions/${azurerm_subscription.this[each.value.subscription_key].subscription_id}/resourceGroups/${each.value.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${each.value.name}"
 
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = false
-  use_remote_gateways          = lookup(each.value, "use_hub_gateway", false)
+  body = {
+    properties = {
+      remoteVirtualNetwork = {
+        id = local.hub_vnet_id
+      }
+      allowVirtualNetworkAccess = true
+      allowForwardedTraffic     = true
+      allowGatewayTransit       = false
+      useRemoteGateways         = lookup(each.value, "use_hub_gateway", false)
+    }
+  }
 
-  depends_on = [azurerm_virtual_network.this]
+  depends_on = [azapi_resource.virtual_network]
 }
 
-# Hub → Spoke のピアリング
-resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+# Hub → Spoke のピアリング（connectivityサブスクリプションのプロバイダーを使用）
+resource "azapi_resource" "hub_to_spoke_peering" {
+  provider = azapi.connectivity
   for_each = local.vnet_peerings
 
-  name                      = "hub-to-${each.value.name}"
-  resource_group_name       = local.hub_vnet_resource_group
-  virtual_network_name      = local.hub_vnet_name
-  remote_virtual_network_id = azurerm_virtual_network.this[each.key].id
+  type      = "Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-01-01"
+  name      = "hub-to-${each.value.name}"
+  parent_id = local.hub_vnet_id
 
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = lookup(each.value, "use_hub_gateway", false)
-  use_remote_gateways          = false
+  body = {
+    properties = {
+      remoteVirtualNetwork = {
+        id = "/subscriptions/${azurerm_subscription.this[each.value.subscription_key].subscription_id}/resourceGroups/${each.value.resource_group_name}/providers/Microsoft.Network/virtualNetworks/${each.value.name}"
+      }
+      allowVirtualNetworkAccess = true
+      allowForwardedTraffic     = true
+      allowGatewayTransit       = lookup(each.value, "use_hub_gateway", false)
+      useRemoteGateways         = false
+    }
+  }
 
-  depends_on = [azurerm_virtual_network.this]
+  depends_on = [azapi_resource.virtual_network]
 }
 ```
 
@@ -920,23 +969,6 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
 # ========================================
 # Subscription Vending用の変数を追加
 # ========================================
-variable "hub_virtual_network_id" {
-  type        = string
-  description = "The resource ID of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
-  default     = null
-}
-
-variable "hub_virtual_network_name" {
-  type        = string
-  description = "The name of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
-  default     = null
-}
-
-variable "hub_virtual_network_resource_group_name" {
-  type        = string
-  description = "The resource group name of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
-  default     = null
-}
 
 variable "billing_account_name" {
   type        = string
@@ -955,6 +987,30 @@ variable "invoice_section_name" {
   description = "The Invoice Section name for MCA subscription creation"
   default     = null
 }
+
+variable "hub_virtual_network_id" {
+  type        = string
+  description = "The resource ID of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
+  default     = null
+}
+
+variable "hub_virtual_network_name" {
+  type        = string
+  description = "The name of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
+  default     = null
+}
+
+variable "hub_virtual_network_resource_group_name" {
+  type        = string
+  description = "The resource group name of the hub virtual network. Used as fallback when hub_and_spoke_vnet module is not deployed."
+  default     = null
+}
+
+variable "plan_service_principal_object_id" {
+  type        = string
+  description = "The Object ID of the Plan Service Principal used for Terraform Plan operations. This principal will be granted Owner role on Subscription Aliases for read access."
+  default     = null
+}
 ```
 
 #### 🗒️ Step 4: tfvarsファイルを更新
@@ -969,7 +1025,8 @@ variable "invoice_section_name" {
 
   "billing_account_name": "以下の手順で取得して設定",
   "billing_profile_name": "以下の手順で取得して設定",
-  "invoice_section_name": "以下の手順で取得して設定"
+  "invoice_section_name": "以下の手順で取得して設定",
+  "plan_service_principal_object_id": "plan用のサービスプリンシパルのオブジェクトIDを設定"
 }
 ```
 
@@ -989,9 +1046,13 @@ variable "invoice_section_name" {
 
 ![alt text](./img/image88.png)
 
+⚠️plan用のマネージドIDのオブジェクトIDも設定してください。
+
 
 
 #### 📨 Step 5: コミット&PR作成
+
+以下のコマンドを実行しましょう。
 
 
 ```
@@ -1070,7 +1131,7 @@ virtual_network:
   resource_group_name: "rg-test-network"
   address_space: ["10.200.0.0/16"]
   hub_peering_enabled: true
-  use_hub_gateway: true
+  use_hub_gateway: false
   subnets:
     - name: "snet-app"
       address_prefix: "10.200.1.0/24"
@@ -1080,7 +1141,11 @@ virtual_network:
       address_prefix: "10.200.3.0/24"
 ```
 
+⚠️vpngatewayは削除しているため、use_hub_gatewayはfalseにしましょう。
+
 #### 📨 Step 2: PR作成&Plan確認
+
+以下のコマンドを実行してください。
 
 ```
 # feature ブランチ作成
