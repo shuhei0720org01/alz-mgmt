@@ -815,7 +815,24 @@ resource "azapi_resource" "resource_group" {
   ]
 }
 
-# 手順8: VNetの作成
+# 手順8: リソースプロバイダーの登録
+# 新しいサブスクリプションではMicrosoft.Networkが登録されていないため、
+# VNet作成前に登録が必要
+resource "azapi_resource_action" "register_network_provider" {
+  for_each = local.subscriptions
+
+  type        = "Microsoft.Resources/providers@2022-09-01"
+  resource_id = "/subscriptions/${azurerm_subscription.this[each.key].subscription_id}/providers/Microsoft.Network"
+  action      = "register"
+  method      = "POST"
+
+  depends_on = [
+    azurerm_subscription.this,
+    azurerm_role_assignment.alias_plan
+  ]
+}
+
+# 手順9: VNetの作成
 locals {
   # VNetが定義されているサブスクリプションを抽出
   vnets = {
@@ -849,11 +866,53 @@ resource "azapi_resource" "virtual_network" {
 
   depends_on = [
     azapi_resource.resource_group,
-    azurerm_subscription.this
+    azurerm_subscription.this,
+    azapi_resource_action.register_network_provider,
+    module.management_groups
   ]
 }
 
-# 手順9: サブネットの作成
+# 手順10: NSGの作成
+locals {
+  # 全VNetのサブネット用NSGをフラット化
+  nsgs = merge([
+    for sub_key, vnet in local.vnets : {
+      for subnet in lookup(vnet, "subnets", []) :
+      "${sub_key}-${subnet.name}" => {
+        name                = "nsg-${subnet.name}"
+        vnet_name           = vnet.name
+        resource_group_name = vnet.resource_group_name
+        subscription_id     = vnet.subscription_id
+        location            = vnet.location
+        tags                = vnet.tags
+      }
+    }
+  ]...)
+}
+
+resource "azapi_resource" "nsg" {
+  for_each = local.nsgs
+
+  type      = "Microsoft.Network/networkSecurityGroups@2024-01-01"
+  name      = each.value.name
+  location  = each.value.location
+  parent_id = "/subscriptions/${each.value.subscription_id}/resourceGroups/${each.value.resource_group_name}"
+
+  body = {
+    properties = {
+      securityRules = []
+    }
+  }
+
+  tags = each.value.tags
+
+  depends_on = [
+    azapi_resource.resource_group,
+    azapi_resource_action.register_network_provider
+  ]
+}
+
+# 手順11: サブネットの作成
 locals {
   # 全VNetのサブネットをフラット化
   subnets = merge([
@@ -865,6 +924,8 @@ locals {
         resource_group_name = vnet.resource_group_name
         address_prefix      = subnet.address_prefix
         subscription_id     = vnet.subscription_id
+        nsg_key             = "${sub_key}-${subnet.name}"
+        vnet_key            = sub_key
       }
     }
   ]...)
@@ -880,13 +941,22 @@ resource "azapi_resource" "subnet" {
   body = {
     properties = {
       addressPrefix = each.value.address_prefix
+      networkSecurityGroup = {
+        id = azapi_resource.nsg[each.value.nsg_key].id
+      }
     }
   }
 
-  depends_on = [azapi_resource.virtual_network]
+  # VNet単位で排他制御（同一VNetへのサブネット操作は順次実行される）
+  locks = [azapi_resource.virtual_network[each.value.vnet_key].id]
+
+  depends_on = [
+    azapi_resource.virtual_network,
+    azapi_resource.nsg
+  ]
 }
 
-# 手順10: Hub VNetへのピアリング
+# 手順12: Hub VNetへのピアリング
 locals {
   # Hub接続が必要なVNetを抽出
   # Hub VNet情報は既存のhub_and_spoke_vnetモジュールから自動取得
@@ -1184,7 +1254,13 @@ GitHub Actionsが自動実行されるので、リポジトリに戻って確認
 
 #### 🔍 Step 3: 作成確認
 
-Azureポータルで確認すると、サブスクリプションとSpokeのVNetが作成されているのが確認できます！
+Azureポータルで確認すると、サブスクリプションが作成されているのが確認できます！
+
+![alt text](./img/image91.png)
+
+ちゃんとVNetも払い出されています。
+
+![alt text](./img/image92.png)
 
 現場では、申請チケットと連動して自動でyamlファイルを作るようにすると、サブスクリプションの作成が完全に自動化できますよ(^▽^)/
 
@@ -1265,15 +1341,8 @@ ALZでは、カスタムポリシーを**コードで管理**できます。
 
 ### 📝 Step 1: カスタムポリシー定義を作成
 
-#### 🌱 1-1: ブランチ作成
 
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/add-iac-compliance-policy
-```
-
-#### 📄 1-2: ポリシー定義ファイルを作成
+#### 📄 1-1: ポリシー定義ファイルを作成
 
 `lib/policy_definitions/`ディレクトリに新しいファイルを作成：
 
@@ -1281,7 +1350,9 @@ git checkout -b feature/add-iac-compliance-policy
 mkdir -p lib/policy_definitions
 ```
 
-```json title="lib/policy_definitions/policy_definition_audit_non_terraform_resources.json（新規作成）"
+作成したディレクトリに「Audit-Non-Terraform-Resources.alz_policy_definition.json」を作成し、以下記入してください。
+
+```json title="lib/policy_definitions/Audit-Non-Terraform-Resources.alz_policy_definition.json（新規作成）"
 {
   "name": "Audit-Non-Terraform-Resources",
   "type": "Microsoft.Authorization/policyDefinitions",
@@ -1372,7 +1443,9 @@ mkdir -p lib/policy_definitions
 mkdir -p lib/policy_set_definitions
 ```
 
-```json title="lib/policy_set_definitions/policy_set_definition_iac_compliance.json（新規作成）"
+作成したディレクトリに「IaC-Compliance-Initiative.alz_policy_set_definition.json」を作成し、以下の内容を記入してください。
+
+```json title="lib/policy_set_definitions/IaC-Compliance-Initiative.alz_policy_set_definition.json（新規作成）"
 {
   "name": "IaC-Compliance-Initiative",
   "type": "Microsoft.Authorization/policySetDefinitions",
@@ -1431,169 +1504,129 @@ mkdir -p lib/policy_set_definitions
 
 ---
 
-### 🏷️ Step 3: ポリシー・イニシアティブを割り当て
+### 🏷️ Step 3: アーキタイプに登録
 
-作成したポリシーとイニシアティブを、管理グループに割り当てます。
+作成したポリシーとイニシアティブを、アーキタイプに登録します。ここに登録すると、定義を自動で定義を作成してくれます。楽！
 
 #### 📝 3-1: アーキタイプに登録
 
-`lib/archetype_definitions/platform_custom.alz_archetype_override.yaml`を編集：
+`lib/archetype_definitions/root_custom.alz_archetype_override.yaml`を編集：
 
-```yaml title="lib/archetype_definitions/platform_custom.alz_archetype_override.yaml"
-name: platform_custom
-base_archetype: platform
+ポリシーのところを追加します！（さっき追加したファイル名の冒頭が名前になります）
 
-# ポリシー定義を登録
-policy_definitions:
-  - Audit-Non-Terraform-Resources
+```yaml title="lib/archetype_definitions/root_custom.alz_archetype_override.yaml"
+base_archetype: root
+name: root_custom
+policy_assignments_to_add: []
+policy_assignments_to_remove: []
+policy_definitions_to_add: [
+  Audit-Non-Terraform-Resources
+]
+policy_definitions_to_remove: []
+policy_set_definitions_to_add: [
+  IaC-Compliance-Initiative
+]
+policy_set_definitions_to_remove: []
+role_definitions_to_add: []
+role_definitions_to_remove: []
 
-# イニシアティブ（ポリシーセット）を登録
-policy_set_definitions:
-  - IaC-Compliance-Initiative
+```
+### 🏷️ Step 4: ポリシーの割り当てを定義
 
-# イニシアティブを割り当て
-policy_assignments:
-  - policy_assignment_name: IaC-Compliance
-    display_name: "IaC準拠チェックポリシー"
-    policy_set_definition_name: IaC-Compliance-Initiative
-    scope_type: "management_group"
-    parameters:
-      auditNonTerraformEffect:
-        value: "Audit"  # まずは監査モードで
-    enforcement_mode: "Default"
-    identity:
-      type: "None"
+ポリシーの割り当てを作成します。今回はplatform管理グループに割り当てることとしましょう。
+
+`lib/policy_assignments/`ディレクトリに新しいファイルを作成：
+
+```bash
+mkdir -p lib/policy_assignments
+```
+作成したディレクトリに「Assign-IaC-Compliance.alz_policy_assignment.json」を作成し、以下の内容を記入してください。
+
+```json title="lib/policy_assignments/Assign-IaC-Compliance.alz_policy_assignment.json（新規作成）"
+{
+  "name": "Assign-IaC-Compliance",
+  "type": "Microsoft.Authorization/policyAssignments",
+  "apiVersion": "2022-06-01",
+  "properties": {
+    "displayName": "IaC準拠チェックポリシー割り当て",
+    "description": "Terraform等のIaCツールで管理されていないリソースを検出します",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/placeholder/providers/Microsoft.Authorization/policySetDefinitions/IaC-Compliance-Initiative",
+    "parameters": {
+      "auditNonTerraformEffect": {
+        "value": "Audit"
+      }
+    },
+    "nonComplianceMessages": [
+      {
+        "message": "このリソースはTerraformで管理されていません。deployed_byタグにterraformを設定してください。"
+      }
+    ],
+    "enforcementMode": "Default"
+  },
+  "location": "japaneast",
+  "identity": {
+    "type": "None"
+  }
+}
 ```
 
-!!! info "割り当て先の選び方ℹ️ "
-    - **root**: すべての管理グループに適用（全社ルール）
-    - **platform**: プラットフォームリソースのみ
-    - **landing-zones**: アプリケーションLZ全体
-    - **corp**: 本番環境のみ
-    - **online**: インターネット公開リソースのみ
+
 
 ---
 
 ### 🎯✨ やってみよう: 適用とテスト
 
-#### 📨 4-1: コミット&PR作成
+コミットとPR、マージして適用しましょう！
+
+#### 📨 5-1: コミット&PR作成
 
 ```bash
-# 作成したファイルをステージング
-git add lib/policy_definitions/policy_definition_audit_non_terraform_resources.json \
-        lib/policy_set_definitions/policy_set_definition_iac_compliance.json \
-        lib/archetype_definitions/platform_custom.alz_archetype_override.yaml
+# feature ブランチ作成
+git checkout -b feature/add-iac-compliance-policy
 
-# コミット
-git commit -m "feat: Add IaC compliance policy for platform resources
-
-- deployed_byタグがterraformでないリソースを検出するポリシーを追加
-- IaC準拠チェックイニシアティブを作成
-- Platform管理グループに割り当て（Auditモード）"
-
-# プッシュ
+# 変更をコミット、プッシュ
+git add .
+git commit -m "カスタムポリシーを追加"
 git push origin feature/add-iac-compliance-policy
 
 # PR作成
-gh pr create --base main --head feature/add-iac-compliance-policy \
-  --title "feat: Add IaC compliance policy" \
-  --body "Terraform以外で作成されたリソースを検出するポリシーを追加"
-```
+gh pr create --base main --head feature/add-iac-compliance-policy --title "カスタムポリシーを追加" --body "カスタムポリシーを追加"
 
-#### 🧪 4-2: GitHub ActionsでPlan確認
-
-PRを作成すると、GitHub Actionsが自動でTerraform Planを実行します。
-
-**期待される出力:**
-
-```hcl
-Terraform will perform the following actions:
-
-  # module.management_groups.azurerm_management_group_policy_definition.this["Audit-Non-Terraform-Resources"] will be created
-  + resource "azurerm_management_group_policy_definition" "this" {
-      + name                  = "Audit-Non-Terraform-Resources"
-      + display_name          = "Terraform以外で作成されたリソースを検出"
-      + policy_type           = "Custom"
-      + management_group_name = "platform"
-    }
-
-  # module.management_groups.azurerm_management_group_policy_set_definition.this["IaC-Compliance-Initiative"] will be created
-  + resource "azurerm_management_group_policy_set_definition" "this" {
-      + name                  = "IaC-Compliance-Initiative"
-      + display_name          = "IaC準拠チェックポリシーセット"
-      + policy_type           = "Custom"
-      + management_group_name = "platform"
-    }
-
-  # module.management_groups.azurerm_management_group_policy_assignment.this["IaC-Compliance"] will be created
-  + resource "azurerm_management_group_policy_assignment" "this" {
-      + name                 = "IaC-Compliance"
-      + management_group_id  = "/providers/Microsoft.Management/managementGroups/platform"
-      + enforcement_mode     = "Default"
-      + policy_definition_id = "..."
-    }
-
-Plan: 3 to add, 0 to change, 0 to destroy.
-```
-
-!!! success "3つのリソースが作成される🎉 "
-    1. ポリシー定義（Audit-Non-Terraform-Resources）
-    2. イニシアティブ（IaC-Compliance-Initiative）
-    3. ポリシー割り当て（Platform管理グループ）
-
-#### ✅ 4-3: マージ&適用
-
-Plan結果を確認して問題なければマージ：
-
-```bash
-# PRをマージ
+# PR番号を確認してマージ（squash mergeの例）
 gh pr merge --squash
 
-# ローカルのmainを更新
+# mainブランチに戻る
 git checkout main
+
+# 最新を取得
 git pull origin main
 
-# 作業ブランチを削除
+# ローカルブランチを強制削除
 git branch -D feature/add-iac-compliance-policy
 ```
 
-#### 🔍 4-4: Azure Portalで確認
+#### 🧪 5-2: GitHub ActionsでPlan確認
 
-マージから数分後、Azure Portalで確認できます：
+ci/cdが実行されるので、planを確認してデプロイ内容を確認しましょう。
 
-```bash
-# ポリシー定義を確認
-az policy definition show \
-  --management-group platform \
-  --name "Audit-Non-Terraform-Resources" \
-  --query "{Name:name, DisplayName:displayName, PolicyType:policyType}" -o table
+#### ✅ 5-3: デプロイ
 
-# イニシアティブを確認
-az policy set-definition show \
-  --management-group platform \
-  --name "IaC-Compliance-Initiative" \
-  --query "{Name:name, DisplayName:displayName}" -o table
+Plan結果を確認して問題なければ承認してデプロイしましょう！
 
-# 割り当てを確認
-az policy assignment list \
-  --scope "/providers/Microsoft.Management/managementGroups/platform" \
-  --query "[?displayName=='IaC準拠チェックポリシー'].{Name:name, EnforcementMode:enforcementMode}" -o table
-```
 
-**出力例:**
-```
-Name                          DisplayName                              PolicyType
-----------------------------  ---------------------------------------  ----------
-Audit-Non-Terraform-Resources Terraform以外で作成されたリソースを検出  Custom
+#### 🔍 5-4: Azure Portalで確認
 
-Name                        DisplayName
---------------------------  ----------------------------
-IaC-Compliance-Initiative   IaC準拠チェックポリシーセット
+承認から数分後、Azure Portalで確認できます
 
-Name             EnforcementMode
----------------  ---------------
-IaC-Compliance   Default
-```
+ポリシー定義
+
+![alt text](./img/image94.png)
+
+ポリシー割り当て
+
+![alt text](./img/image93.png)
+
+
 
 ---
 
@@ -1601,38 +1634,65 @@ IaC-Compliance   Default
 
 非準拠リソースが全て修正されたら、Denyモードに変更して、今後の手動作成を防ぎます。
 
-#### 📝 5-1: Denyモードに変更
+#### 📝 6-1: Denyモードに変更
+
+`lib/policy_assignments/Assign-IaC-Compliance.alz_policy_assignment.json`を編集して、
+
+「auditNonTerraformEffect」パラメーターを「Audit」から「Deny」に変更しましょう！
+
+```yaml title="lib/policy_assignments/Assign-IaC-Compliance.alz_policy_assignment.json（編集）"
+{
+  "name": "Assign-IaC-Compliance",
+  "type": "Microsoft.Authorization/policyAssignments",
+  "apiVersion": "2022-06-01",
+  "properties": {
+    "displayName": "IaC準拠チェックポリシー割り当て",
+    "description": "Terraform等のIaCツールで管理されていないリソースを検出します",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/placeholder/providers/Microsoft.Authorization/policySetDefinitions/IaC-Compliance-Initiative",
+    "parameters": {
+      "auditNonTerraformEffect": {
+        "value": "Deny"  # ←AuditからDenyに変更
+      }
+    },
+    "nonComplianceMessages": [
+      {
+        "message": "このリソースはTerraformで管理されていません。deployed_byタグにterraformを設定してください。"
+      }
+    ],
+    "enforcementMode": "Default"
+  },
+  "location": "japaneast",
+  "identity": {
+    "type": "None"
+  }
+}
+```
+
+変更を保存して適用しましょう！
 
 ```bash
+# feature ブランチ作成
 git checkout -b feature/enforce-iac-compliance-policy
-```
 
-`lib/archetype_definitions/platform_custom.alz_archetype_override.yaml`を編集：
-
-```yaml title="lib/archetype_definitions/platform_custom.alz_archetype_override.yaml（編集）"
-policy_assignments:
-  - policy_assignment_name: IaC-Compliance
-    display_name: "IaC準拠チェックポリシー"
-    policy_set_definition_name: IaC-Compliance-Initiative
-    scope_type: "management_group"
-    parameters:
-      auditNonTerraformEffect:
-        value: "Deny"  # Audit → Deny に変更
-    enforcement_mode: "Default"
-    identity:
-      type: "None"
-```
-
-```bash
-git add lib/archetype_definitions/platform_custom.alz_archetype_override.yaml
-git commit -m "feat: Enforce IaC compliance policy (Audit -> Deny)"
+# 変更をコミット、プッシュ
+git add .
+git commit -m "カスタムポリシーを強制に変更"
 git push origin feature/enforce-iac-compliance-policy
 
-gh pr create --base main --head feature/enforce-iac-compliance-policy \
-  --title "feat: Enforce IaC compliance policy" \
-  --body "IaC準拠ポリシーをDenyモードに変更"
+# PR作成
+gh pr create --base main --head feature/enforce-iac-compliance-policy --title "カスタムポリシーを強制に変更" --body "カスタムポリシーを強制に変更"
 
+# PR番号を確認してマージ（squash mergeの例）
 gh pr merge --squash
+
+# mainブランチに戻る
+git checkout main
+
+# 最新を取得
+git pull origin main
+
+# ローカルブランチを強制削除
+git branch -D feature/enforce-iac-compliance-policy
 ```
 
 !!! warning "Denyモードの影響⚠️ "
@@ -1650,223 +1710,10 @@ gh pr merge --squash
 
 ---
 
-### 🎯✨ やってみよう: ポリシーの適用除外
-
-Terraform自体が動作するために必要なリソース（マネージドIDやStateファイル用ストレージアカウント）は、ブートストラップ時に手動で作成されます。
-
-これらはTerraformより先に存在する必要があるため、`deployed_by=terraform`タグを持っていません。こういったリソースを適用除外にしてみましょう。
-
-#### 📝 シナリオ
-
-「IaC準拠チェックポリシー」が適用されているが、以下のTerraformインフラリソースは例外として除外したい：
-
-- **マネージドID**: GitHub ActionsからAzureにアクセスするための認証用
-- **ストレージアカウント**: Terraform Stateファイルを保存するためのバックエンド
-
----
-
-#### 🌱 Step 1: ブランチ作成
-
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/add-terraform-infra-exemption
-```
-
----
-
-#### 📄 Step 2: 適用除外定義ファイルを作成
-
-`lib/policy_exemptions/`ディレクトリに新しいファイルを作成します。
-
-```bash
-mkdir -p lib/policy_exemptions
-```
-
-```json title="lib/policy_exemptions/exemption_terraform_infrastructure.json（新規作成）"
-{
-  "name": "Exempt-Terraform-Infrastructure",
-  "type": "Microsoft.Authorization/policyExemptions",
-  "apiVersion": "2022-07-01-preview",
-  "properties": {
-    "displayName": "Terraformインフラリソースの適用除外",
-    "description": "Terraform自体の動作に必要なマネージドIDとストレージアカウントはIaC準拠ポリシーの対象外とする",
-    "exemptionCategory": "Mitigated",
-    "policyAssignmentId": "/providers/Microsoft.Management/managementGroups/yourorg-platform/providers/Microsoft.Authorization/policyAssignments/IaC-Compliance",
-    "resourceSelectors": [
-      {
-        "name": "TerraformInfraResources",
-        "selectors": [
-          {
-            "kind": "resourceType",
-            "in": [
-              "Microsoft.ManagedIdentity/userAssignedIdentities",
-              "Microsoft.Storage/storageAccounts"
-            ]
-          }
-        ]
-      }
-    ],
-    "metadata": {
-      "requestedBy": "Platform Team",
-      "approvedBy": "Security Team",
-      "reason": "ブートストラップ時に作成されるTerraformインフラリソース。Terraformより先に存在する必要があるため、deployed_byタグを持たない。",
-      "ticketNumber": "INFRA-00001"
-    }
-  }
-}
-```
-
-!!! info "適用除外の種類ℹ️"
-    - **Waiver（免除）**: 一時的な免除。期限を設定することを推奨
-    - **Mitigated（軽減済み）**: 別の方法でリスク軽減済み
-
-!!! warning "適用除外の注意点⚠️"
-    - 適用除外には必ず**有効期限**を設定しましょう
-    - 誰が申請し、誰が承認したかをmetadataに記録
-    - チケット番号を紐づけて追跡可能にする
-
-!!! info "なぜMitigatedカテゴリ？ℹ️"
-    - **Mitigated（軽減済み）**: このリソースは手動作成だが、ブートストラップドキュメントで管理されており、リスクは軽減されている
-    - **有効期限なし**: インフラリソースは恒久的に必要なため、期限を設定しない
-
-!!! tip "除外対象のリソース例💡"
-    - `id-alz-terraform-plan`: Terraform Plan用マネージドID
-    - `id-alz-terraform-apply`: Terraform Apply用マネージドID
-    - `stalzstate001`: Terraform Stateファイル用ストレージアカウント
-
----
-
-#### 🗂️ Step 3: archetype_overrideに追加
-
-`lib/archetype_definitions/platform_custom.alz_archetype_override.yaml`を編集して、適用除外を追加します。
-
-```yaml title="lib/archetype_definitions/platform_custom.alz_archetype_override.yaml（編集）"
-name: platform_custom
-base_archetype: platform
-
-# 既存の設定...
-
-# 適用除外を追加
-policy_exemptions:
-  - exemption_name: Exempt-Terraform-Infrastructure
-    display_name: "Terraformインフラリソースの適用除外"
-    description: "Terraform自体の動作に必要なマネージドIDとストレージアカウント"
-    exemption_category: "Mitigated"
-    policy_assignment_name: IaC-Compliance
-    resource_selectors:
-      - name: "TerraformInfraResources"
-        selectors:
-          - kind: "resourceType"
-            in:
-              - "Microsoft.ManagedIdentity/userAssignedIdentities"
-              - "Microsoft.Storage/storageAccounts"
-    metadata:
-      requested_by: "Platform Team"
-      approved_by: "Security Team"
-      reason: "ブートストラップ時に作成されるTerraformインフラリソース"
-      ticket_number: "INFRA-00001"
-```
-
----
-
-#### 🚀 Step 4: PRを作成してマージ
-
-```bash
-git add .
-git commit -m "feat: Add policy exemption for Terraform infrastructure resources
-
-- マネージドID（Terraform認証用）を除外
-- ストレージアカウント（State保存用）を除外"
-git push origin feature/add-terraform-infra-exemption
-
-gh pr create --base main --head feature/add-terraform-infra-exemption \
-  --title "feat: Add policy exemption for Terraform infrastructure" \
-  --body "## 概要
-Terraformインフラリソースに対するIaC準拠ポリシーの適用除外を追加
-
-## 背景
-ブートストラップ時に作成されるリソースは、Terraform自体より先に存在する必要があるため、
-deployed_by=terraformタグを持つことができません。
-
-## 除外対象
-- Microsoft.ManagedIdentity/userAssignedIdentities（認証用）
-- Microsoft.Storage/storageAccounts（State保存用）
-
-## 承認
-- 申請: Platform Team
-- 承認: Security Team
-- チケット: INFRA-00001"
-
-gh pr merge --squash
-```
-
----
-
-#### ✅ Step 5: 適用除外の確認
-
-デプロイ完了後、Azure Portalで確認します。
-
-=== "Azure Portal で確認"
-
-    1. **Azure Portal** → **ポリシー** → **除外** を開く
-    2. 「Terraformインフラリソースの適用除外」が表示されていることを確認
-    3. 対象リソースタイプがポリシー評価から除外されていることを確認
-
-=== "Azure CLI で確認"
-
-    ```bash
-    # 適用除外の一覧を取得
-    az policy exemption list \
-      --scope "/providers/Microsoft.Management/managementGroups/yourorg-platform" \
-      --output table
-    ```
-
-    **期待される出力:**
-    ```
-    Name                             DisplayName                              ExemptionCategory
-    -------------------------------  ---------------------------------------  -----------------
-    Exempt-Terraform-Infrastructure  Terraformインフラリソースの適用除外      Mitigated
-    ```
-
-=== "非準拠リソースの確認"
-
-    ```bash
-    # コンプライアンス状態を確認
-    az policy state list \
-      --management-group platform \
-      --filter "policyAssignmentName eq 'IaC-Compliance'" \
-      --query "[?complianceState=='NonCompliant'].{Resource:resourceId, State:complianceState}" \
-      --output table
-    ```
-    
-    適用除外したリソースは、この一覧に表示されなくなります。
-
----
-
-#### 🔄 Step 6: 適用除外の管理
-
-適用除外は定期的にレビューが必要です。
-
-```bash
-# 全ての適用除外を一覧表示
-az policy exemption list \
-  --scope "/providers/Microsoft.Management/managementGroups/yourorg" \
-  --query "[].{Name:name, Category:exemptionCategory, ExpiresOn:expiresOn}" \
-  --output table
-```
-
-!!! tip "適用除外のライフサイクル管理💡"
-    - 定期的に期限切れの適用除外をレビュー
-    - 不要になった適用除外は速やかに削除
-    - 更新が必要な場合は新しいチケットを発行して再承認
-
----
-
-### 🌟 ベストプラクティス
+### 🌟 カスタムポリシー開発のベストプラクティス
 
 !!! tip "段階的なロールアウト🚦 "
-    新しいポリシーは必ず段階的に：
+    新しいポリシーは段階的に：
     
     1. **Audit**: 監査モードで影響範囲を確認
     2. **修正**: 非準拠リソースを修正
@@ -1883,7 +1730,7 @@ az policy exemption list \
     - バージョン番号を付けて管理
 
 !!! tip "ドキュメント化📚 "
-    - PR本文に必ず影響範囲を記載
+    - PR本文に影響範囲を記載
     - ポリシーの目的と背景を明記
     - ロールバック手順も準備
 
@@ -1920,7 +1767,6 @@ az policy exemption list \
 - **イニシアティブ作成**: 複数ポリシーをまとめて管理
 - **archetype_override**: 管理グループへの割り当て
 - **段階的ロールアウト**: Audit → 修正 → Deny
-- **適用除外**: 例外ケースはExemptionで対応
 
 ---
 

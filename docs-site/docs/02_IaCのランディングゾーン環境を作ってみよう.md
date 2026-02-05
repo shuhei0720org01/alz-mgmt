@@ -208,6 +208,8 @@ https://github.com/organizations/plan
 
 つぎに、「Orgnizations」を選択して、以下の権限を追加しましょう。
 
+- Members
+
 これも「Read and write」にします。
 
 ![alt text](./img/image9.png)
@@ -262,6 +264,11 @@ ALZ  6.0.5              PSGallery
 
 ⚠️ここからの手順は私の動作確認時から変更になる可能性があります。基本的に質問形式なので、質問に答えていけば大丈夫ですが、英語なので分からない人は適宜翻訳しながらやっていきましょう。
 
+対話形式でAzureにログインするのでログアウトしておきましょう。
+
+```powershell
+az logout
+```
 
 対話形式でBootstrap設定を行います。
 
