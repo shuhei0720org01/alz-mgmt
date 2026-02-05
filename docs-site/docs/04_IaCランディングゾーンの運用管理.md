@@ -1736,6 +1736,22 @@ git branch -D feature/enforce-iac-compliance-policy
 
 ---
 
+## ランディングゾーンの削除
+
+最後にランディングゾーンをきれいに削除しておきましょう！
+
+terraformは削除も簡単にできます。
+
+githubの「alz-mgmt」に移動して、github actionsのdestroyを実行しましょう。
+
+![alt text](./img/image95.png)
+
+デプロイするときと同じように承認になるので、承認して削除しましょう。
+
+terraformでデプロイしたリソースがすべて削除されます。
+
+ℹ️terraformで管理していると削除しても、再度applyするだけで復元できます。これもIaCの良いところです。
+
 ## 📝 まとめ
 
 この章で学んだこと：
