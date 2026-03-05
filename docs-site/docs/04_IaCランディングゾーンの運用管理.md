@@ -181,7 +181,7 @@ terraform plan -detailed-exitcode
     **Step 2: コミット＆プッシュ**
 
     ```bash
-　　terraform fmt -recursive . && echo "✅ Complete!"
+    terraform fmt -recursive . && echo "✅ Complete!"
 
     # feature ブランチ作成
     git checkout -b feature/add-workflow
