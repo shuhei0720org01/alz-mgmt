@@ -1529,7 +1529,7 @@ role_definitions_to_remove: []
 
 さらに、割り当て先もここで定義します。Platform管理グループに割り当ててみましょう。
 
-`lib/archetype_definitions/rplatform_custom.alz_archetype_override.yaml`を編集：
+`lib/archetype_definitions/platform_custom.alz_archetype_override.yaml`を編集：
 
 ポリシー割り当てのところにイニシアティブを追加します！
 
