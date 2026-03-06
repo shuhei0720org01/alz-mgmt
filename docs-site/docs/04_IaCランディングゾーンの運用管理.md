@@ -1526,6 +1526,38 @@ role_definitions_to_add: []
 role_definitions_to_remove: []
 
 ```
+
+さらに、割り当て先もここで定義します。Platform管理グループに割り当ててみましょう。
+
+`lib/archetype_definitions/rplatform_custom.alz_archetype_override.yaml`を編集：
+
+ポリシー割り当てのところにイニシアティブを追加します！
+
+```
+base_archetype: platform
+name: platform_custom
+policy_assignments_to_add: [
+  Assign-IaC-Compliance
+]
+policy_assignments_to_remove: [
+# To disable AMA policies, uncomment the following lines:
+  # DenyAction-DeleteUAMIAMA,
+  # Deploy-MDFC-DefSQL-AMA,
+  # Deploy-VM-ChangeTrack,
+  # Deploy-VM-Monitoring,
+  # Deploy-vmArc-ChangeTrack,
+  # Deploy-vmHybr-Monitoring,
+  # Deploy-VMSS-ChangeTrack,
+  # Deploy-VMSS-Monitoring,
+]
+policy_definitions_to_add: []
+policy_definitions_to_remove: []
+policy_set_definitions_to_add: []
+policy_set_definitions_to_remove: []
+role_definitions_to_add: []
+
+```
+
 ### 🏷️ Step 4: ポリシーの割り当てを定義
 
 ポリシーの割り当てを作成します。今回はplatform管理グループに割り当てることとしましょう。
