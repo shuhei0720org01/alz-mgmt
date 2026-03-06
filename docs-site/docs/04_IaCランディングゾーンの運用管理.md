@@ -1472,7 +1472,7 @@ mkdir -p lib/policy_set_definitions
     "policyDefinitions": [
       {
         "policyDefinitionReferenceId": "AuditNonTerraformResources",
-        "policyDefinitionName": "Audit-Non-Terraform-Resources",
+        "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/placeholder/providers/Microsoft.Authorization/policyDefinitions/Audit-Non-Terraform-Resources",
         "parameters": {
           "effect": {
             "value": "[parameters('auditNonTerraformEffect')]"
